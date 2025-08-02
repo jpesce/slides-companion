@@ -47,6 +47,13 @@ function handleKeypresses(event, source) {
     log("Key pressed");
     log("├─ Event:", event);
     log("└─ Source:", source);
+    const interactiveTags = ['input', 'textarea', 'select'];
+    const isFocusedInInteractiveTag = document.activeElement && interactiveTags.includes(document.activeElement.tagName.toLowerCase());
+
+    if (isFocusedInInteractiveTag) {
+        log("Ignoring keypress because an interactive element is focused");
+        return;
+    }
 
     // Spacebar toggles zoom
     if (event.key === ' ') {
