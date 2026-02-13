@@ -18,6 +18,12 @@ document.addEventListener('DOMContentLoaded', function() {
     chrome.storage.local.set({ loggingEnabled: loggingToggle.checked });
   });
 
+  // Display the current shortcut based on platform
+  const shortcutElement = document.getElementById('editablePresentationShortcut');
+  const isMac = (navigator.userAgentData?.platform || navigator.userAgent || '').toUpperCase().indexOf('MAC') >= 0;
+  const shortcutText = isMac ? '⌘+Shift+F' : 'Ctrl+Shift+F';
+  shortcutElement.textContent = shortcutText;
+
   // Logo eyes follow mouse
   // Calculate the radius of the iris movement
   const iris = document.querySelector('.iris');

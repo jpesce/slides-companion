@@ -1,7 +1,6 @@
 // ===== iframe Observer =====
 let iframeAlreadyDetected = false;
 
-
 const iframeObserver = new MutationObserver((mutations) => {
     mutations.forEach(mutation => {
         mutation.addedNodes.forEach(node => {
@@ -32,11 +31,19 @@ function setupEventListeners(targetIframe) {
     targetIframe?.contentWindow?.addEventListener('keydown', (event) => handleKeypresses(event, "iframe content window"));
 }
 
-// The actual keypress handler
+function handleEditablePresentationShortcut(event) {
+    const cmdOrCtrl = isMac ? event.metaKey : event.ctrlKey;
+
+    if (cmdOrCtrl && event.shiftKey && event.key.toLowerCase() === 'f') {
+    event.preventDefault();
+    log('CMD/CTRL + SHIFT + F was pressed!');
+    editablePresentation.toggleEditablePresentation();
+    }
+};
+
 let lastKeypressTime = 0;
 const DEBOUNCE_DELAY = 250; // 0.25 seconds in milliseconds
-
-function handleKeypresses(event, source) {
+function handleImageZoomShortcut(event) {
     const currentTime = Date.now();
     if (currentTime - lastKeypressTime < DEBOUNCE_DELAY) {
         log("Ignoring rapid keypress");
@@ -44,9 +51,6 @@ function handleKeypresses(event, source) {
     }
     lastKeypressTime = currentTime;
 
-    log("Key pressed");
-    log("├─ Event:", event);
-    log("└─ Source:", source);
     const interactiveTags = ['input', 'textarea', 'select'];
     const isFocusedInInteractiveTag = document.activeElement && interactiveTags.includes(document.activeElement.tagName.toLowerCase());
 
@@ -85,6 +89,15 @@ function handleKeypresses(event, source) {
     else if (event.key === 'Escape' && imageZoom.isZoomed) {
         imageZoom.unzoom();
     }
+}
+
+function handleKeypresses(event, source) {
+    log("Key pressed");
+    log("├─ Event:", event);
+    log("└─ Source:", source);
+
+    handleEditablePresentationShortcut(event);
+    handleImageZoomShortcut(event);
 }
 
 // ===== Initialization =====

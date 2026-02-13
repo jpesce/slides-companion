@@ -17,3 +17,6 @@ chrome.storage.onChanged.addListener(function(changes) {
     options.loggingEnabled = changes.loggingEnabled.newValue;
   }
 });
+
+// ===== Platform Detection =====
+const isMac = (navigator.userAgentData?.platform || navigator.platform || '').toUpperCase().indexOf('MAC') >= 0;

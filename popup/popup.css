@@ -1,12 +1,14 @@
 :root {
   --background: 0 0% 100%;
   --foreground: 222.2 84% 4.9%;
+  --accent: 60, 100%, 50%;
   --primary: 0 0% 0%;
   --primary-foreground: 210 40% 98%;
   --muted: 210 40% 96.1%;
   --muted-foreground: 215.4 16.3% 60%;
   --border: 214.3 31.8% 91.4%;
   --radius: 0.5rem;
+  --radius-sm: 0.25rem;
 }
 
 body {
@@ -25,20 +27,27 @@ body {
   flex-direction: column;
   align-items: center;
   padding: 1rem;
-  border-bottom: 1px solid hsl(var(--border));
+  background-color: hsl(var(--accent));
 }
 
 .logo {
-  width: 80px;
-  height: 80px;
-  margin-bottom: 0.25rem;
+  width: 70px;
+  margin-bottom: -5px;
 }
 
 .title {
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: 1.5rem;
+  line-height: 1;
+  font-weight: 800;
+  letter-spacing: -0.5px;
   color: hsl(var(--foreground));
   text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.trademark {
+  position: absolute;
+  font-size: 70%;
 }
 
 .option-container {
@@ -46,12 +55,12 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 0.75rem 1rem;
-  border-radius: 0;
-  border: none;
+  /* border-top: 1px solid hsl(var(--border)); */
+  min-height: 1.75rem;
 }
 
 .option-label {
-  font-size: 0.875rem;
+  font-size: 0.9375rem;
   font-weight: 500;
   color: hsl(var(--foreground));
 }
@@ -107,4 +116,61 @@ input:checked + .slider:before {
 
 input:focus + .slider {
   box-shadow: 0 0 1px hsl(var(--primary));
+}
+
+.shortcut-key {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 0.75rem;
+  color: hsl(var(--foreground));
+  padding: 2px 8px;
+  border-radius: 4px;
+  background-color: hsl(var(--muted));
+  border: 1px solid hsl(var(--border));
+  transition: background-color 0.2s;
+}
+
+/* Tooltip styles */
+.tooltip {
+  position: relative;
+}
+
+.tooltip::before {
+  font-family: monospace;
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  transform: none;
+  padding: 0.25rem 0.5rem;
+  background-color: hsl(var(--foreground));
+  color: hsl(var(--background));
+  font-size: 0.75rem;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s, visibility 0.2s;
+  margin-bottom: 0.5rem;
+  z-index: 10;
+}
+
+.tooltip::after {
+  content: "";
+  position: absolute;
+  bottom: calc(100% - 0px);
+  right: 8px;
+  transform: none;
+  border-width: 4px;
+  border-style: solid;
+  border-color: hsl(var(--foreground)) transparent transparent transparent;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s, visibility 0.2s;
+  z-index: 10;
+}
+
+.tooltip:hover::before,
+.tooltip:hover::after {
+  opacity: 1;
+  visibility: visible;
 } 
