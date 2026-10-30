@@ -4,6 +4,7 @@ A free Chrome extension (Manifest V3) that improves presenting in Google Slides.
 
 - **Client-side only.** No servers, no accounts, no costs. Anything that needs a backend (audience polls, phone remote) is out of scope.
 - **Never replace Slides' player.** Sit on top of native Present mode so video, animations and clickers keep working.
+- **Look 100% native.** Everything we add or change in the interface must look like Google Slides built it. Don't invent design: for every UI decision, find the Slides component that already does something similar (a toolbar button, menu, dialog, side panel, tooltip, toggle) and match it exactly: placement, size, spacing, typography, colours, icons, hover/focus/active states, animations and wording. Measure the real element in a live deck (computed styles) rather than guessing, and before calling UI done, compare it side by side with the component it mirrors, in every theme Slides offers.
 - It's a rewrite of our Image Spotlight for Google Slides. Competitor code for reference is in `benchmark/` (index in `benchmark/README.md`). Only copy code whose license allows it.
 
 ## Commands
@@ -25,7 +26,7 @@ Rules:
 1. To see the board, list the filenames. Open only the card you're working on.
 2. Unless told otherwise, start with the lowest-numbered card in `todo/`. Move it with `git mv` to `doing/` when you start.
 3. Keep the card current while working: tick its "Done when" checklist, and record decisions, open questions or a changed approach.
-4. A card is finished when every "Done when" item is met and `npm test` passes. Delete the card in the same commit as the work, and name the card in the commit message.
+4. A card is finished when every "Done when" item is met, `npm test` passes, and any UI it adds passes the native-look comparison above. Delete the card in the same commit as the work, and name the card in the commit message.
 5. If a card is too big for one commit, split it into new cards.
 6. When an idea or follow-up comes up in conversation, add a card to `todo/` rather than leaving it in chat. Give it a number after the existing cards unless the user sets a priority.
 7. Every card states the user's problem, the evidence of demand, the approach and a "Done when" checklist. See the existing cards for the format.
