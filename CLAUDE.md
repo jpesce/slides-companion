@@ -1,0 +1,31 @@
+# Slides Companion
+
+A free Chrome extension (Manifest V3) that improves presenting in Google Slides.
+
+- **Client-side only.** No servers, no accounts, no costs. Anything that needs a backend (audience polls, phone remote) is out of scope.
+- **Never replace Slides' player.** Sit on top of native Present mode so video, animations and clickers keep working.
+- It's a rewrite of our Image Spotlight for Google Slides. Competitor code for reference is in `benchmark/` (index in `benchmark/README.md`). Only copy code whose license allows it.
+
+## Commands
+
+- `npm test`: Playwright tests in Chromium against the shared test deck (`tests/fixtures.js`).
+- `npm run dev`: watches `extension/` and auto-reloads the unpacked extension and open Slides tabs (in Dia/Chrome, not the test Chromium).
+- `npm run chromium`: opens a Chromium window with the extension loaded.
+
+## Kanban
+
+The board is `kanban/`: one markdown file per deliverable.
+
+- `kanban/todo/`: ready or upcoming work, named `NN-slug.md`. Lower number means higher priority; numbers step by 10 so a card can be slotted between two others.
+- `kanban/doing/`: what's in progress. Keep it to one card.
+- There is no done folder. Finished cards are deleted; git history is the record (`git log --diff-filter=D --stat -- kanban/`).
+
+Rules:
+
+1. To see the board, list the filenames. Open only the card you're working on.
+2. Unless told otherwise, start with the lowest-numbered card in `todo/`. Move it with `git mv` to `doing/` when you start.
+3. Keep the card current while working: tick its "Done when" checklist, and record decisions, open questions or a changed approach.
+4. A card is finished when every "Done when" item is met and `npm test` passes. Delete the card in the same commit as the work, and name the card in the commit message.
+5. If a card is too big for one commit, split it into new cards.
+6. When an idea or follow-up comes up in conversation, add a card to `todo/` rather than leaving it in chat. Give it a number after the existing cards unless the user sets a priority.
+7. Every card states the user's problem, the evidence of demand, the approach and a "Done when" checklist. See the existing cards for the format.
