@@ -5,6 +5,7 @@ A free Chrome extension (Manifest V3) that improves presenting in Google Slides.
 - **Client-side only.** No servers, no accounts, no costs. Anything that needs a backend (audience polls, phone remote) is out of scope.
 - **Never replace Slides' player.** Sit on top of native Present mode so video, animations and clickers keep working.
 - **Look 100% native.** Everything we add or change in the interface must look like Google Slides built it. Don't invent design: for every UI decision, find the Slides component that already does something similar (a toolbar button, menu, dialog, side panel, tooltip, toggle) and match it exactly: placement, size, spacing, typography, colours, icons, hover/focus/active states, animations and wording. Measure the real element in a live deck (computed styles) rather than guessing, and before calling UI done, compare it side by side with the component it mirrors, in every theme Slides offers.
+- **When a behaviour could reasonably go either way, make it a setting.** Ship the default most people would expect, and offer the other choice in the extension's Settings. Write every setting from the user's side: what they'll notice, and when they'd want each option, in plain, warm words with no technical terms. A user should understand it at a glance without knowing how the extension works.
 - It's a rewrite of our Image Spotlight for Google Slides. Competitor code for reference is in `benchmark/` (index in `benchmark/README.md`). Only copy code whose license allows it.
 
 ## Commands
