@@ -159,7 +159,7 @@
       return;
     }
     if (event.key !== ' ' || event.repeat || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
-    if (isTypingTarget(event.target)) return;
+    if (isInteractiveTarget(event.target)) return;
     const selection = spotlightableSelection();
     if (!selection) return;
     event.preventDefault();
@@ -167,10 +167,13 @@
     open(selection);
   }
 
-  // Inputs outside the slide canvas, like the comment box or find and replace.
-  function isTypingTarget(target) {
+  // Controls outside the slide canvas, where Space types or presses: the comment box, find and
+  // replace, buttons (including our companion and Settings).
+  function isInteractiveTarget(target) {
     if (!(target instanceof Element) || target.ownerDocument !== document) return false;
-    return target.matches('input, textarea, select, [contenteditable=""], [contenteditable="true"]');
+    return Boolean(
+      target.closest('input, textarea, select, button, a[href], [role="button"], [role="dialog"], [contenteditable=""], [contenteditable="true"]'),
+    );
   }
 
   // Keys reach Slides through a hidden iframe while editing, and the page itself otherwise.

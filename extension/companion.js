@@ -17,14 +17,68 @@
   const EYE_CY = 673.855;
   const IRIS_TRAVEL = 330.355 - 269.53;
 
+  const LABEL = 'Slides Companion settings';
+  // Slides shows its toolbar tooltips after about this long.
+  const TOOLTIP_DELAY_MS = 300;
+
   function createCompanion() {
     const button = document.createElement('div');
     button.className = 'slides-companion-button';
     button.setAttribute('role', 'button');
-    button.setAttribute('aria-label', 'Slides Companion');
-    button.setAttribute('data-tooltip', 'Slides Companion');
+    button.setAttribute('tabindex', '0');
+    button.setAttribute('aria-label', LABEL);
     button.innerHTML = LOGO_SVG;
+
+    const openSettings = () => {
+      hideTooltip();
+      globalThis.slidesCompanion.openSettings(button);
+    };
+    button.addEventListener('click', openSettings);
+    button.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      event.stopPropagation();
+      openSettings();
+    });
+    showTooltipOnHover(button);
     return button;
+  }
+
+  // Slides' tooltip manager only knows its own buttons, so we draw the same `jfk-tooltip`
+  // (Slides' own styles) centred 1px below the button, as Slides does.
+  let tooltip = null;
+  let tooltipTimer = 0;
+
+  function showTooltipOnHover(button) {
+    button.addEventListener('mouseenter', () => {
+      tooltipTimer = setTimeout(() => showTooltip(button), TOOLTIP_DELAY_MS);
+    });
+    button.addEventListener('mouseleave', hideTooltip);
+    button.addEventListener('mousedown', hideTooltip);
+  }
+
+  function showTooltip(button) {
+    hideTooltip();
+    tooltip = document.createElement('div');
+    tooltip.className = 'jfk-tooltip';
+    tooltip.setAttribute('role', 'tooltip');
+    tooltip.setAttribute('aria-hidden', 'true');
+    const content = document.createElement('div');
+    content.className = 'jfk-tooltip-contentId';
+    content.textContent = LABEL;
+    tooltip.append(content);
+    document.body.append(tooltip);
+
+    const anchor = button.getBoundingClientRect();
+    const left = anchor.left + anchor.width / 2 - tooltip.offsetWidth / 2;
+    tooltip.style.left = `${Math.max(4, Math.min(left, innerWidth - tooltip.offsetWidth - 4)) + scrollX}px`;
+    tooltip.style.top = `${anchor.bottom + 1 + scrollY}px`;
+  }
+
+  function hideTooltip() {
+    clearTimeout(tooltipTimer);
+    tooltip?.remove();
+    tooltip = null;
   }
 
   function followMouse(button) {
