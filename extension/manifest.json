@@ -9,8 +9,8 @@
   "content_scripts": [
     {
       "matches": ["https://docs.google.com/presentation/*"],
-      "js": ["content.js", "companion.js"],
-      "css": ["companion.css"],
+      "js": ["content.js", "companion.js", "spotlight.js"],
+      "css": ["companion.css", "spotlight.css"],
       "run_at": "document_idle"
     }
   ],

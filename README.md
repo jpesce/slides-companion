@@ -2,6 +2,13 @@
 
 Free, client-side-only Chrome extension with presenter tools for Google Slides. A rewrite of [Image Spotlight for Google Slides](https://github.com/jpesce/image-spotlight-for-google-slides). Research: problems and competitors; competitor source code in [benchmark/](benchmark/README.md).
 
+## Features
+
+- **Companion:** our logo sits first in Slides' side toolbar, and its eyes follow the mouse.
+- **Spotlight:** select an image (or several objects that include one) and press <kbd>Space</kbd>, or right-click it and choose **Spotlight image**, to see it full screen on a black stage. <kbd>Esc</kbd>, <kbd>Space</kbd>, <kbd>Enter</kbd> or a click closes it. Works for anyone who can view the deck.
+
+## Layout
+
 ```
 extension/   the extension itself (load this folder in Chrome)
 tests/       Playwright tests, run in a separate Chromium
