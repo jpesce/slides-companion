@@ -1,0 +1,20 @@
+.slides-companion-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 2px;
+  padding: 4px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.slides-companion-button:hover {
+  background-color: rgba(68, 71, 70, 0.08);
+}
+
+.slides-companion-button svg {
+  width: 24px;
+  height: 24px;
+}

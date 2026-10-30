@@ -1,0 +1,10 @@
+node_modules/
+test-results/
+playwright-report/
+.chromium-profile/
+extension/dev-stamp.txt
+
+# Third-party code for reference only (mostly unlicensed); keep just the index.
+benchmark/*
+!benchmark/README.md
+!benchmark/_fetch-log.tsv
