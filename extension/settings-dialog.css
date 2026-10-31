@@ -74,6 +74,11 @@
   border: 0;
 }
 
+/* The same space as between the intro text and the first group. */
+.slides-companion-dialog-group + .slides-companion-dialog-group {
+  margin-top: 16px;
+}
+
 .slides-companion-dialog-legend {
   padding: 0;
   margin-bottom: 4px;

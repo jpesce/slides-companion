@@ -1,9 +1,14 @@
 // Spotlight: select an image and press Space to see it full screen on a black stage, like Slides'
 // own slideshow, then go through the slide's other images like a gallery. With several images
 // selected, the gallery goes through just those. Also offered as "Spotlight image" in the
-// right-click menu. Rewritten from Image Spotlight for Google Slides.
+// right-click menu, and during a slideshow by clicking an image. Rewritten from Image Spotlight
+// for Google Slides.
 {
   const SVG_NS = 'http://www.w3.org/2000/svg';
+  // The slideshow runs in its own page: an iframe in the editor, or a window of its own.
+  const IN_SLIDESHOW = /\/(local)?present$/.test(location.pathname);
+  // Slide and object groups: `g#editor-<id>` in the editor, `g#<id>` in the slideshow.
+  const OBJECT = IN_SLIDESHOW ? 'g[id]' : '[id^="editor-"]';
   // Slides outlines each selected object with a path in this colour, inside the object's group.
   const SELECTION_OUTLINE = 'path[stroke="#8ab4f8"]';
   const MENU_ITEM_CLASS = 'slides-companion-spotlight-menuitem';
@@ -22,14 +27,14 @@
 
   // ----- Slide structure -----
 
-  // Slides draws each slide and each object on it as a `g#editor-<id>`; text paragraphs and the
+  // Slides draws each slide and each object on it as a group (see OBJECT); text paragraphs and the
   // slide background get `-paragraph-N` and `-bg` suffixes.
   function isObject(element) {
-    return /^editor-/.test(element.id) && !/-bg$|-paragraph-\d+$/.test(element.id);
+    return element.matches(OBJECT) && !/-bg$|-paragraph-\d+$/.test(element.id);
   }
 
   function parentObject(element) {
-    for (let node = element.parentElement?.closest('[id^="editor-"]'); node; node = node.parentElement?.closest('[id^="editor-"]')) {
+    for (let node = element.parentElement?.closest(OBJECT); node; node = node.parentElement?.closest(OBJECT)) {
       if (isObject(node)) return node;
     }
     return null;
@@ -43,18 +48,21 @@
     return null;
   }
 
+  // A direct child in the editor; wrapped in an extra group in the slideshow.
   function background(slide) {
-    return slide.querySelector(`:scope > [id="${CSS.escape(slide.id)}-bg"]`);
+    return slide.querySelector(`[id="${CSS.escape(slide.id)}-bg"]`);
   }
 
   // Objects directly inside a slide or a group.
   function childObjects(container) {
-    return [...container.querySelectorAll('[id^="editor-"]')].filter(
+    return [...container.querySelectorAll(OBJECT)].filter(
       (element) => isObject(element) && parentObject(element) === container,
     );
   }
 
   const hasImage = (object) => Boolean(object.querySelector('image'));
+  // In a slideshow, objects waiting for their animation are on the slide but not shown yet.
+  const isShowing = (object) => object.checkVisibility({ opacityProperty: true, visibilityProperty: true });
 
   // ----- Selection -----
 
@@ -102,7 +110,7 @@
   function stopsIn(container) {
     const apart = globalThis.slidesCompanion.settings.get('groupedImages') === 'apart';
     return childObjects(container)
-      .filter(hasImage)
+      .filter((object) => hasImage(object) && isShowing(object))
       .flatMap((object) => (apart && childObjects(object).some(hasImage) ? stopsIn(object) : [object]));
   }
 
@@ -252,7 +260,14 @@
         if (type === 'contextmenu') event.preventDefault();
       });
     }
-    stage.addEventListener('wheel', (event) => event.preventDefault(), { passive: false });
+    stage.addEventListener(
+      'wheel',
+      (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+      },
+      { passive: false },
+    );
     stage.addEventListener('click', onClick);
     stage.addEventListener('mousemove', onMouseMove);
     stage.addEventListener('mouseleave', () => {
@@ -268,6 +283,7 @@
     }
     stage.getBoundingClientRect(); // Start the fade from transparent.
     stage.classList.add('slides-companion-spotlight-open');
+    if (IN_SLIDESHOW) keepEscape(true);
     // Show the controls briefly so it's clear how to move and leave; after that, only on approach.
     gallery.flashTimer = setTimeout(() => {
       if (!gallery) return;
@@ -298,6 +314,7 @@
     gallery = null;
     clearTimeout(idleTimer);
     clearTimeout(flashTimer);
+    if (IN_SLIDESHOW) keepEscape(false);
     stage.classList.remove('slides-companion-spotlight-open');
     setTimeout(() => stage.remove(), matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : EXIT_MS);
   }
@@ -381,6 +398,7 @@
       if (!event.metaKey && !event.ctrlKey && !event.altKey) NAVIGATION[event.key]?.();
       return;
     }
+    if (IN_SLIDESHOW) return;
     if (event.key !== ' ' || event.repeat || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
     if (isInteractiveTarget(event.target)) return;
     const selection = spotlightableSelection();
@@ -407,6 +425,7 @@
     target.addEventListener('keydown', onKeydown, true);
   }
 
+  // Registered at document_start in the slideshow, so it hears keys before Slides does.
   listen(window);
   function listenToTextTarget() {
     const iframe = document.querySelector('iframe.docs-texteventtarget-iframe');
@@ -414,7 +433,7 @@
     listen(iframe.contentWindow);
     return true;
   }
-  if (!listenToTextTarget()) {
+  if (!IN_SLIDESHOW && !listenToTextTarget()) {
     const observer = new MutationObserver(() => {
       if (listenToTextTarget()) observer.disconnect();
     });
@@ -485,5 +504,56 @@
     }
   }
 
-  document.addEventListener('contextmenu', () => requestAnimationFrame(() => addToContextMenu()), true);
+  if (!IN_SLIDESHOW) document.addEventListener('contextmenu', () => requestAnimationFrame(() => addToContextMenu()), true);
+
+  // ----- Slideshow -----
+
+  // During a slideshow a click goes to the next slide; on an image, it spotlights the image
+  // instead, unless the "When you click an image during a slideshow" setting says otherwise.
+  function clickedImage(event) {
+    if (gallery || globalThis.slidesCompanion.settings.get('slideshowImageClick') !== 'spotlight') return null;
+    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return null;
+    // The laser pointer and the pen hide the cursor this way; their clicks are theirs.
+    if (document.querySelector('.sketchyViewerContainer.cursor-none')) return null;
+    const image = event.target instanceof Element ? event.target.closest('.punch-viewer-svgpage-svgcontainer image') : null;
+    if (!image || image.closest('a')) return null;
+    const object = parentObject(image);
+    return object && slideOf(object) && isShowing(object) ? object : null;
+  }
+
+  if (IN_SLIDESHOW) {
+    // Listening on the window at document_start puts us ahead of Slides' own click handling.
+    window.addEventListener(
+      'click',
+      (event) => {
+        const object = clickedImage(event);
+        if (!object) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        open([object]);
+      },
+      true,
+    );
+    // A pointing hand over images says they can be clicked.
+    window.addEventListener(
+      'mousemove',
+      (event) => document.documentElement.classList.toggle('slides-companion-over-image', Boolean(clickedImage(event))),
+      { capture: true, passive: true },
+    );
+  }
+
+  // In full screen, Esc is the browser's: it leaves full screen, which ends Slides' slideshow,
+  // before the page hears the key. While the gallery is open, the page asks to keep Esc (only the
+  // top page may), so Esc closes the gallery and the slideshow goes on.
+  const ESCAPE_MESSAGE = 'slides-companion-keep-escape';
+  function keepEscape(keep) {
+    window.top.postMessage({ type: ESCAPE_MESSAGE, keep }, location.origin);
+  }
+  if (window === window.top) {
+    window.addEventListener('message', (event) => {
+      if (event.origin !== location.origin || event.data?.type !== ESCAPE_MESSAGE || !navigator.keyboard) return;
+      if (event.data.keep) navigator.keyboard.lock(['Escape']).catch(() => {});
+      else navigator.keyboard.unlock();
+    });
+  }
 }

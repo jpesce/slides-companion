@@ -12,9 +12,28 @@
       <div class="slides-companion-dialog-content">
         <h3 class="slides-companion-dialog-section">Spotlight</h3>
         <p class="slides-companion-dialog-text">
-          Select an image and press Space to see it full screen. Use ← and → to go through the
-          other images on the slide.
+          Select an image and press Space to see it full screen, or click it during a slideshow.
+          Use ← and → to go through the other images on the slide.
         </p>
+        <fieldset class="slides-companion-dialog-group">
+          <legend class="slides-companion-dialog-legend">When you click an image during a slideshow</legend>
+          <label class="slides-companion-dialog-option">
+            <input type="radio" name="slideshowImageClick" value="spotlight">
+            <span class="slides-companion-radio" aria-hidden="true"></span>
+            <span class="slides-companion-dialog-label">
+              Show it full screen
+              <span class="slides-companion-dialog-hint">(clicking anywhere else still goes to the next slide)</span>
+            </span>
+          </label>
+          <label class="slides-companion-dialog-option">
+            <input type="radio" name="slideshowImageClick" value="next">
+            <span class="slides-companion-radio" aria-hidden="true"></span>
+            <span class="slides-companion-dialog-label">
+              Go to the next slide, like any other click
+              <span class="slides-companion-dialog-hint">(for example, if you click through your slides with the mouse)</span>
+            </span>
+          </label>
+        </fieldset>
         <fieldset class="slides-companion-dialog-group">
           <legend class="slides-companion-dialog-legend">When images are grouped</legend>
           <label class="slides-companion-dialog-option">
@@ -52,8 +71,9 @@
     root = document.createElement('div');
     root.className = 'slides-companion-dialog-root';
     root.innerHTML = SETTINGS_HTML;
-    const checked = root.querySelector(`input[name="groupedImages"][value="${settings.get('groupedImages')}"]`);
-    if (checked) checked.checked = true;
+    for (const radio of root.querySelectorAll('input[type="radio"]')) {
+      radio.checked = settings.get(radio.name) === radio.value;
+    }
 
     // Slides listens on the page for keys and clicks (arrows move objects, Delete deletes them).
     for (const type of ['keydown', 'keyup', 'keypress', 'mousedown', 'mouseup', 'click', 'contextmenu', 'wheel']) {
@@ -67,12 +87,12 @@
     document.body.append(root);
     root.getBoundingClientRect(); // Start the transition from the closed state.
     root.classList.add('slides-companion-dialog-open');
-    (checked ?? root.querySelector('input')).focus();
+    groupStops()[0].focus();
   }
 
   function save() {
-    const choice = root.querySelector('input[name="groupedImages"]:checked');
-    if (choice) globalThis.slidesCompanion.settings.set({ groupedImages: choice.value });
+    const choices = [...root.querySelectorAll('input[type="radio"]:checked')];
+    globalThis.slidesCompanion.settings.set(Object.fromEntries(choices.map((radio) => [radio.name, radio.value])));
     close();
   }
 
@@ -98,12 +118,14 @@
     }
   }
 
-  // Keep Tab inside the dialog: the radio group (one stop), Cancel, OK.
+  // Each radio group is one Tab stop: its checked option, or its first.
+  function groupStops() {
+    return [...root.querySelectorAll('fieldset')].map((group) => group.querySelector('input:checked') ?? group.querySelector('input'));
+  }
+
+  // Keep Tab inside the dialog: the radio groups, Cancel, OK.
   function trapFocus(event) {
-    const stops = [
-      root.querySelector('input:checked') ?? root.querySelector('input'),
-      ...root.querySelectorAll('button'),
-    ];
+    const stops = [...groupStops(), ...root.querySelectorAll('button')];
     const index = stops.indexOf(document.activeElement);
     const next = (index + (event.shiftKey ? -1 : 1) + stops.length) % stops.length;
     event.preventDefault();

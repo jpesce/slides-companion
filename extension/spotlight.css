@@ -147,3 +147,9 @@
     transition: none;
   }
 }
+
+/* During a slideshow, images can be clicked to spotlight them. Not while Slides hides the
+   cursor (an inline `cursor: none` on body when the mouse rests). */
+.slides-companion-over-image body:not([style*="cursor: none"]) .punch-viewer-svgpage-svgcontainer image {
+  cursor: pointer;
+}
