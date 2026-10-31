@@ -65,11 +65,10 @@ test('arrow keys go through the slide in reading order and stop at the ends', as
   expect(await showing(page)).toEqual({ id: LEFT, status: 'Image 1 of 2' });
   await page.keyboard.press('End');
   expect((await showing(page)).id).toBe(RIGHT);
-  await expect(stage(page).locator('.slides-companion-spotlight-dot')).toHaveCount(2);
-  await expect(stage(page).locator('.slides-companion-spotlight-dot').nth(1)).toHaveClass(/current/);
+  await expect(stage(page).locator('.slides-companion-spotlight-page')).toHaveText('2/2');
 });
 
-test('clicking the right or left half moves, and the X closes', async ({ context }) => {
+test('clicking the right or left half moves', async ({ context }) => {
   const page = await openSlide(context);
   await clickCentre(page, `${object(LEFT)} image`);
   await page.keyboard.press('Space');
@@ -81,22 +80,56 @@ test('clicking the right or left half moves, and the X closes', async ({ context
   expect((await showing(page)).id).toBe(RIGHT);
   await page.mouse.click(width * 0.2, height / 2);
   expect((await showing(page)).id).toBe(LEFT);
-
-  await stage(page).getByRole('button', { name: 'Close' }).click();
-  await expect(stage(page)).toHaveCount(0);
 });
 
-test('the controls hide when the mouse rests and come back when it moves', async ({ context }) => {
+test('the controls show when the gallery opens, then only when the pointer comes near', async ({ context }) => {
   const page = await openSlide(context);
   await clickCentre(page, `${object(LEFT)} image`);
   await page.keyboard.press('Space');
-  const close = stage(page).getByRole('button', { name: 'Close' });
+  const closer = stage(page).locator('.slides-companion-spotlight-closer');
+  const navbar = stage(page).locator('.slides-companion-spotlight-navbar');
+  const { width, height } = page.viewportSize();
 
-  await expect(close).toHaveCSS('opacity', '1');
-  await expect(close).toHaveCSS('opacity', '0', { timeout: 4000 });
-  await page.mouse.move(300, 300);
-  await page.mouse.move(310, 310);
-  await expect(close).toHaveCSS('opacity', '1');
+  await expect(closer).toHaveCSS('opacity', '1');
+  await expect(navbar).toHaveCSS('opacity', '1');
+  await expect(closer).toHaveCSS('opacity', '0', { timeout: 4000 });
+  await expect(navbar).toHaveCSS('opacity', '0');
+
+  // Moving over the image, or changing image, shows nothing.
+  await page.mouse.move(width / 2, height / 2);
+  await page.mouse.move(width / 2 + 20, height / 2 + 20);
+  await page.keyboard.press('ArrowRight');
+  await page.waitForTimeout(500);
+  await expect(closer).toHaveCSS('opacity', '0');
+  await expect(navbar).toHaveCSS('opacity', '0');
+
+  await page.mouse.move(width - 150, 150);
+  await expect(closer).toHaveCSS('opacity', '1');
+  await expect(navbar).toHaveCSS('opacity', '0');
+  await page.mouse.move(150, height - 150);
+  await expect(navbar).toHaveCSS('opacity', '1');
+  await expect(closer).toHaveCSS('opacity', '0');
+});
+
+test('the bar steps through the images, and the X closes', async ({ context }) => {
+  const page = await openSlide(context);
+  await clickCentre(page, `${object(LEFT)} image`);
+  await page.keyboard.press('Space');
+  const previous = stage(page).getByRole('button', { name: 'Previous image' });
+  const next = stage(page).getByRole('button', { name: 'Next image' });
+  const position = stage(page).locator('.slides-companion-spotlight-page');
+
+  await expect(position).toHaveText('1/2');
+  await expect(previous).toBeDisabled();
+  await next.click();
+  expect((await showing(page)).id).toBe(RIGHT);
+  await expect(position).toHaveText('2/2');
+  await expect(next).toBeDisabled();
+  await previous.click();
+  expect((await showing(page)).id).toBe(LEFT);
+
+  await stage(page).getByRole('button', { name: 'Close' }).click();
+  await expect(stage(page)).toHaveCount(0);
 });
 
 test('with several images selected, the gallery goes through just those', async ({ context }) => {
