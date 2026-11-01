@@ -16,8 +16,6 @@
   const EXIT_MS = 75;
   // The pointer hides after resting this long; the controls also show this long when the gallery opens.
   const IDLE_MS = 2000;
-  // Like the slideshow's bar, a control wakes when the pointer comes within this distance of it.
-  const NEAR_PX = 300;
   const icon = (path) => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${path}"/></svg>`;
   const CLOSE_ICON = icon('M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z');
   const PREVIOUS_ICON = icon('M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z');
@@ -249,6 +247,7 @@
         <div class="slides-companion-spotlight-page" aria-hidden="true"></div>
         <button type="button" class="slides-companion-spotlight-next" aria-label="Next image" title="Next (→)">${NEXT_ICON}</button>
       </div>
+      <div class="slides-companion-spotlight-cursor" aria-hidden="true">${NEXT_ICON}</div>
       <div class="slides-companion-spotlight-status" aria-live="polite"></div>`;
 
     gallery = { stage, items, index: -1, idleTimer: 0, flashTimer: 0, pointer: null };
@@ -272,6 +271,7 @@
     stage.addEventListener('mousemove', onMouseMove);
     stage.addEventListener('mouseleave', () => {
       gallery.pointer = null;
+      stage.classList.remove('slides-companion-spotlight-can-move');
       updateBars();
     });
 
@@ -321,7 +321,7 @@
 
   // ----- Controls -----
 
-  // A copy of the slideshow's bar (‹ 3 ›), with the position out of the total. Hidden for one image.
+  // The ‹ 2/5 › bar: the position out of the total, between previous and next. Hidden for one image.
   function updateNavbar() {
     const { items, index, stage } = gallery;
     const count = items.length;
@@ -331,16 +331,14 @@
     stage.querySelector('.slides-companion-spotlight-next').disabled = index === count - 1;
   }
 
-  // Like the slideshow's bar, each control stays out of sight until the pointer comes near it, so
-  // moving the mouse over the image shows nothing. Over the control, it turns solid (:hover).
+  // The controls live in the safe areas above and below the picture, and show only while the
+  // pointer is in one of them, so moving the mouse over the picture shows nothing.
   function updateBars() {
     const { stage, pointer, flashTimer } = gallery;
+    const area = stage.querySelector('.slides-companion-spotlight-picture').getBoundingClientRect();
+    const shown = Boolean(flashTimer) || Boolean(pointer && (pointer.y < area.top || pointer.y > area.bottom));
     for (const bar of stage.querySelectorAll('.slides-companion-spotlight-bar')) {
-      const box = bar.getBoundingClientRect();
-      const near = pointer
-        ? Math.hypot(Math.max(box.left - pointer.x, 0, pointer.x - box.right), Math.max(box.top - pointer.y, 0, pointer.y - box.bottom)) <= NEAR_PX
-        : false;
-      bar.classList.toggle('slides-companion-spotlight-bar-shown', Boolean(flashTimer) || near);
+      bar.classList.toggle('slides-companion-spotlight-bar-shown', shown);
     }
   }
 
@@ -351,15 +349,27 @@
     gallery.idleTimer = setTimeout(() => gallery?.stage.classList.remove('slides-companion-spotlight-pointer'), IDLE_MS);
   }
 
-  // The left half goes back, the right half forward; the pointer only shows where that's possible.
+  // A click on the left third goes back, on the right third forward. The middle third and the safe
+  // areas above and below the picture do nothing, and keep the regular pointer.
+  function clickDirection(event) {
+    const area = gallery.stage.querySelector('.slides-companion-spotlight-picture').getBoundingClientRect();
+    if (event.clientY < area.top || event.clientY > area.bottom) return 0;
+    if (event.clientX < innerWidth / 3) return -1;
+    if (event.clientX > (innerWidth * 2) / 3) return 1;
+    return 0;
+  }
+
+  // Where a click can move, the pointer becomes an arrow pointing the way it goes.
   function onMouseMove(event) {
     gallery.pointer = { x: event.clientX, y: event.clientY };
     updateBars();
     revealPointer();
-    const forward = event.clientX >= innerWidth / 2;
-    const canMove = forward ? gallery.index < gallery.items.length - 1 : gallery.index > 0;
-    const onBar = event.target.closest('.slides-companion-spotlight-bar');
-    gallery.stage.classList.toggle('slides-companion-spotlight-can-move', canMove && !onBar);
+    const direction = clickDirection(event);
+    const target = gallery.index + direction;
+    const canMove = direction !== 0 && target >= 0 && target < gallery.items.length;
+    gallery.stage.classList.toggle('slides-companion-spotlight-can-move', canMove);
+    gallery.stage.classList.toggle('slides-companion-spotlight-back', direction < 0);
+    gallery.stage.querySelector('.slides-companion-spotlight-cursor').style.translate = `${event.clientX}px ${event.clientY}px`;
   }
 
   function onClick(event) {
@@ -370,7 +380,8 @@
       else if (event.target.closest('.slides-companion-spotlight-next')) step(1);
       return;
     }
-    step(event.clientX >= innerWidth / 2 ? 1 : -1);
+    const direction = clickDirection(event);
+    if (direction) step(direction);
     onMouseMove(event);
   }
 

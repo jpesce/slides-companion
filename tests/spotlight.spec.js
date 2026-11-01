@@ -41,10 +41,11 @@ test('Space spotlights the selected image and Escape closes it', async ({ contex
   await page.keyboard.press('Space');
   await expect(stage(page)).toBeVisible();
   expect(await showing(page)).toEqual({ id: RIGHT, status: 'Image 2 of 2' });
-  // The picture fills the space inside the margin along one side, like a slideshow.
+  // The picture fills the space inside the side margins and the safe areas above and below,
+  // along one side.
   const viewport = page.viewportSize();
   const picture = await stage(page).locator('.slides-companion-spotlight-picture svg').boundingBox();
-  expect(Math.max(picture.width / (viewport.width - 96), picture.height / (viewport.height - 96))).toBeCloseTo(1, 2);
+  expect(Math.max(picture.width / (viewport.width - 96), picture.height / (viewport.height - 160))).toBeCloseTo(1, 2);
 
   await page.keyboard.press('Escape');
   await expect(stage(page)).toHaveCount(0);
@@ -68,12 +69,16 @@ test('arrow keys go through the slide in reading order and stop at the ends', as
   await expect(stage(page).locator('.slides-companion-spotlight-page')).toHaveText('2/2');
 });
 
-test('clicking the right or left half moves', async ({ context }) => {
+test('clicking the right or left third moves; the middle and above or below the picture do nothing', async ({ context }) => {
   const page = await openSlide(context);
   await clickCentre(page, `${object(LEFT)} image`);
   await page.keyboard.press('Space');
   const { width, height } = page.viewportSize();
 
+  await page.mouse.click(width * 0.6, height / 2);
+  await page.mouse.click(width * 0.8, 40);
+  await page.mouse.click(width * 0.8, height - 40);
+  expect((await showing(page)).id).toBe(LEFT);
   await page.mouse.click(width * 0.8, height / 2);
   expect((await showing(page)).id).toBe(RIGHT);
   await page.mouse.click(width * 0.8, height / 2);
@@ -82,7 +87,7 @@ test('clicking the right or left half moves', async ({ context }) => {
   expect((await showing(page)).id).toBe(LEFT);
 });
 
-test('the controls show when the gallery opens, then only when the pointer comes near', async ({ context }) => {
+test('the controls show when the gallery opens, then only when the pointer is above or below the picture', async ({ context }) => {
   const page = await openSlide(context);
   await clickCentre(page, `${object(LEFT)} image`);
   await page.keyboard.press('Space');
@@ -103,12 +108,47 @@ test('the controls show when the gallery opens, then only when the pointer comes
   await expect(closer).toHaveCSS('opacity', '0');
   await expect(navbar).toHaveCSS('opacity', '0');
 
-  await page.mouse.move(width - 150, 150);
+  // Above or below the picture, both show.
+  await page.mouse.move(width / 3, 40);
   await expect(closer).toHaveCSS('opacity', '1');
-  await expect(navbar).toHaveCSS('opacity', '0');
-  await page.mouse.move(150, height - 150);
   await expect(navbar).toHaveCSS('opacity', '1');
+  await page.mouse.move(width / 2, height / 2);
   await expect(closer).toHaveCSS('opacity', '0');
+  await expect(navbar).toHaveCSS('opacity', '0');
+  await page.mouse.move(width / 3, height - 40);
+  await expect(navbar).toHaveCSS('opacity', '1');
+  await expect(closer).toHaveCSS('opacity', '1');
+});
+
+test('the pointer becomes an arrow pointing the way a click goes', async ({ context }) => {
+  const page = await openSlide(context);
+  await clickCentre(page, `${object(LEFT)} image`);
+  await page.keyboard.press('Space');
+  const arrow = stage(page).locator('.slides-companion-spotlight-cursor');
+  const turned = () => arrow.locator('svg').evaluate((svg) => getComputedStyle(svg).transform !== 'none');
+  const { width, height } = page.viewportSize();
+
+  // On the first image, the right third goes forward and the left third goes nowhere.
+  await page.mouse.move(width * 0.8, height / 2);
+  await expect(arrow).toHaveCSS('opacity', '1');
+  expect(await arrow.boundingBox()).toEqual({ x: width * 0.8 - 20, y: height / 2 - 20, width: 40, height: 40 });
+  await expect.poll(turned).toBe(false);
+  await page.mouse.move(width * 0.2, height / 2);
+  await expect(arrow).toHaveCSS('opacity', '0');
+  // The middle third and the safe areas keep the regular pointer.
+  await page.mouse.move(width * 0.6, height / 2);
+  await expect(arrow).toHaveCSS('opacity', '0');
+  await page.mouse.move(width * 0.8, 40);
+  await expect(arrow).toHaveCSS('opacity', '0');
+  await expect(stage(page)).toHaveCSS('cursor', 'default');
+
+  // On the last image, the other way round, with the arrow pointing back.
+  await page.keyboard.press('End');
+  await page.mouse.move(width * 0.2 + 10, height / 2);
+  await expect(arrow).toHaveCSS('opacity', '1');
+  await expect.poll(turned).toBe(true);
+  await page.mouse.move(width * 0.8, height / 2);
+  await expect(arrow).toHaveCSS('opacity', '0');
 });
 
 test('the bar steps through the images, and the X closes', async ({ context }) => {

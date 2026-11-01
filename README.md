@@ -5,7 +5,7 @@ Free, client-side-only Chrome extension with presenter tools for Google Slides. 
 ## Features
 
 - **Companion:** our logo sits first in Slides' side toolbar, and its eyes follow the mouse. Click it for Settings.
-- **Spotlight:** select an image and press <kbd>Space</kbd> (or right-click it and choose **Spotlight image**) to see it full screen on a black stage. <kbd>←</kbd> <kbd>→</kbd> or a click on the left or right half go through the slide's other images; with several images selected, just those. <kbd>Esc</kbd>, <kbd>Space</kbd> or the X closes it. Like the slideshow's bar, the X and a ‹ 2/5 › bar stay out of sight until the pointer comes near them. During a slideshow, click an image to spotlight it; clicks anywhere else still change slides. Works for anyone who can view the deck.
+- **Spotlight:** select an image and press <kbd>Space</kbd> (or right-click it and choose **Spotlight image**) to see it full screen on a black stage. <kbd>←</kbd> <kbd>→</kbd> or a click on the left or right third go through the slide's other images; with several images selected, just those. <kbd>Esc</kbd>, <kbd>Space</kbd> or the X closes it. The X and a ‹ 2/5 › bar sit above and below the picture, out of sight until the pointer moves there; over the picture, the pointer turns into an arrow showing which way a click goes. During a slideshow, click an image to spotlight it; clicks anywhere else still change slides. Works for anyone who can view the deck.
 - **Settings:** whether clicking an image during a slideshow spotlights it or changes slide, and whether a group of images shows as one picture or each image on its own.
 
 ## Layout

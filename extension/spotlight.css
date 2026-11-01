@@ -1,7 +1,9 @@
 /* The stage mirrors Slides' slideshow: black, with the content fitted and centred, inside a thin
-   margin. */
+   margin at the sides and a safe area above and below that holds the controls, so they never cover
+   the picture. */
 .slides-companion-spotlight {
   --slides-companion-margin: 48px;
+  --slides-companion-safe-area: 80px;
   position: fixed;
   inset: 0;
   z-index: 2147483647;
@@ -24,12 +26,46 @@
 }
 
 .slides-companion-spotlight-pointer.slides-companion-spotlight-can-move {
-  cursor: pointer;
+  cursor: none;
+}
+
+/* Where a click moves, the pointer is a dark round button like the controls, with an arrow pointing
+   the way the click goes. Its centre is the click point. */
+.slides-companion-spotlight-cursor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  margin: -20px 0 0 -20px;
+  border-radius: 50%;
+  background: #1f1f1f;
+  color: #e3e3e3;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* No fade: it stands in for the pointer, which appears and changes at once. */
+.slides-companion-spotlight-pointer.slides-companion-spotlight-can-move .slides-companion-spotlight-cursor {
+  opacity: 1;
+}
+
+.slides-companion-spotlight-cursor svg {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+
+.slides-companion-spotlight-back .slides-companion-spotlight-cursor svg {
+  transform: rotate(180deg);
 }
 
 .slides-companion-spotlight-picture {
   position: absolute;
-  inset: var(--slides-companion-margin);
+  inset: var(--slides-companion-safe-area) var(--slides-companion-margin);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -37,25 +73,24 @@
 
 .slides-companion-spotlight-picture svg {
   display: block;
-  width: min(100%, (100vh - 2 * var(--slides-companion-margin)) * var(--slides-companion-ratio, 1));
+  width: min(100%, (100vh - 2 * var(--slides-companion-safe-area)) * var(--slides-companion-ratio, 1));
   aspect-ratio: var(--slides-companion-ratio, 1);
   max-height: 100%;
 }
 
-/* Copied from the slideshow's bar (.punch-viewer-navbar): hidden until the pointer comes near,
-   translucent then, solid while the pointer is over it. */
+/* The controls sit in the safe areas, on the black stage: light icons on a very dark grey surface
+   (Google's dark theme), quiet next to the picture. Hidden until the pointer comes near. */
 .slides-companion-spotlight-bar {
   position: absolute;
   display: flex;
   align-items: center;
   padding: 4px;
   border-radius: 9999px;
-  background: #f8fafd;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 2px 6px rgba(0, 0, 0, 0.15);
+  background: #1f1f1f;
   cursor: default;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.25s linear, background 0.25s linear;
+  transition: opacity 0.25s linear;
 }
 
 .slides-companion-spotlight-bar[hidden] {
@@ -67,18 +102,16 @@
   pointer-events: auto;
 }
 
-.slides-companion-spotlight-bar-shown:not(:hover) {
-  background: rgba(248, 250, 253, 0.4);
-}
-
 .slides-companion-spotlight-navbar {
   bottom: 20px;
-  left: 20px;
+  left: 50%;
+  translate: -50%;
 }
 
 .slides-companion-spotlight-closer {
   top: 20px;
   right: 20px;
+  padding: 0;
 }
 
 .slides-companion-spotlight-bar button {
@@ -88,8 +121,14 @@
   border: 0;
   border-radius: 20px;
   background: transparent;
-  color: #3c4043;
+  color: #e3e3e3;
   cursor: pointer;
+}
+
+/* A lone button fills its bar, so the whole 40px circle is one button. */
+.slides-companion-spotlight-bar.slides-companion-spotlight-closer button {
+  margin: 0;
+  padding: 8px;
 }
 
 .slides-companion-spotlight-bar button svg {
@@ -98,36 +137,25 @@
   fill: currentColor;
 }
 
+/* Material's hover state layer: the icon colour at 8%. */
 .slides-companion-spotlight-bar button:hover:not(:disabled) {
-  background: #fff;
+  background: rgba(227, 227, 227, 0.08);
 }
 
-.slides-companion-spotlight-bar button:disabled,
-.slides-companion-spotlight-bar-shown:not(:hover) button {
-  color: #80868b;
-}
-
+/* Material's disabled content: 38%. */
 .slides-companion-spotlight-bar button:disabled {
+  color: rgba(227, 227, 227, 0.38);
   cursor: default;
 }
 
-/* The slide number in the slideshow's bar. */
+/* Which image of how many. */
 .slides-companion-spotlight-page {
   min-width: 26px;
   margin: 0 4px;
-  /* 8px, plus the 1px border Slides' menu button keeps for its focus ring. */
   padding: 0 9px;
-  border-radius: 20px;
-  background: #fff;
-  color: #1f1f1f;
+  color: #e3e3e3;
   font: 500 16px/28px Roboto, Arial, sans-serif;
   text-align: center;
-  transition: background 0.25s linear, color 0.25s linear;
-}
-
-.slides-companion-spotlight-bar-shown:not(:hover) .slides-companion-spotlight-page {
-  background: rgba(255, 255, 255, 0.7);
-  color: rgba(31, 31, 31, 0.4);
 }
 
 /* Announces "Image 2 of 5" to screen readers only. */
@@ -142,8 +170,7 @@
 @media (prefers-reduced-motion: reduce) {
   .slides-companion-spotlight,
   .slides-companion-spotlight-open,
-  .slides-companion-spotlight-bar,
-  .slides-companion-spotlight-page {
+  .slides-companion-spotlight-bar {
     transition: none;
   }
 }
