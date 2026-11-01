@@ -22,7 +22,7 @@
           <span class="slides-companion-checkbox" aria-hidden="true">${CHECKMARK}</span>
           <span class="slides-companion-dialog-label">
             Spotlight an image when you click it in a full screen slideshow
-            <span class="slides-companion-dialog-hint">(clicking anywhere else still goes to the next slide)</span>
+            <span class="slides-companion-dialog-hint">(clicking anywhere else goes to the next slide, unless you’ve zoomed in)</span>
           </span>
         </label>
         <fieldset class="slides-companion-dialog-group">

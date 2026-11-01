@@ -68,6 +68,11 @@
   margin: 4px 0 16px;
 }
 
+/* A new section sets itself apart: a step more than the 16px between groups. */
+.slides-companion-dialog-content > * + .slides-companion-dialog-section {
+  margin-top: 24px;
+}
+
 .slides-companion-dialog-group {
   margin: 0;
   padding: 0;

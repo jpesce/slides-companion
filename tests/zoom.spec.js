@@ -16,10 +16,10 @@ async function startSlideshow(context) {
 const slideNumber = (show) =>
   show.locator('.punch-viewer-svgpage-a11yelement').getAttribute('aria-label').then((label) => Number(label.match(/\d+/)[0]));
 
-// The slide's zoom and shift, from the transform on the container that holds it (where it's
-// going, not where its short ease has got to).
+// The slide's zoom and shift, from its transform (where it's going, not where its short ease has
+// got to).
 const zoom = (show) =>
-  show.locator('.sketchyViewerContainer').evaluate((element) => {
+  show.locator('.sketchyViewerContent').evaluate((element) => {
     const { a, e, f } = new DOMMatrix(element.style.transform);
     return { scale: Math.round(a * 100) / 100, x: Math.round(e), y: Math.round(f) };
   });
@@ -121,6 +121,23 @@ test('while zoomed, with clicking to spotlight turned off, clicking an image doe
   await presenting.waitForTimeout(500);
   await expect(show.locator('.slides-companion-spotlight')).toHaveCount(0);
   expect(await slideNumber(show)).toBe(3);
+});
+
+// Slides draws the laser pointer at the pointer's place on the screen, on a layer of its own.
+test('while zoomed, the laser pointer stays under the pointer', async ({ context }) => {
+  const { page, show } = await startSlideshow(context);
+  await page.keyboard.press('l');
+  const { width, height } = page.viewportSize();
+  await zoomIn(page, show, width / 2, height / 2);
+  await page.mouse.move(width * 0.4, height * 0.3);
+  await page.mouse.move(width * 0.4 + 10, height * 0.3 + 5);
+  const laser = show.locator('.punch-slide-markup-surface circle[cx]');
+  await expect.poll(async () => {
+    const box = await laser.boundingBox();
+    return Math.hypot(box.x + box.width / 2 - (width * 0.4 + 10), box.y + box.height / 2 - (height * 0.3 + 5));
+  }).toBeLessThan(3);
+  // And at its usual size.
+  expect((await laser.boundingBox()).width).toBeLessThan(15);
 });
 
 // Trackpads can send a move that says no button is held in the middle of a drag, and the window

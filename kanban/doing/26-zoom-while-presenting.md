@@ -12,14 +12,17 @@ Decisions:
 - While zoomed in, presses on the slide belong to the zoom: a drag looks around, a plain click does nothing, and no part of either (pointer, mouse, click, double click) reaches Slides. Links, videos, Slides' controls and the pen keep their clicks, and a plain click on an image goes on to the spotlight (the spotlight decides, so it matches its pointing hand). First version let plain clicks through to change slides; drags sometimes changed slides in real use (not reproducible with synthetic input), so presses are now swallowed whole. Root cause found after: the zoom forgot a press mid-drag when a move reported no button held (trackpads can send these) or the window blurred, and the release and click then reached Slides. Ownership now lasts from press to click; covered by a test that fakes such a move. If it ever recurs, `diag-chromium.mjs` (session scratchpad) logs which events reached Slides before each slide change.
 - Changing slides starts the next one whole. With the pen on, dragging draws; scrolling still zooms.
 
+- Only the slide is scaled, not the layers Slides draws the laser pointer and pen on: Slides places both at the pointer's place on the screen, so scaled they landed away from the pointer (laser at 974,869 for a pointer at 510,405). Pen ink now lands under the pen; it stays where it was drawn on the screen when the zoom changes, like ink on glass.
+
 Open questions:
 - No keyboard way to zoom (a clicker can't scroll). Worth a key?
-- Pen strokes while zoomed are untested.
+- Scrolling over an embedded video doesn't zoom: the wheel goes to the video's own frame, which the extension can't hear. Zooming from beside the video works.
 
 **Done when:**
 - [x] Scrolling zooms into the slide at the pointer, and dragging moves around it.
 - [x] Fully zoomed out, the slideshow behaves exactly as without the extension (except the wheel no longer changes slides, unless the setting says so).
-- [ ] Transitions, animations and embedded video still work while zoomed (checked by hand).
+- [x] Transitions, animations and embedded video still work while zoomed (checked: on slide 4 the → step starts the YouTube video and the zoom stays; clicking the video plays and pauses it; slide changes start whole).
+- [ ] The Zoom section of Settings compared side by side with a Slides dialog that has sections (needs a signed-in deck: signed out there's no Tools menu). It reuses the Spotlight section's components; the new part is the 24px gap above a section heading.
 - [x] Covered by a Playwright test.
 
 **References:** `benchmark/2-spotlight-zoom-ink/` (google-slides-zoom is Apache-2.0).

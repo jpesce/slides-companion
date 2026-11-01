@@ -22,21 +22,23 @@
   let press = null;
   let slideLabel = null;
 
-  // Holds the slide and the layers Slides draws the laser pointer and the pen on.
-  const container = () => document.querySelector('.sketchyViewerContainer');
+  // The slide. Only the slide: Slides draws the laser pointer and the pen on layers beside it, at
+  // the pointer's place on the screen, so scaled with the slide they'd land away from the pointer.
+  // (Pen ink stays where it was drawn on the screen when the zoom changes, like ink on glass.)
+  const slideView = () => document.querySelector('.sketchyViewerContent');
   const enabled = () => globalThis.slidesCompanion.settings.get('zoomOnScroll');
   const galleryOpen = () => Boolean(document.querySelector('.slides-companion-spotlight'));
   // With the pen on, dragging draws.
   const penOn = () => Boolean(document.querySelector('.sketchyViewerContent.disable-pointer-events'));
   const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
-  // Where the container sits before scaling: its offset inside its (unscaled) offset parent.
+  // Where the slide sits before scaling: its offset inside its (unscaled) offset parent.
   function layoutOrigin(element) {
     const parent = element.offsetParent?.getBoundingClientRect() ?? { left: 0, top: 0 };
     return { left: parent.left + element.offsetLeft, top: parent.top + element.offsetTop };
   }
 
-  // Scale from the container's top left corner, then shift; the slide always fills its area.
+  // Scale from the slide's top left corner, then shift; the slide always fills its area.
   function apply(element, scale, x, y) {
     x = clamp(x, element.offsetWidth * (1 - scale), 0);
     y = clamp(y, element.offsetHeight * (1 - scale), 0);
@@ -47,7 +49,7 @@
   }
 
   function reset() {
-    const element = container();
+    const element = slideView();
     if (!element || zoom.scale === 1) return;
     element.classList.add(RESETTING_CLASS);
     apply(element, 1, 0, 0);
@@ -63,7 +65,7 @@
     if (!enabled() || galleryOpen()) return;
     event.preventDefault();
     event.stopImmediatePropagation();
-    const element = container();
+    const element = slideView();
     if (!element || event.type !== 'wheel') return;
     const rate = event.ctrlKey ? PINCH_RATE : WHEEL_RATE;
     const scale = clamp(zoom.scale * Math.exp(-event.deltaY * rate), 1, MAX_SCALE);
@@ -120,7 +122,7 @@
     if (!press.moved && Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
     press.moved = true;
     document.documentElement.classList.add(DRAGGING_CLASS);
-    apply(container(), press.from.scale, press.from.x + dx, press.from.y + dy);
+    apply(slideView(), press.from.scale, press.from.x + dx, press.from.y + dy);
   }
 
   // The rest of a press the zoom owns: Slides mustn't go to the next slide, nor spotlight an image.
