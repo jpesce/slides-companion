@@ -529,7 +529,7 @@
   // During a slideshow a click goes to the next slide; on an image, it spotlights the image
   // instead, unless the "When you click an image during a slideshow" setting says otherwise.
   function clickedImage(event) {
-    if (gallery || globalThis.slidesCompanion.settings.get('slideshowImageClick') !== 'spotlight') return null;
+    if (gallery || !globalThis.slidesCompanion.settings.get('spotlightOnClick')) return null;
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return null;
     // The laser pointer and the pen hide the cursor this way; their clicks are theirs.
     if (document.querySelector('.sketchyViewerContainer.cursor-none')) return null;

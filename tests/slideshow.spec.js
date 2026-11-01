@@ -101,11 +101,11 @@ test('with the laser pointer on, clicking an image changes slide', async ({ cont
   await expect(stage(show)).toHaveCount(0);
 });
 
-test('the setting can keep clicks on images going to the next slide', async ({ context }) => {
+test('turning the setting off keeps clicks on images going to the next slide', async ({ context }) => {
   const page = await context.newPage();
   await page.goto(slide);
   await page.locator('.slides-companion-button').click();
-  await page.getByRole('radio', { name: /Go to the next slide/ }).check();
+  await page.getByRole('checkbox', { name: /Spotlight an image when you click it/ }).uncheck();
   await page.getByRole('button', { name: 'OK' }).click();
   await page.close();
 

@@ -4,8 +4,7 @@ const companion = (page) => page.locator('.slides-companion-button');
 const dialog = (page) => page.getByRole('dialog', { name: 'Slides Companion settings' });
 const together = (page) => dialog(page).getByRole('radio', { name: /Show the group as one image/ });
 const apart = (page) => dialog(page).getByRole('radio', { name: /Show each image on its own/ });
-const clickShows = (page) => dialog(page).getByRole('radio', { name: /Show it full screen/ });
-const clickMoves = (page) => dialog(page).getByRole('radio', { name: /Go to the next slide/ });
+const spotlightOnClick = (page) => dialog(page).getByRole('checkbox', { name: /Spotlight an image when you click it/ });
 
 async function openDeck(context) {
   const page = await context.newPage();
@@ -21,23 +20,23 @@ test('the companion shows a tooltip and opens Settings', async ({ context }) => 
 
   await companion(page).click();
   await expect(dialog(page)).toBeVisible();
-  await expect(clickShows(page)).toBeChecked();
+  await expect(spotlightOnClick(page)).toBeChecked();
   await expect(together(page)).toBeChecked();
-  await expect(clickShows(page)).toBeFocused();
+  await expect(spotlightOnClick(page)).toBeFocused();
 });
 
 test('OK saves a choice, and it is still there after a reload', async ({ context }) => {
   const page = await openDeck(context);
   await companion(page).click();
   await apart(page).check();
-  await clickMoves(page).check();
+  await spotlightOnClick(page).uncheck();
   await dialog(page).getByRole('button', { name: 'OK' }).click();
   await expect(dialog(page)).toHaveCount(0);
 
   await page.reload();
   await companion(page).click();
   await expect(apart(page)).toBeChecked();
-  await expect(clickMoves(page)).toBeChecked();
+  await expect(spotlightOnClick(page)).not.toBeChecked();
 });
 
 test('Escape, Cancel and a click outside close without saving', async ({ context }) => {
@@ -62,14 +61,15 @@ test('the keyboard opens Settings from the companion', async ({ context }) => {
   await companion(page).focus();
   await page.keyboard.press('Enter');
   await expect(dialog(page)).toBeVisible();
-  await page.keyboard.press('ArrowDown');
+  // Space turns the checkbox off, Enter saves.
+  await page.keyboard.press('Space');
   await page.keyboard.press('Enter');
   await expect(dialog(page)).toHaveCount(0);
   await expect(companion(page)).toBeFocused();
 
   await page.keyboard.press('Space');
-  await expect(clickMoves(page)).toBeChecked();
-  // Tab goes from one group of choices to the next.
+  await expect(spotlightOnClick(page)).not.toBeChecked();
+  // Tab goes from the checkbox to the group of choices.
   await page.keyboard.press('Tab');
   await expect(together(page)).toBeFocused();
 });

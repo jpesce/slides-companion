@@ -4,6 +4,8 @@
   const TITLE_ID = 'slides-companion-settings-title';
   // Matches the closing fade in settings-dialog.css.
   const EXIT_MS = 75;
+  // Material's checkmark, drawn in by stroke (see settings-dialog.css).
+  const CHECKMARK = '<svg viewBox="0 0 24 24"><path d="M1.73 12.91 8.1 19.28 22.79 4.59"/></svg>';
 
   const SETTINGS_HTML = `
     <div class="slides-companion-dialog-scrim"></div>
@@ -12,28 +14,17 @@
       <div class="slides-companion-dialog-content">
         <h3 class="slides-companion-dialog-section">Spotlight</h3>
         <p class="slides-companion-dialog-text">
-          Select an image and press Space to see it full screen, or click it during a slideshow.
-          Use ← and → to go through the other images on the slide.
+          Select an image and press Space to see it full screen, on black. Use ← and → to go through
+          the other images on the slide.
         </p>
-        <fieldset class="slides-companion-dialog-group">
-          <legend class="slides-companion-dialog-legend">When you click an image during a slideshow</legend>
-          <label class="slides-companion-dialog-option">
-            <input type="radio" name="slideshowImageClick" value="spotlight">
-            <span class="slides-companion-radio" aria-hidden="true"></span>
-            <span class="slides-companion-dialog-label">
-              Show it full screen
-              <span class="slides-companion-dialog-hint">(clicking anywhere else still goes to the next slide)</span>
-            </span>
-          </label>
-          <label class="slides-companion-dialog-option">
-            <input type="radio" name="slideshowImageClick" value="next">
-            <span class="slides-companion-radio" aria-hidden="true"></span>
-            <span class="slides-companion-dialog-label">
-              Go to the next slide, like any other click
-              <span class="slides-companion-dialog-hint">(for example, if you click through your slides with the mouse)</span>
-            </span>
-          </label>
-        </fieldset>
+        <label class="slides-companion-dialog-option">
+          <input type="checkbox" name="spotlightOnClick">
+          <span class="slides-companion-checkbox" aria-hidden="true">${CHECKMARK}</span>
+          <span class="slides-companion-dialog-label">
+            Spotlight an image when you click it in a full screen slideshow
+            <span class="slides-companion-dialog-hint">(clicking anywhere else still goes to the next slide)</span>
+          </span>
+        </label>
         <fieldset class="slides-companion-dialog-group">
           <legend class="slides-companion-dialog-legend">When images are grouped</legend>
           <label class="slides-companion-dialog-option">
@@ -71,8 +62,8 @@
     root = document.createElement('div');
     root.className = 'slides-companion-dialog-root';
     root.innerHTML = SETTINGS_HTML;
-    for (const radio of root.querySelectorAll('input[type="radio"]')) {
-      radio.checked = settings.get(radio.name) === radio.value;
+    for (const input of root.querySelectorAll('input')) {
+      input.checked = input.type === 'checkbox' ? settings.get(input.name) : settings.get(input.name) === input.value;
     }
 
     // Slides listens on the page for keys and clicks (arrows move objects, Delete deletes them).
@@ -87,12 +78,14 @@
     document.body.append(root);
     root.getBoundingClientRect(); // Start the transition from the closed state.
     root.classList.add('slides-companion-dialog-open');
-    groupStops()[0].focus();
+    controlStops()[0].focus();
   }
 
   function save() {
-    const choices = [...root.querySelectorAll('input[type="radio"]:checked')];
-    globalThis.slidesCompanion.settings.set(Object.fromEntries(choices.map((radio) => [radio.name, radio.value])));
+    const choices = [...root.querySelectorAll('input[type="checkbox"], input[type="radio"]:checked')];
+    globalThis.slidesCompanion.settings.set(
+      Object.fromEntries(choices.map((input) => [input.name, input.type === 'checkbox' ? input.checked : input.value])),
+    );
     close();
   }
 
@@ -118,14 +111,18 @@
     }
   }
 
-  // Each radio group is one Tab stop: its checked option, or its first.
-  function groupStops() {
-    return [...root.querySelectorAll('fieldset')].map((group) => group.querySelector('input:checked') ?? group.querySelector('input'));
+  // One Tab stop per control, in order: each checkbox, and each radio group (its checked option, or
+  // its first).
+  function controlStops() {
+    const controls = root.querySelectorAll('.slides-companion-dialog-content > label input, fieldset');
+    return [...controls].map((control) =>
+      control.matches('fieldset') ? (control.querySelector('input:checked') ?? control.querySelector('input')) : control,
+    );
   }
 
-  // Keep Tab inside the dialog: the radio groups, Cancel, OK.
+  // Keep Tab inside the dialog: the controls, Cancel, OK.
   function trapFocus(event) {
-    const stops = [...groupStops(), ...root.querySelectorAll('button')];
+    const stops = [...controlStops(), ...root.querySelectorAll('button')];
     const index = stops.indexOf(document.activeElement);
     const next = (index + (event.shiftKey ? -1 : 1) + stops.length) % stops.length;
     event.preventDefault();

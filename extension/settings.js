@@ -4,8 +4,8 @@
   const DEFAULTS = {
     // Spotlight: 'together' shows a group as one image, 'apart' shows each image in it on its own.
     groupedImages: 'together',
-    // During a slideshow, a click on an image: 'spotlight' shows it full screen, 'next' changes slide.
-    slideshowImageClick: 'spotlight',
+    // During a slideshow, clicking an image shows it full screen; off, the click changes slide.
+    spotlightOnClick: true,
   };
 
   let values = { ...DEFAULTS };
