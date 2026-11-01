@@ -175,8 +175,9 @@
   }
 }
 
-/* During a slideshow, images can be clicked to spotlight them. Not while Slides hides the
-   cursor (an inline `cursor: none` on body when the mouse rests). */
+/* During a slideshow, images can be clicked to spotlight them. Not while Slides hides the cursor
+   when the mouse rests (an inline `cursor: none` on body). With the laser pointer on, the hand still
+   shows, as it does over Slides' links and videos. */
 .slides-companion-over-image body:not([style*="cursor: none"]) .punch-viewer-svgpage-svgcontainer image {
   cursor: pointer;
 }

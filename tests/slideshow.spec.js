@@ -93,12 +93,29 @@ test('clicks away from images still change slides', async ({ context }) => {
   await expect(stage(show)).toHaveCount(0);
 });
 
-test('with the laser pointer on, clicking an image changes slide', async ({ context }) => {
+// Slides' links and videos keep working with the laser pointer on, so images do too. With the pen
+// on, a click draws.
+test('with the laser pointer on, clicking an image spotlights it', async ({ context }) => {
   const { page, show } = await startSlideshow(context);
   await page.keyboard.press('l');
+  // Like over Slides' links and videos, a hand shows over the image.
+  const image = show.locator(`[id="${LEFT}"] image`);
+  const box = await image.boundingBox();
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await expect(image).toHaveCSS('cursor', 'pointer');
+  await clickCentre(page, image);
+  await expect(stage(show)).toBeVisible();
+  expect(await showing(show)).toBe(LEFT);
+});
+
+test('with the pen on, clicking an image leaves it to the pen', async ({ context }) => {
+  const { page, show } = await startSlideshow(context);
+  await page.keyboard.press('Shift+L');
+  await expect(show.locator('.sketchyViewerContent.disable-pointer-events')).toHaveCount(1);
   await clickCentre(page, show.locator(`[id="${LEFT}"] image`));
-  await expect.poll(() => slideNumber(show)).toBe(4);
+  await page.waitForTimeout(500);
   await expect(stage(show)).toHaveCount(0);
+  expect(await slideNumber(show)).toBe(3);
 });
 
 test('turning the setting off keeps clicks on images going to the next slide', async ({ context }) => {

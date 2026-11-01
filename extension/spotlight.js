@@ -531,8 +531,8 @@
   function clickedImage(event) {
     if (gallery || !globalThis.slidesCompanion.settings.get('spotlightOnClick')) return null;
     if (event.button !== 0 || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return null;
-    // The laser pointer and the pen hide the cursor this way; their clicks are theirs.
-    if (document.querySelector('.sketchyViewerContainer.cursor-none')) return null;
+    // With the pen on, clicks draw. (The laser pointer keeps clicks, like links and videos do.)
+    if (document.querySelector('.sketchyViewerContent.disable-pointer-events')) return null;
     const image = event.target instanceof Element ? event.target.closest('.punch-viewer-svgpage-svgcontainer image') : null;
     if (!image || image.closest('a')) return null;
     const object = parentObject(image);
