@@ -552,6 +552,8 @@
       },
       true,
     );
+    // While zoomed in, the zoom keeps clicks from Slides, except the ones the spotlight takes.
+    globalThis.slidesCompanion.spotlightTakesClick = (event) => Boolean(clickedImage(event));
     // A pointing hand over images says they can be clicked.
     window.addEventListener(
       'mousemove',

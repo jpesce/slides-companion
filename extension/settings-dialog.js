@@ -44,6 +44,15 @@
             </span>
           </label>
         </fieldset>
+        <h3 class="slides-companion-dialog-section">Zoom</h3>
+        <label class="slides-companion-dialog-option">
+          <input type="checkbox" name="zoomOnScroll">
+          <span class="slides-companion-checkbox" aria-hidden="true">${CHECKMARK}</span>
+          <span class="slides-companion-dialog-label">
+            Zoom in when you scroll in a slideshow, and drag to look around
+            <span class="slides-companion-dialog-hint">(turn off to change slides with the scroll wheel instead)</span>
+          </span>
+        </label>
       </div>
       <div class="slides-companion-dialog-actions">
         <button type="button" class="slides-companion-button-text" data-action="cancel">Cancel</button>

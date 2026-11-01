@@ -6,6 +6,8 @@
     groupedImages: 'together',
     // During a slideshow, clicking an image shows it full screen; off, the click changes slide.
     spotlightOnClick: true,
+    // During a slideshow, scrolling zooms into the slide; off, it changes slides as Slides does.
+    zoomOnScroll: true,
   };
 
   let values = { ...DEFAULTS };

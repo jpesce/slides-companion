@@ -1,0 +1,28 @@
+/* Each scroll step eases in, so a mouse wheel's notches don't jump. */
+.sketchyViewerContainer {
+  transition: transform 100ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Dragging follows the pointer directly, and a new slide starts whole at once. */
+.slides-companion-zoom-dragging .sketchyViewerContainer,
+.sketchyViewerContainer.slides-companion-zoom-resetting {
+  transition: none;
+}
+
+/* While dragging, the hand grabs, over Slides' own cursor (inline on body) and the laser pointer. */
+.slides-companion-zoom-dragging body,
+.slides-companion-zoom-dragging body * {
+  cursor: grabbing !important;
+}
+
+/* Keep the magnified slide inside the window. */
+.slides-companion-zoomed,
+.slides-companion-zoomed body {
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sketchyViewerContainer {
+    transition: none;
+  }
+}

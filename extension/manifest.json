@@ -16,8 +16,8 @@
     },
     {
       "matches": ["https://docs.google.com/presentation/*/present*", "https://docs.google.com/presentation/*/localpresent*"],
-      "js": ["settings.js", "content.js", "spotlight.js"],
-      "css": ["spotlight.css"],
+      "js": ["settings.js", "content.js", "zoom.js", "spotlight.js"],
+      "css": ["spotlight.css", "zoom.css"],
       "all_frames": true,
       "run_at": "document_start"
     }
