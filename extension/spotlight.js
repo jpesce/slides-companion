@@ -395,7 +395,14 @@
       // Slides must not act on keys while the stage covers it (Delete would delete the selection).
       event.stopImmediatePropagation();
       if (!event.metaKey && !event.ctrlKey) event.preventDefault();
+      if (IN_SLIDESHOW && event.key === 'Escape') escapeDown = true;
       if (!event.metaKey && !event.ctrlKey && !event.altKey) NAVIGATION[event.key]?.();
+      return;
+    }
+    // The Esc that closed the gallery, still held down: its repeats mustn't end the slideshow.
+    if (escapeDown && event.key === 'Escape') {
+      event.preventDefault();
+      event.stopImmediatePropagation();
       return;
     }
     if (IN_SLIDESHOW) return;
@@ -546,8 +553,22 @@
   // before the page hears the key. While the gallery is open, the page asks to keep Esc (only the
   // top page may), so Esc closes the gallery and the slideshow goes on.
   const ESCAPE_MESSAGE = 'slides-companion-keep-escape';
+  // Set while the Esc that closed the gallery is held down.
+  let escapeDown = false;
   function keepEscape(keep) {
+    // Chrome takes the key's release as an Esc press too, so Esc goes back to it only once released.
+    if (!keep && escapeDown) return;
     window.top.postMessage({ type: ESCAPE_MESSAGE, keep }, location.origin);
+  }
+  if (IN_SLIDESHOW) {
+    const onEscapeUp = (event) => {
+      if (!escapeDown || (event.type === 'keyup' && event.key !== 'Escape')) return;
+      escapeDown = false;
+      if (!gallery) keepEscape(false);
+    };
+    window.addEventListener('keyup', onEscapeUp, true);
+    // The release may happen elsewhere, unheard.
+    window.addEventListener('blur', onEscapeUp);
   }
   if (window === window.top) {
     window.addEventListener('message', (event) => {

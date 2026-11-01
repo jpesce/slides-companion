@@ -46,6 +46,30 @@ test('clicking an image during a slideshow spotlights it, and Esc goes back to t
   expect(await slideNumber(show)).toBe(3);
 });
 
+// In real full screen Chrome takes the release of Esc as a press too, so Esc must stay locked until
+// the key is up. The tests can't press a real Esc, so this watches the lock requests instead.
+test('Esc stays kept until the key that closed the gallery is released', async ({ context }) => {
+  const { page, show } = await startSlideshow(context);
+  await page.evaluate(() => {
+    window.escapeRequests = [];
+    window.addEventListener('message', (event) => {
+      if (event.data?.type === 'slides-companion-keep-escape') window.escapeRequests.push(event.data.keep);
+    });
+  });
+  const requests = () => page.evaluate(() => window.escapeRequests);
+
+  await clickCentre(page, show.locator(`[id="${LEFT}"] image`));
+  await expect.poll(requests).toEqual([true]);
+  await page.keyboard.down('Escape');
+  await expect(stage(show)).toHaveCount(0);
+  await page.keyboard.down('Escape'); // A repeat while held.
+  await page.waitForTimeout(300);
+  expect(await requests()).toEqual([true]);
+  expect(await slideNumber(show)).toBe(3);
+  await page.keyboard.up('Escape');
+  await expect.poll(requests).toEqual([true, false]);
+});
+
 test('in the gallery, clicks, keys and the scroll wheel stay out of the slideshow', async ({ context }) => {
   const { page, show } = await startSlideshow(context);
   await clickCentre(page, show.locator(`[id="${RIGHT}"] image`));
