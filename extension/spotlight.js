@@ -22,6 +22,8 @@
   const NEXT_ICON = icon('M10 6 8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z');
 
   let gallery = null;
+  // The last key pressed while the gallery was open, while it's held down.
+  let heldKey = null;
 
   // ----- Slide structure -----
 
@@ -58,7 +60,10 @@
     );
   }
 
-  const hasImage = (object) => Boolean(object.querySelector('image'));
+  // A video shows its first frame with a play button over it: neither is an image to spotlight.
+  const VIDEO_MARK = 'image[*|href*="/presentations/images/play-overlay"]';
+  const hasImage = (object) =>
+    [...object.querySelectorAll('image')].some((image) => !parentObject(image)?.querySelector(VIDEO_MARK));
   // In a slideshow, objects waiting for their animation are on the slide but not shown yet.
   const isShowing = (object) => object.checkVisibility({ opacityProperty: true, visibilityProperty: true });
 
@@ -250,7 +255,9 @@
       <div class="slides-companion-spotlight-cursor" aria-hidden="true">${NEXT_ICON}</div>
       <div class="slides-companion-spotlight-status" aria-live="polite"></div>`;
 
-    gallery = { stage, items, index: -1, idleTimer: 0, flashTimer: 0, pointer: null };
+    // pressed: whether a press has started on the stage. The second click of a double click that
+    // opened it began before it (its press counts on from the first), so it does nothing.
+    gallery = { stage, items, index: -1, idleTimer: 0, flashTimer: 0, pointer: null, pressed: false };
 
     // Keep the pointer to ourselves so Slides doesn't react to it behind the stage.
     for (const type of ['mousedown', 'mouseup', 'click', 'contextmenu']) {
@@ -267,6 +274,9 @@
       },
       { passive: false },
     );
+    stage.addEventListener('mousedown', (event) => {
+      if (event.detail === 1) gallery.pressed = true;
+    });
     stage.addEventListener('click', onClick);
     stage.addEventListener('mousemove', onMouseMove);
     stage.addEventListener('mouseleave', () => {
@@ -373,6 +383,7 @@
   }
 
   function onClick(event) {
+    if (!gallery.pressed) return onMouseMove(event);
     const bar = event.target.closest('.slides-companion-spotlight-bar');
     if (bar) {
       if (event.target.closest('.slides-companion-spotlight-close')) close();
@@ -400,21 +411,28 @@
     ' ': close,
     Enter: close,
   };
+  const CLOSING_KEYS = ['Escape', ' ', 'Enter'];
 
   function onKeydown(event) {
     if (gallery) {
       // Slides must not act on keys while the stage covers it (Delete would delete the selection).
       event.stopImmediatePropagation();
       if (!event.metaKey && !event.ctrlKey) event.preventDefault();
-      if (IN_SLIDESHOW && event.key === 'Escape') escapeDown = true;
+      // The Space that opened the gallery, held down, doesn't close it again.
+      if (event.repeat && CLOSING_KEYS.includes(event.key)) return;
+      heldKey = event.key;
       if (!event.metaKey && !event.ctrlKey && !event.altKey) NAVIGATION[event.key]?.();
       return;
     }
-    // The Esc that closed the gallery, still held down: its repeats mustn't end the slideshow.
-    if (escapeDown && event.key === 'Escape') {
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      return;
+    // The key that closed the gallery, still held down: its repeats mustn't reach Slides (Space and
+    // Enter would skip slides, Esc would end the slideshow).
+    if (heldKey === event.key) {
+      if (event.repeat) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        return;
+      }
+      onKeyUp(); // A new press: its release went unheard.
     }
     if (IN_SLIDESHOW) return;
     if (event.key !== ' ' || event.repeat || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
@@ -441,6 +459,7 @@
     if (!target || listened.has(target)) return;
     listened.add(target);
     target.addEventListener('keydown', onKeydown, true);
+    target.addEventListener('keyup', onKeyUp, true);
   }
 
   // Registered at document_start in the slideshow, so it hears keys before Slides does.
@@ -554,6 +573,15 @@
     );
     // While zoomed in, the zoom keeps clicks from Slides, except the ones the spotlight takes.
     globalThis.slidesCompanion.spotlightTakesClick = (event) => Boolean(clickedImage(event));
+    // The slide can change under the gallery (it advances by itself, or from Next in the presenter
+    // view): the gallery was about the slide that's gone. Slides labels the slide ("Slide 3 of 9").
+    let slideName = null;
+    new MutationObserver(() => {
+      const name = document.querySelector('.punch-viewer-svgpage-a11yelement')?.getAttribute('aria-label');
+      if (!name || name === slideName) return;
+      slideName = name;
+      close();
+    }).observe(document, { subtree: true, childList: true, attributes: true, attributeFilter: ['aria-label'] });
     // A pointing hand over images says they can be clicked.
     window.addEventListener(
       'mousemove',
@@ -566,28 +594,27 @@
   // before the page hears the key. While the gallery is open, the page asks to keep Esc (only the
   // top page may), so Esc closes the gallery and the slideshow goes on.
   const ESCAPE_MESSAGE = 'slides-companion-keep-escape';
-  // Set while the Esc that closed the gallery is held down.
-  let escapeDown = false;
   function keepEscape(keep) {
     // Chrome takes the key's release as an Esc press too, so Esc goes back to it only once released.
-    if (!keep && escapeDown) return;
+    if (!keep && heldKey === 'Escape') return;
     window.top.postMessage({ type: ESCAPE_MESSAGE, keep }, location.origin);
   }
-  if (IN_SLIDESHOW) {
-    const onEscapeUp = (event) => {
-      if (!escapeDown || (event.type === 'keyup' && event.key !== 'Escape')) return;
-      escapeDown = false;
-      if (!gallery) keepEscape(false);
-    };
-    window.addEventListener('keyup', onEscapeUp, true);
-    // The release may happen elsewhere, unheard.
-    window.addEventListener('blur', onEscapeUp);
+  function onKeyUp(event) {
+    if (!heldKey || (event?.type === 'keyup' && event.key !== heldKey)) return;
+    const released = heldKey;
+    heldKey = null;
+    if (IN_SLIDESHOW && released === 'Escape' && !gallery) keepEscape(false);
   }
+  // The release may happen elsewhere, unheard.
+  window.addEventListener('blur', onKeyUp);
   if (window === window.top) {
     window.addEventListener('message', (event) => {
       if (event.origin !== location.origin || event.data?.type !== ESCAPE_MESSAGE || !navigator.keyboard) return;
       if (event.data.keep) navigator.keyboard.lock(['Escape']).catch(() => {});
       else navigator.keyboard.unlock();
     });
+    // Leaving full screen another way (the green button, a gesture) ends the slideshow with the
+    // gallery open, and Esc goes back to the browser for the next one.
+    document.addEventListener('fullscreenchange', () => document.fullscreenElement || navigator.keyboard?.unlock());
   }
 }

@@ -239,3 +239,28 @@ test('the right-click menu offers Spotlight image for images only', async ({ con
   await expect(stage(page)).toBeVisible();
   await expect(page.locator('.goog-menu[role="menu"]:visible')).toHaveCount(0);
 });
+
+test('holding Space keeps the gallery open', async ({ context }) => {
+  const page = await openSlide(context);
+  await clickCentre(page, `${object(RIGHT)} image`);
+  await page.keyboard.down(' ');
+  await expect(stage(page)).toBeVisible();
+  for (let i = 0; i < 5; i++) await page.keyboard.down(' '); // Repeats while held.
+  await page.keyboard.up(' ');
+  await page.waitForTimeout(300);
+  await expect(stage(page)).toBeVisible();
+});
+
+// Slide 4 of the test deck has a video, which Slides draws as its first frame under a play button.
+test('videos aren’t spotlighted', async ({ context }) => {
+  const page = await openSlide(context);
+  await page.locator('.punch-filmstrip-thumbnail').nth(3).click();
+  const video = '#workspace [id="editor-h2c87d6044fe40693_46_7"]';
+  await expect(page.locator(`${video} image`).first()).toBeVisible();
+
+  await clickCentre(page, video);
+  await expect.poll(() => selected(page)).toEqual(['editor-h2c87d6044fe40693_46_7']);
+  await page.keyboard.press('Space');
+  await page.waitForTimeout(300);
+  await expect(stage(page)).toHaveCount(0);
+});

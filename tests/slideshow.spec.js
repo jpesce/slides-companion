@@ -145,3 +145,47 @@ test('a slideshow opened from a link keeps its clicks', async ({ context }) => {
   await expect(label).not.toHaveAttribute('aria-label', before);
   await expect(page.locator('.slides-companion-spotlight')).toHaveCount(0);
 });
+
+// Held down, Space and Enter repeat; once the gallery is closed, the repeats mustn't skip slides.
+test('holding the key that closes the gallery doesn’t skip slides', async ({ context }) => {
+  const { page, show } = await startSlideshow(context);
+  await clickCentre(page, show.locator(`[id="${LEFT}"] image`));
+  await expect(stage(show)).toBeVisible();
+  await page.keyboard.down(' ');
+  await expect(stage(show)).toHaveCount(0);
+  for (let i = 0; i < 5; i++) await page.keyboard.down(' '); // Repeats while held.
+  await page.keyboard.up(' ');
+  await page.waitForTimeout(500);
+  expect(await slideNumber(show)).toBe(3);
+  // Released, Space goes on to the next slide as usual.
+  await page.keyboard.press(' ');
+  await expect.poll(() => slideNumber(show)).toBe(4);
+});
+
+// The ✕ shows when the gallery opens, over the top right corner of the photo.
+test('double clicking an image opens it, and the second click does nothing more', async ({ context }) => {
+  const { page, show } = await startSlideshow(context);
+  // The ✕ is a 40px circle 20px in from the corner; this point is on it and on the photo.
+  const photo = await show.locator(`[id="${RIGHT}"] image`).boundingBox();
+  const close = { x: photo.x + photo.width - 8, y: 50 };
+  expect(close.x).toBeGreaterThan(page.viewportSize().width - 60);
+  expect(close.y).toBeGreaterThan(photo.y);
+  await page.mouse.dblclick(close.x, close.y);
+  await page.waitForTimeout(300);
+  await expect(stage(show)).toBeVisible();
+  // A fresh click works as usual.
+  await page.mouse.click(close.x, close.y);
+  await expect(stage(show)).toHaveCount(0);
+});
+
+test('the gallery closes when the slide changes under it', async ({ context }) => {
+  const { page, show } = await startSlideshow(context);
+  await clickCentre(page, show.locator(`[id="${LEFT}"] image`));
+  await expect(stage(show)).toBeVisible();
+  // As auto-advance or the presenter view would, without a key or click on the gallery.
+  await show.locator('.punch-viewer-navbar-next').evaluate((next) => {
+    for (const type of ['mouseover', 'mousedown', 'mouseup', 'click']) next.dispatchEvent(new MouseEvent(type, { bubbles: true }));
+  });
+  await expect.poll(() => slideNumber(show)).toBe(4);
+  await expect(stage(show)).toHaveCount(0);
+});
