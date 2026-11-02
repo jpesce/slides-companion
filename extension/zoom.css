@@ -1,12 +1,7 @@
-/* Each scroll step eases in, so a mouse wheel's notches don't jump. */
-.sketchyViewerContent {
-  transition: transform 100ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-/* Dragging follows the pointer directly, and a new slide starts whole at once. */
-.slides-companion-zoom-dragging .sketchyViewerContent,
-.sketchyViewerContent.slides-companion-zoom-resetting {
-  transition: none;
+/* The pen's ink zooms from the same corner as the slide (see show() in zoom.js). */
+.slides-companion-zoom-ink {
+  transform-box: view-box;
+  transform-origin: 0 0;
 }
 
 /* While dragging, the hand grabs, over Slides' own cursor (inline on body) and the laser pointer. */
@@ -19,10 +14,4 @@
 .slides-companion-zoomed,
 .slides-companion-zoomed body {
   overflow: hidden;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .sketchyViewerContent {
-    transition: none;
-  }
 }
