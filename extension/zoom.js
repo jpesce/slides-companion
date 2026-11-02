@@ -2,8 +2,9 @@
 // around. Fully zoomed out, everything works as usual. While zoomed in, only what shows a pointing
 // hand can be clicked (links, videos, images to spotlight); a click anywhere else does nothing, so
 // it never changes slides by accident. Changing slides starts the next one whole. The live slide is
-// scaled, so video and animations go on. The "Zoom in when you scroll" setting gives the scroll
-// wheel back to Slides, which then changes slides with it.
+// scaled, so video and animations go on. The "During a slideshow" scroll setting can instead make
+// scrolling do nothing, or give the wheel back to Slides, which then changes slides with it.
+// (Scrolling in the editor: see scroll.js.)
 {
   const IN_SLIDESHOW = /\/(local)?present$/.test(location.pathname);
   const ZOOMED_CLASS = 'slides-companion-zoomed';
@@ -34,7 +35,8 @@
   // The pen's ink: the strokes group in the first of those layers (the second is the laser's).
   const inkLayer = () => document.querySelector('.punch-slide-markup-surface > g');
   const slideName = () => document.querySelector('.punch-viewer-svgpage-a11yelement')?.getAttribute('aria-label');
-  const enabled = () => globalThis.slidesCompanion.settings.get('zoomOnScroll');
+  // What scrolling does: 'zoom', 'nothing' or 'slides' (see settings.js).
+  const scrolling = () => globalThis.slidesCompanion.settings.get('slideshowScroll');
   const galleryOpen = () => Boolean(document.querySelector('.slides-companion-spotlight'));
   // With the pen on, dragging draws.
   const penOn = () => Boolean(document.querySelector('.sketchyViewerContent.disable-pointer-events'));
@@ -196,13 +198,15 @@
   // ----- Scroll to zoom -----
 
   // Scrolling zooms in and out around the pointer, and never changes slides, even fully zoomed out
-  // (a trackpad keeps scrolling for a moment after the fingers lift).
+  // (a trackpad keeps scrolling for a moment after the fingers lift). Set to do nothing, it's just
+  // kept from Slides.
   function onWheel(event) {
-    if (!enabled() || galleryOpen()) return;
+    const choice = scrolling();
+    if (choice === 'slides' || galleryOpen()) return;
     event.preventDefault();
     event.stopImmediatePropagation();
     const element = slideView();
-    if (!element || event.type !== 'wheel') return;
+    if (choice !== 'zoom' || !element) return;
     // Ink keeps the zoom it's drawn at, so the zoom holds still while the pen draws.
     if (penOn() && event.buttons & 1) return;
     // Steps add up on where the zoom is going, so quick scrolling isn't lost to the easing.
@@ -331,7 +335,6 @@
     // Registered at document_start, and before the spotlight's, so a drag over an image isn't taken
     // for a click on it.
     window.addEventListener('wheel', onWheel, { capture: true, passive: false });
-    window.addEventListener('mousewheel', onWheel, { capture: true, passive: false });
     window.addEventListener('pointerdown', onPointerDown, true);
     window.addEventListener('mousedown', onMouseDown, true);
     window.addEventListener('mousemove', onMouseMove, { capture: true, passive: true });
@@ -350,7 +353,7 @@
       attributes: true,
       attributeFilter: ['aria-label'],
     });
-    // Turning the setting off mid-slideshow leaves nothing zoomed.
-    chrome.storage.onChanged.addListener(() => enabled() || reset());
+    // Choosing something else mid-slideshow leaves nothing zoomed.
+    chrome.storage.onChanged.addListener(() => scrolling() === 'zoom' || reset());
   }
 }

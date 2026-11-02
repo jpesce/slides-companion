@@ -7,6 +7,17 @@
   // Material's checkmark, drawn in by stroke (see settings-dialog.css).
   const CHECKMARK = '<svg viewBox="0 0 24 24"><path d="M1.73 12.91 8.1 19.28 22.79 4.59"/></svg>';
 
+  // An option in a group of choices.
+  const radio = (name, value, label, hint) => `
+    <label class="slides-companion-dialog-option">
+      <input type="radio" name="${name}" value="${value}">
+      <span class="slides-companion-radio" aria-hidden="true"></span>
+      <span class="slides-companion-dialog-label">
+        ${label}
+        <span class="slides-companion-dialog-hint">(${hint})</span>
+      </span>
+    </label>`;
+
   const SETTINGS_HTML = `
     <div class="slides-companion-dialog-scrim"></div>
     <div class="slides-companion-dialog" role="dialog" aria-modal="true" aria-labelledby="${TITLE_ID}">
@@ -27,32 +38,24 @@
         </label>
         <fieldset class="slides-companion-dialog-group">
           <legend class="slides-companion-dialog-legend">When images are grouped</legend>
-          <label class="slides-companion-dialog-option">
-            <input type="radio" name="groupedImages" value="together">
-            <span class="slides-companion-radio" aria-hidden="true"></span>
-            <span class="slides-companion-dialog-label">
-              Show the group as one image
-              <span class="slides-companion-dialog-hint">(for example, a photo grouped with its caption)</span>
-            </span>
-          </label>
-          <label class="slides-companion-dialog-option">
-            <input type="radio" name="groupedImages" value="apart">
-            <span class="slides-companion-radio" aria-hidden="true"></span>
-            <span class="slides-companion-dialog-label">
-              Show each image on its own
-              <span class="slides-companion-dialog-hint">(for example, photos grouped to keep a layout tidy)</span>
-            </span>
-          </label>
+          ${radio('groupedImages', 'together', 'Show the group as one image', 'for example, a photo grouped with its caption')}
+          ${radio('groupedImages', 'apart', 'Show each image on its own', 'for example, photos grouped to keep a layout tidy')}
         </fieldset>
-        <h3 class="slides-companion-dialog-section">Zoom</h3>
-        <label class="slides-companion-dialog-option">
-          <input type="checkbox" name="zoomOnScroll">
-          <span class="slides-companion-checkbox" aria-hidden="true">${CHECKMARK}</span>
-          <span class="slides-companion-dialog-label">
-            Zoom in when you scroll in a slideshow, and drag to look around
-            <span class="slides-companion-dialog-hint">(turn off to change slides with the scroll wheel instead)</span>
-          </span>
-        </label>
+        <h3 class="slides-companion-dialog-section">Scrolling</h3>
+        <p class="slides-companion-dialog-text">
+          What happens when you scroll over a slide with a mouse wheel or trackpad.
+        </p>
+        <fieldset class="slides-companion-dialog-group">
+          <legend class="slides-companion-dialog-legend">During a slideshow</legend>
+          ${radio('slideshowScroll', 'zoom', 'Zoom into the slide', 'drag to look around while zoomed in')}
+          ${radio('slideshowScroll', 'nothing', 'Do nothing', 'so a brush of the trackpad never skips a slide')}
+          ${radio('slideshowScroll', 'slides', 'Go to the next or previous slide', 'as Slides does on its own')}
+        </fieldset>
+        <fieldset class="slides-companion-dialog-group">
+          <legend class="slides-companion-dialog-legend">While editing</legend>
+          ${radio('editorScroll', 'slides', 'Go to the next or previous slide', 'as Slides does on its own')}
+          ${radio('editorScroll', 'nothing', 'Do nothing', 'you can still scroll around a slide you’ve zoomed into')}
+        </fieldset>
       </div>
       <div class="slides-companion-dialog-actions">
         <button type="button" class="slides-companion-button-text" data-action="cancel">Cancel</button>

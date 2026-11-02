@@ -398,18 +398,55 @@ test('changing slides while zoomed starts the next slide whole', async ({ contex
   await expect.poll(() => zoom(show)).toEqual({ scale: 1, x: 0, y: 0 });
 });
 
-test('with zoom turned off in Settings, scrolling changes slides', async ({ context }) => {
+// Picks what scrolling does during a slideshow, in Settings.
+async function chooseSlideshowScroll(context, choice) {
   const page = await context.newPage();
   await page.goto(slide);
   await page.locator('.slides-companion-button').click();
-  await page.getByRole('checkbox', { name: /Zoom in when you scroll/ }).uncheck();
+  await page.getByRole('group', { name: 'During a slideshow' }).getByRole('radio', { name: choice }).check();
   await page.getByRole('button', { name: 'OK' }).click();
+  await expect(page.locator('.slides-companion-dialog-root')).toHaveCount(0);
   await page.close();
+}
 
+test('set to change slides in Settings, scrolling changes slides', async ({ context }) => {
+  await chooseSlideshowScroll(context, /Go to the next or previous slide/);
   const { page: presenting, show } = await startSlideshow(context);
   const { width, height } = presenting.viewportSize();
   await presenting.mouse.move(width / 2, height / 2);
   await presenting.mouse.wheel(0, 300);
   await expect.poll(() => slideNumber(show)).toBe(4);
   expect((await zoom(show)).scale).toBe(1);
+});
+
+test('set to do nothing in Settings, scrolling neither zooms nor changes slides', async ({ context }) => {
+  await chooseSlideshowScroll(context, /Do nothing/);
+  const { page: presenting, show } = await startSlideshow(context);
+  const { width, height } = presenting.viewportSize();
+  await presenting.mouse.move(width / 2, height / 2);
+  for (let i = 0; i < 3; i++) await presenting.mouse.wheel(0, 300);
+  await presenting.mouse.wheel(300, 0); // A sideways swipe.
+  await presenting.waitForTimeout(500);
+  expect(await slideNumber(show)).toBe(3);
+  expect((await zoom(show)).scale).toBe(1);
+});
+
+// Scrolling never skips a slide, but everything else that changes slides still does.
+test('keys and clicks still change slides', async ({ context }) => {
+  const { page, show } = await startSlideshow(context);
+  const { width, height } = page.viewportSize();
+  await page.mouse.move(width / 2, height / 2);
+  await page.mouse.wheel(0, 300);
+  await page.waitForTimeout(300);
+  expect(await slideNumber(show)).toBe(3);
+  await page.keyboard.press('PageDown');
+  await expect.poll(() => slideNumber(show)).toBe(4);
+  await page.keyboard.press('PageUp');
+  await expect.poll(() => slideNumber(show)).toBe(3);
+  await page.keyboard.press('ArrowDown');
+  await expect.poll(() => slideNumber(show)).toBe(4);
+  await page.keyboard.press('ArrowUp');
+  await expect.poll(() => slideNumber(show)).toBe(3);
+  await page.mouse.click(width * 0.9, height * 0.9); // The empty bottom right of the slide.
+  await expect.poll(() => slideNumber(show)).toBe(4);
 });

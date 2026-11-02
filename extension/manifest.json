@@ -10,7 +10,7 @@
     {
       "matches": ["https://docs.google.com/presentation/*"],
       "exclude_matches": ["https://docs.google.com/presentation/*/present*", "https://docs.google.com/presentation/*/localpresent*"],
-      "js": ["settings.js", "content.js", "settings-dialog.js", "companion.js", "spotlight.js"],
+      "js": ["settings.js", "content.js", "settings-dialog.js", "companion.js", "spotlight.js", "scroll.js"],
       "css": ["companion.css", "settings-dialog.css", "spotlight.css"],
       "run_at": "document_idle"
     },
