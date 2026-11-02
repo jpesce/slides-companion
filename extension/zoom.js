@@ -127,7 +127,8 @@
   // A stroke is known by its slide and where it starts on the slide ("M x y"), which every redraw of
   // it keeps; a tap of the pen is a dot, known by its centre.
   const strokeZooms = new Map();
-  const STROKES = 'path, circle';
+  // Kept ink from earlier slideshows is placed on the whole slide already (see ink.js).
+  const STROKES = 'path:not(.slides-companion-kept-ink), circle:not(.slides-companion-kept-ink)';
 
   // The ink layer covers the window; the slide can sit lower or further right in it, between bars,
   // when the screen isn't the slide's shape. Its units per pixel follow its viewBox (normally 1).
@@ -144,6 +145,8 @@
       width: slide?.offsetWidth || box.width,
     };
   }
+
+  globalThis.slidesCompanion.inkSpace = inkSpace;
 
   // The slide's zoom as the ink layer takes it: from the layer's corner, in its units.
   function inkZoom({ scale, x, y }, space) {

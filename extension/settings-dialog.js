@@ -56,6 +56,18 @@
           ${radio('editorScroll', 'slides', 'Go to the next or previous slide', 'as Slides does on its own')}
           ${radio('editorScroll', 'nothing', 'Do nothing', 'you can still scroll around a slide you’ve zoomed into')}
         </fieldset>
+        <h3 class="slides-companion-dialog-section">Pen</h3>
+        <p class="slides-companion-dialog-text">
+          During a slideshow, press Shift + L to draw on a slide.
+        </p>
+        <label class="slides-companion-dialog-option">
+          <input type="checkbox" name="keepInk">
+          <span class="slides-companion-checkbox" aria-hidden="true">${CHECKMARK}</span>
+          <span class="slides-companion-dialog-label">
+            Keep what you draw after the slideshow ends
+            <span class="slides-companion-dialog-hint">(it’s back on the same slide the next time you present on this computer, until you choose Erase all)</span>
+          </span>
+        </label>
       </div>
       <div class="slides-companion-dialog-actions">
         <button type="button" class="slides-companion-button-text" data-action="cancel">Cancel</button>

@@ -11,6 +11,9 @@
     // or 'nothing'.
     slideshowScroll: 'zoom',
     editorScroll: 'slides',
+    // What the pen draws in a slideshow shows again the next time the deck is presented. Off, as in
+    // Slides, the pen's ink goes when the slideshow ends.
+    keepInk: false,
   };
 
   let values = { ...DEFAULTS };
