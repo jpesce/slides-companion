@@ -68,6 +68,18 @@
             <span class="slides-companion-dialog-hint">(it’s back on the same slide the next time you present on this computer, until you choose Erase all)</span>
           </span>
         </label>
+        <h3 class="slides-companion-dialog-section">Timer</h3>
+        <p class="slides-companion-dialog-text">
+          In presenter view, press the timer button beside Pause and Reset, or the time itself, to count
+          down from how long you have. Past the end, it keeps counting in red. Each deck remembers its
+          time.
+        </p>
+        <fieldset class="slides-companion-dialog-group">
+          <legend class="slides-companion-dialog-legend">Turn the timer orange</legend>
+          ${radio('countdownWarning', '1', '1 minute before the end', 'for short talks')}
+          ${radio('countdownWarning', '2', '2 minutes before the end', 'time to wrap up most talks')}
+          ${radio('countdownWarning', '5', '5 minutes before the end', 'for long talks and workshops')}
+        </fieldset>
       </div>
       <div class="slides-companion-dialog-actions">
         <button type="button" class="slides-companion-button-text" data-action="cancel">Cancel</button>

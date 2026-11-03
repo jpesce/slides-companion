@@ -1,6 +1,7 @@
 // User settings, saved with chrome.storage.sync so they follow the user to other computers.
 // Other scripts read them through `slidesCompanion.settings`.
-{
+// Loaded once per page, though presenter view's scripts list it too (see manifest.json).
+if (!globalThis.slidesCompanion?.settings) {
   const DEFAULTS = {
     // Spotlight: 'together' shows a group as one image, 'apart' shows each image in it on its own.
     groupedImages: 'together',
@@ -14,6 +15,8 @@
     // What the pen draws in a slideshow shows again the next time the deck is presented. Off, as in
     // Slides, the pen's ink goes when the slideshow ends.
     keepInk: false,
+    // In presenter view, how many minutes before the end the countdown turns orange.
+    countdownWarning: '2',
   };
 
   let values = { ...DEFAULTS };

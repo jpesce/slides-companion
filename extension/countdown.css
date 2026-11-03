@@ -1,0 +1,67 @@
+/* The countdown in presenter view (see countdown.js). It takes the place of Slides' timer, with its
+   class, so it has the same type. Slides adds its own styles after these, so the selectors here
+   name two classes to win. */
+.slides-companion-countdown-container [hidden] {
+  display: none !important;
+}
+
+/* Clicking the time opens the timer's menu, so on hover, and while the menu is open, it shows a border
+   like the deck's title in the editor. */
+.slides-companion-countdown-container.punch-viewer-speakernotes-timer-time-container {
+  border: 1px solid transparent;
+  border-radius: 2px;
+  padding: 5px;
+}
+
+.slides-companion-countdown-container.punch-viewer-speakernotes-timer-time-container:hover:not(:focus-within),
+.slides-companion-countdown-container.slides-companion-countdown-open {
+  border-color: var(--gm3-sys-color-outline-variant, #c4c7c5);
+}
+
+/* The menu is presenter view's own (see countdown.js), so Slides' styles dress it. */
+
+/* Typing a time, like typing a font size in the editor's toolbar. It sits exactly over the timer. */
+.slides-companion-countdown-container .slides-companion-countdown-input {
+  box-sizing: content-box;
+  height: 28px;
+  margin: -2px -7px;
+  padding: 0 5px;
+  border: 2px solid var(--gm3-sys-color-primary, #0b57d0);
+  border-radius: 4px;
+  outline: none;
+  background: transparent;
+  color: var(--gm3-sys-color-on-surface, #1f1f1f);
+  font: inherit;
+  font-size: 1.5rem;
+  font-weight: 500;
+}
+
+/* A time it can't read, in Slides' error colour. */
+.slides-companion-countdown-container .slides-companion-countdown-input[aria-invalid='true'] {
+  border-color: var(--gm3-sys-color-error, #b3261e);
+}
+
+/* Slides leaves a gap after each of its buttons; after the last, there's only just room for it. */
+.slides-companion-countdown-button.punch-viewer-speakernotes-timer-button {
+  margin-right: 0;
+}
+
+/* Google's orange, readable on presenter view's background at this size, and Slides' red. */
+.slides-companion-countdown.slides-companion-countdown-warning {
+  color: #e37400;
+}
+
+.slides-companion-countdown.slides-companion-countdown-over {
+  color: var(--gm3-sys-color-error, #b3261e);
+}
+
+/* Past the end, the minus sign sits in the margin before the time, so the buttons beside it stay put. */
+.slides-companion-countdown.slides-companion-countdown-over {
+  position: relative;
+}
+
+.slides-companion-countdown.slides-companion-countdown-over::before {
+  content: '−';
+  position: absolute;
+  right: 100%;
+}

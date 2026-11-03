@@ -16,10 +16,17 @@
     },
     {
       "matches": ["https://docs.google.com/presentation/*/present*", "https://docs.google.com/presentation/*/localpresent*"],
-      "js": ["settings.js", "content.js", "zoom.js", "ink.js", "spotlight.js"],
-      "css": ["spotlight.css", "zoom.css"],
+      "js": ["settings.js", "content.js", "zoom.js", "ink.js", "spotlight.js", "countdown.js"],
+      "css": ["spotlight.css", "zoom.css", "countdown.css"],
       "all_frames": true,
       "run_at": "document_start"
+    },
+    {
+      "matches": ["https://docs.google.com/presentation/*"],
+      "match_about_blank": true,
+      "js": ["settings.js", "countdown.js"],
+      "css": ["countdown.css"],
+      "run_at": "document_idle"
     }
   ],
   "host_permissions": ["https://docs.google.com/presentation/*"],
