@@ -240,9 +240,11 @@
     if (start !== -1) openStage(items, start, 'Spotlight');
   }
 
-  // Items are objects on the slide, or a page a link goes to: { address, shown }.
+  // Items are objects on the slide, or a page a link goes to: { address, shown }. With every site
+  // allowed (card 56), page.js says where the page has gone since: `first` and `current` addresses.
   const isPage = (item) => !(item instanceof Element);
-  const siteName = (page) => page.address.hostname.replace(/^www\./, '');
+  const browsedTo = (page) => (page.current && page.current !== page.first ? new URL(page.current) : page.address);
+  const siteName = (page) => browsedTo(page).hostname.replace(/^www\./, '');
 
   function openStage(items, start, label) {
     const stage = document.createElement('div');
@@ -338,6 +340,8 @@
   function pageFrame({ address, shown }) {
     const frame = document.createElement('iframe');
     frame.className = 'slides-companion-spotlight-website';
+    // How page.js knows it's in this frame.
+    frame.name = 'slides-companion-page';
     frame.title = address.hostname;
     frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-downloads allow-presentation');
     frame.allow = 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';
@@ -347,7 +351,8 @@
     // back if it takes them before.
     frame.inert = true;
     // A page on Slides' own site (a Doc, another deck) is in reach: Esc there closes it too, once
-    // the presenter has gone into it. Other sites can't be listened to (card 56).
+    // the presenter has gone into it. Other sites can't be listened to; page.js does it there, with
+    // every site allowed (card 56).
     frame.addEventListener('load', () => {
       try {
         frame.contentWindow.addEventListener('keydown', onPageKeydown, true);
@@ -360,11 +365,13 @@
 
   function closeStage() {
     if (!gallery) return;
-    const { stage, idleTimer, flashTimer, returnFocusTo } = gallery;
+    const closing = gallery;
+    const { stage, idleTimer, flashTimer, returnFocusTo } = closing;
     gallery = null;
     clearTimeout(idleTimer);
     clearTimeout(flashTimer);
     if (IN_SLIDESHOW) keepEscape(false);
+    if (isPage(closing.items[0])) askBackground({ type: 'page-closed' });
     // A click on a button or into a page took the keys onto the stage.
     if (stage.contains(document.activeElement)) returnFocusTo?.focus({ preventScroll: true });
     stage.classList.remove('slides-companion-spotlight-open');
@@ -470,9 +477,37 @@
     if (over && Math.hypot(event.clientX - gallery.restingAt.x, event.clientY - gallery.restingAt.y) > 4) frame.inert = false;
   }
 
-  // The slide comes back first, so it's there on coming back to this tab.
+  // From page.js (card 56), through background.js to each of the tab's frames: the one showing the
+  // page acts. Esc's release comes after the page has gone.
+  chrome.runtime.onMessage.addListener((message) => {
+    if (message?.type === 'page-key' && message.phase === 'keyup') return onKeyUp({ type: 'keyup', key: message.key });
+    const page = gallery && isPage(gallery.items[gallery.index]) ? gallery.items[gallery.index] : null;
+    if (!page) return;
+    if (message?.type === 'page-key') {
+      heldKey = message.key;
+      closeStage();
+    } else if (message?.type === 'page-address') {
+      page.first ??= message.href;
+      page.current = message.href;
+      updateNavbar();
+    }
+  });
+
+  // The slideshow ending with the page open, or the tab going elsewhere.
+  window.addEventListener('pagehide', () => gallery && isPage(gallery.items[0]) && askBackground({ type: 'page-closed' }));
+
+  async function askBackground(message) {
+    try {
+      return await chrome.runtime.sendMessage(message);
+    } catch {
+      return null; // The extension was updated or reloaded since this page opened.
+    }
+  }
+
+  // The slide comes back first, so it's there on coming back to this tab. The page browsed to, if
+  // page.js says; the link's own address otherwise (a YouTube video's page, not its player).
   function openInNewTab() {
-    const { address } = gallery.items[gallery.index];
+    const address = browsedTo(gallery.items[gallery.index]);
     closeStage();
     window.open(address.href, '_blank', 'noopener');
   }
@@ -699,8 +734,10 @@
     return player.href;
   }
 
-  function openPage(page) {
-    openStage([page], 0, siteName(page));
+  // With every site allowed (card 56), the rule letting sites be shown goes in first.
+  async function openPage(page) {
+    await askBackground({ type: 'page-open' });
+    if (!gallery) openStage([page], 0, siteName(page));
   }
 
   if (IN_SLIDESHOW) {

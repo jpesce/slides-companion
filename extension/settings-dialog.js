@@ -44,8 +44,9 @@
         <h3 class="slides-companion-dialog-section">Links</h3>
         <p class="slides-companion-dialog-text">
           Some sites don’t allow being shown over a slide. For those, choose Open in new tab at the
-          bottom of the screen.
+          bottom of the screen, or let them all be shown.
         </p>
+        <iframe class="slides-companion-dialog-frame" src="${chrome.runtime.getURL('all-sites.html')}" title="Every site"></iframe>
         <fieldset class="slides-companion-dialog-group">
           <legend class="slides-companion-dialog-legend">When you click a link during a slideshow</legend>
           ${radio('slideshowLinks', 'here', 'Open it over the slide', 'press Esc to come back to your slide, right where you left it')}
@@ -108,6 +109,11 @@
       </div>
     </div>`;
 
+  // Sent to the framed "Show every site" checkbox (all-sites.js), which acts on OK or Cancel.
+  const ALL_SITES_SOURCE = 'slides-companion-all-sites';
+  const allSitesFrame = () => root?.querySelector('.slides-companion-dialog-frame');
+  const tellAllSites = (message) => allSitesFrame()?.contentWindow.postMessage(message, new URL(allSitesFrame().src).origin);
+
   let root = null;
   let returnFocusTo = null;
 
@@ -132,6 +138,7 @@
     root.querySelector('[data-action="cancel"]').addEventListener('click', closeDialog);
     root.querySelector('[data-action="ok"]').addEventListener('click', save);
 
+    window.addEventListener('message', onFrameMessage);
     document.body.append(root);
     root.getBoundingClientRect(); // Start the transition from the closed state.
     root.classList.add('slides-companion-dialog-open');
@@ -143,11 +150,14 @@
     globalThis.slidesCompanion.settings.set(
       Object.fromEntries(choices.map((input) => [input.name, input.type === 'checkbox' ? input.checked : input.value])),
     );
+    tellAllSites('save');
     closeDialog();
   }
 
   function closeDialog() {
     if (!root) return;
+    tellAllSites('cancel'); // Unheard after OK.
+    window.removeEventListener('message', onFrameMessage);
     const closing = root;
     root = null;
     closing.classList.remove('slides-companion-dialog-open');
@@ -168,10 +178,21 @@
     }
   }
 
-  // One Tab stop per control, in order: each checkbox, and each radio group (its checked option, or
-  // its first).
+  // The framed checkbox: its size, and the dialog's keys pressed in it.
+  function onFrameMessage(event) {
+    const frame = allSitesFrame();
+    if (!frame || event.source !== frame.contentWindow || event.data?.source !== ALL_SITES_SOURCE) return;
+    if (event.data.type === 'height') frame.style.height = `${event.data.height}px`;
+    if (event.data.type !== 'key') return;
+    if (event.data.key === 'Escape') closeDialog();
+    else if (event.data.key === 'Enter') save();
+    else trapFocus({ shiftKey: event.data.shiftKey, preventDefault() {} });
+  }
+
+  // One Tab stop per control, in order: each checkbox (one of them framed), and each radio group
+  // (its checked option, or its first).
   function controlStops() {
-    const controls = root.querySelectorAll('.slides-companion-dialog-content > label input, fieldset');
+    const controls = root.querySelectorAll('.slides-companion-dialog-content > label input, .slides-companion-dialog-frame, fieldset');
     return [...controls].map((control) =>
       control.matches('fieldset') ? (control.querySelector('input:checked') ?? control.querySelector('input')) : control,
     );
@@ -184,6 +205,7 @@
     const next = (index + (event.shiftKey ? -1 : 1) + stops.length) % stops.length;
     event.preventDefault();
     stops[next].focus();
+    if (stops[next] === allSitesFrame()) tellAllSites('focus');
   }
 
   globalThis.slidesCompanion ??= {};

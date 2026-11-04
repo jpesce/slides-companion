@@ -1,4 +1,6 @@
 import { test as base, chromium } from '@playwright/test';
+import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 
 export const extensionPath = path.resolve(import.meta.dirname, '../extension');
@@ -9,13 +11,30 @@ export const deckUrl =
   process.env.TEST_DECK_URL ??
   'https://docs.google.com/presentation/d/1XouicC310558IOk_VJ7uu55kxBO7TY-19suR998ONOo/edit';
 
+// Chrome asks the presenter before giving the extension every site (Settings), and a test can't
+// answer it. With `test.use({ allSites: true })`, the extension is loaded from a copy that has
+// every site from the start.
+let allSitesPath;
+function allSitesExtension() {
+  if (allSitesPath) return allSitesPath;
+  allSitesPath = fs.mkdtempSync(path.join(os.tmpdir(), 'slides-companion-all-sites-'));
+  fs.cpSync(extensionPath, allSitesPath, { recursive: true });
+  const manifestPath = path.join(allSitesPath, 'manifest.json');
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  manifest.host_permissions.push(...manifest.optional_host_permissions);
+  fs.writeFileSync(manifestPath, JSON.stringify(manifest));
+  return allSitesPath;
+}
+
 // Branded Chrome ignores --load-extension since v137, so this uses Playwright's Chromium.
 export const test = base.extend({
-  context: async ({ headless }, use) => {
+  allSites: [false, { option: true }],
+  context: async ({ headless, allSites }, use) => {
+    const extension = allSites ? allSitesExtension() : extensionPath;
     const context = await chromium.launchPersistentContext('', {
       channel: 'chromium',
       headless,
-      args: [`--disable-extensions-except=${extensionPath}`, `--load-extension=${extensionPath}`],
+      args: [`--disable-extensions-except=${extension}`, `--load-extension=${extension}`],
     });
     await use(context);
     await context.close();

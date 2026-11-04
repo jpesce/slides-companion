@@ -1,0 +1,23 @@
+<!doctype html>
+<!-- The "Show every site over the slide" checkbox of the Settings dialog, framed into it by
+     settings-dialog.js: Chrome asks for access only from the extension's own pages. -->
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="settings-dialog.css">
+    <link rel="stylesheet" href="all-sites.css">
+  </head>
+  <body>
+    <div class="slides-companion-dialog-content">
+      <label class="slides-companion-dialog-option">
+        <input type="checkbox" name="allSites">
+        <span class="slides-companion-checkbox" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M1.73 12.91 8.1 19.28 22.79 4.59"/></svg></span>
+        <span class="slides-companion-dialog-label">
+          Show every site over the slide, even those that don’t allow it
+          <span class="slides-companion-dialog-hint">(Chrome will ask you once. Esc then always brings your slide back)</span>
+        </span>
+      </label>
+    </div>
+    <script src="all-sites.js"></script>
+  </body>
+</html>

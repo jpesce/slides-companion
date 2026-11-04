@@ -44,5 +44,12 @@
     }
   ],
   "host_permissions": ["https://docs.google.com/presentation/*"],
-  "permissions": ["storage", "alarms"]
+  "optional_host_permissions": ["*://*/*"],
+  "permissions": ["storage", "alarms", "scripting", "declarativeNetRequestWithHostAccess"],
+  "web_accessible_resources": [
+    {
+      "resources": ["all-sites.html"],
+      "matches": ["https://docs.google.com/*"]
+    }
+  ]
 }

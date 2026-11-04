@@ -34,3 +34,71 @@ if (isUnpacked) {
     for (const tab of tabs) chrome.tabs.reload(tab.id);
   });
 }
+
+// Every site opens over the slide (card 56), once the presenter lets it from Settings, which asks
+// Chrome for access to every site. While a page is open over a slide, the tab's frames lose the
+// headers sites use to refuse being shown inside another page. page.js runs in that page to hand
+// Esc back to the slideshow and say where it is.
+const ALL_SITES = { origins: ['*://*/*'] };
+const PAGE_SCRIPT = { id: 'page', matches: ['*://*/*'], js: ['page.js'], allFrames: true, runAt: 'document_start' };
+
+// One at a time: registering the same script twice fails.
+let pageScriptSync = Promise.resolve();
+function syncPageScript() {
+  pageScriptSync = pageScriptSync.then(async () => {
+    const granted = await chrome.permissions.contains(ALL_SITES);
+    const registered = (await chrome.scripting.getRegisteredContentScripts({ ids: [PAGE_SCRIPT.id] })).length > 0;
+    if (granted && !registered) await chrome.scripting.registerContentScripts([PAGE_SCRIPT]);
+    if (!granted && registered) await chrome.scripting.unregisterContentScripts({ ids: [PAGE_SCRIPT.id] });
+  }).catch(() => {});
+  return pageScriptSync;
+}
+syncPageScript();
+chrome.permissions.onAdded.addListener(syncPageScript);
+chrome.permissions.onRemoved.addListener(syncPageScript);
+
+// A session rule per tab, its id the tab's.
+const frameHeadersRule = (tabId) => ({
+  id: tabId,
+  action: {
+    type: 'modifyHeaders',
+    responseHeaders: [
+      { header: 'x-frame-options', operation: 'remove' },
+      { header: 'content-security-policy', operation: 'remove' },
+    ],
+  },
+  condition: { tabIds: [tabId], resourceTypes: ['sub_frame'] },
+});
+const dropFrameHeadersRule = (tabId) => chrome.declarativeNetRequest.updateSessionRules({ removeRuleIds: [tabId] });
+chrome.tabs.onRemoved.addListener((tabId) => dropFrameHeadersRule(tabId).catch(() => {}));
+
+chrome.runtime.onMessage.addListener((message, sender, respond) => {
+  const tabId = sender.tab?.id;
+  if (tabId === undefined) return;
+  switch (message?.type) {
+    // spotlight.js is about to show a page: it waits for the answer (whether every site can be
+    // shown) so the page loads with the rule in place.
+    case 'page-open':
+      chrome.permissions.contains(ALL_SITES).then(async (allSites) => {
+        if (allSites) {
+          await chrome.declarativeNetRequest
+            .updateSessionRules({ removeRuleIds: [tabId], addRules: [frameHeadersRule(tabId)] })
+            .catch(() => {});
+        }
+        respond({ allSites });
+      });
+      return true;
+    case 'page-closed':
+      dropFrameHeadersRule(tabId).catch(() => {});
+      return;
+    // From page.js, for spotlight.js in whichever of the tab's frames shows the page.
+    case 'page-key':
+    case 'page-address':
+      chrome.tabs.sendMessage(tabId, { ...message, frameId: sender.frameId }).catch(() => {});
+      return;
+    // From spotlight.js, for page.js: go to another page (Back, Forward).
+    case 'page-go':
+      chrome.tabs.sendMessage(tabId, message, { frameId: message.frameId }).catch(() => {});
+      return;
+  }
+});
