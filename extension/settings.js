@@ -7,6 +7,9 @@ if (!globalThis.slidesCompanion?.settings) {
     groupedImages: 'together',
     // During a slideshow, clicking an image shows it full screen; off, the click changes slide.
     spotlightOnClick: true,
+    // During a slideshow, a link clicked opens its page 'here', over the slide, or in a new 'tab'
+    // as Slides does.
+    slideshowLinks: 'here',
     // What scrolling over a slide does. During a slideshow: 'zoom' zooms into it, 'nothing' does
     // nothing, 'slides' goes to the next or previous slide as Slides does. While editing: 'slides'
     // or 'nothing'.

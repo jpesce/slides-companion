@@ -1,8 +1,9 @@
 // Spotlight: select an image and press Space to see it full screen on a black stage, like Slides'
 // own slideshow, then go through the slide's other images like a gallery. With several images
 // selected, the gallery goes through just those. Also offered as "Spotlight image" in the
-// right-click menu, and during a slideshow by clicking an image. Rewritten from Image Spotlight
-// for Google Slides.
+// right-click menu, and during a slideshow by clicking an image. Also during a slideshow, a link
+// clicked opens its page on the same stage, so the presenter never leaves the slideshow. Rewritten
+// from Image Spotlight for Google Slides.
 {
   const SVG_NS = 'http://www.w3.org/2000/svg';
   // The slideshow runs in its own page: an iframe in the editor, or a window of its own.
@@ -20,6 +21,7 @@
   const CLOSE_ICON = icon('M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z');
   const PREVIOUS_ICON = icon('M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z');
   const NEXT_ICON = icon('M10 6 8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z');
+  const NEW_TAB_ICON = icon('M19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2v-7h-2zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3z');
 
   let gallery = null;
   // The last key pressed while the gallery was open, while it's held down.
@@ -232,16 +234,22 @@
 
   // ----- Stage -----
 
-  function open(selection) {
+  function openGallery(selection) {
     if (gallery) return;
     const { items, start } = galleryItems(selection);
-    if (start === -1) return;
+    if (start !== -1) openStage(items, start, 'Spotlight');
+  }
 
+  // Items are objects on the slide, or a page a link goes to: { address, shown }.
+  const isPage = (item) => !(item instanceof Element);
+  const siteName = (page) => page.address.hostname.replace(/^www\./, '');
+
+  function openStage(items, start, label) {
     const stage = document.createElement('div');
     stage.className = 'slides-companion-spotlight';
     stage.setAttribute('role', 'dialog');
     stage.setAttribute('aria-modal', 'true');
-    stage.setAttribute('aria-label', 'Spotlight');
+    stage.setAttribute('aria-label', label);
     stage.innerHTML = `
       <div class="slides-companion-spotlight-picture"></div>
       <div class="slides-companion-spotlight-bar slides-companion-spotlight-closer">
@@ -252,12 +260,18 @@
         <div class="slides-companion-spotlight-page" aria-hidden="true"></div>
         <button type="button" class="slides-companion-spotlight-next" aria-label="Next image" title="Next (→)">${NEXT_ICON}</button>
       </div>
+      <div class="slides-companion-spotlight-bar slides-companion-spotlight-sitebar" hidden>
+        <div class="slides-companion-spotlight-site"></div>
+        <button type="button" class="slides-companion-spotlight-new-tab" aria-label="Open in new tab" title="Open in new tab">${NEW_TAB_ICON}</button>
+      </div>
       <div class="slides-companion-spotlight-cursor" aria-hidden="true">${NEXT_ICON}</div>
       <div class="slides-companion-spotlight-status" aria-live="polite"></div>`;
 
     // pressed: whether a press has started on the stage. The second click of a double click that
     // opened it began before it (its press counts on from the first), so it does nothing.
-    gallery = { stage, items, index: -1, idleTimer: 0, flashTimer: 0, pointer: null, pressed: false };
+    // returnFocusTo: where keys went before, for them to go there again once it closes.
+    const returnFocusTo = document.activeElement;
+    gallery = { stage, items, index: -1, idleTimer: 0, flashTimer: 0, pointer: null, pressed: false, returnFocusTo };
 
     // Keep the pointer to ourselves so Slides doesn't react to it behind the stage.
     for (const type of ['mousedown', 'mouseup', 'click', 'contextmenu']) {
@@ -279,11 +293,14 @@
     });
     stage.addEventListener('click', onClick);
     stage.addEventListener('mousemove', onMouseMove);
-    stage.addEventListener('mouseleave', () => {
+    // Leaving the stage, or going over a page, where the stage no longer hears the pointer.
+    const pointerGone = () => {
       gallery.pointer = null;
       stage.classList.remove('slides-companion-spotlight-can-move');
       updateBars();
-    });
+    };
+    stage.addEventListener('mouseleave', pointerGone);
+    stage.addEventListener('mouseout', (event) => event.relatedTarget?.matches?.('iframe') && pointerGone());
 
     document.body.append(stage);
     if (!show(start)) {
@@ -305,7 +322,8 @@
 
   function show(index) {
     if (!gallery || index < 0 || index >= gallery.items.length || index === gallery.index) return false;
-    const picture = render(gallery.items[index]);
+    const item = gallery.items[index];
+    const picture = isPage(item) ? pageFrame(item) : render(item);
     if (!picture) return false;
     gallery.index = index;
     gallery.stage.querySelector('.slides-companion-spotlight-picture').replaceChildren(picture);
@@ -316,15 +334,28 @@
     return true;
   }
 
+  // The page, live. Sandboxed without top navigation, so it can't take the slideshow's window.
+  function pageFrame({ address, shown }) {
+    const frame = document.createElement('iframe');
+    frame.className = 'slides-companion-spotlight-website';
+    frame.title = address.hostname;
+    frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-downloads allow-presentation');
+    frame.allow = 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';
+    frame.src = shown;
+    return frame;
+  }
+
   const step = (delta) => gallery && show(gallery.index + delta);
 
-  function close() {
+  function closeStage() {
     if (!gallery) return;
-    const { stage, idleTimer, flashTimer } = gallery;
+    const { stage, idleTimer, flashTimer, returnFocusTo } = gallery;
     gallery = null;
     clearTimeout(idleTimer);
     clearTimeout(flashTimer);
     if (IN_SLIDESHOW) keepEscape(false);
+    // A click on a button or into a page took the keys onto the stage.
+    if (stage.contains(document.activeElement)) returnFocusTo?.focus({ preventScroll: true });
     stage.classList.remove('slides-companion-spotlight-open');
     setTimeout(() => stage.remove(), matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : EXIT_MS);
   }
@@ -332,9 +363,13 @@
   // ----- Controls -----
 
   // The ‹ 2/5 › bar: the position out of the total, between previous and next. Hidden for one image.
+  // For a page, a bar naming its site, with a way to open it in a new tab instead.
   function updateNavbar() {
     const { items, index, stage } = gallery;
     const count = items.length;
+    const page = isPage(items[index]) ? items[index] : null;
+    stage.querySelector('.slides-companion-spotlight-sitebar').hidden = !page;
+    stage.querySelector('.slides-companion-spotlight-site').textContent = page ? siteName(page) : '';
     stage.querySelector('.slides-companion-spotlight-navbar').hidden = count < 2;
     stage.querySelector('.slides-companion-spotlight-page').textContent = `${index + 1}/${count}`;
     stage.querySelector('.slides-companion-spotlight-previous').disabled = index === 0;
@@ -386,7 +421,8 @@
     if (!gallery.pressed) return onMouseMove(event);
     const bar = event.target.closest('.slides-companion-spotlight-bar');
     if (bar) {
-      if (event.target.closest('.slides-companion-spotlight-close')) close();
+      if (event.target.closest('.slides-companion-spotlight-close')) closeStage();
+      else if (event.target.closest('.slides-companion-spotlight-new-tab')) openInNewTab();
       else if (event.target.closest('.slides-companion-spotlight-previous')) step(-1);
       else if (event.target.closest('.slides-companion-spotlight-next')) step(1);
       return;
@@ -394,6 +430,13 @@
     const direction = clickDirection(event);
     if (direction) step(direction);
     onMouseMove(event);
+  }
+
+  // The slide comes back first, so it's there on coming back to this tab.
+  function openInNewTab() {
+    const { address } = gallery.items[gallery.index];
+    closeStage();
+    window.open(address.href, '_blank', 'noopener');
   }
 
   // ----- Keyboard -----
@@ -407,9 +450,9 @@
     PageUp: () => step(-1),
     Home: () => show(0),
     End: () => show(gallery.items.length - 1),
-    Escape: close,
-    ' ': close,
-    Enter: close,
+    Escape: closeStage,
+    ' ': closeStage,
+    Enter: closeStage,
   };
   const CLOSING_KEYS = ['Escape', ' ', 'Enter'];
 
@@ -441,7 +484,7 @@
     if (!selection) return;
     event.preventDefault();
     event.stopImmediatePropagation();
-    open(selection);
+    openGallery(selection);
   }
 
   // Controls outside the slide canvas, where Space types or presses: the comment box, find and
@@ -508,7 +551,7 @@
       const menu = item.parentElement;
       // Escape closes the menu through Slides itself, which also returns focus to the slide.
       menu.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, which: 27, bubbles: true }));
-      open(selection);
+      openGallery(selection);
     });
     return item;
   }
@@ -545,17 +588,66 @@
 
   // ----- Slideshow -----
 
+  // A plain click on the slide, with the stage closed. With the pen on, clicks draw. (The laser
+  // pointer keeps clicks, like links and videos do.)
+  function plainClickOnSlide(event, selector) {
+    if (gallery || event.button !== 0 || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return null;
+    if (document.querySelector('.sketchyViewerContent.disable-pointer-events')) return null;
+    return event.target instanceof Element ? event.target.closest(`.punch-viewer-svgpage-svgcontainer ${selector}`) : null;
+  }
+
   // During a slideshow a click goes to the next slide; on an image, it spotlights the image
   // instead, unless the "When you click an image during a slideshow" setting says otherwise.
   function clickedImage(event) {
-    if (gallery || !globalThis.slidesCompanion.settings.get('spotlightOnClick')) return null;
-    if (event.button !== 0 || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return null;
-    // With the pen on, clicks draw. (The laser pointer keeps clicks, like links and videos do.)
-    if (document.querySelector('.sketchyViewerContent.disable-pointer-events')) return null;
-    const image = event.target instanceof Element ? event.target.closest('.punch-viewer-svgpage-svgcontainer image') : null;
+    if (!globalThis.slidesCompanion.settings.get('spotlightOnClick')) return null;
+    const image = plainClickOnSlide(event, 'image');
     if (!image || image.closest('a')) return null;
     const object = parentObject(image);
     return object && slideOf(object) && isShowing(object) ? object : null;
+  }
+
+  // A link opens a new tab; it opens its page on the stage instead, unless the "When you click a
+  // link during a slideshow" setting says otherwise. Ctrl/⌘-click and middle click still open a tab.
+  function clickedPage(event) {
+    if (globalThis.slidesCompanion.settings.get('slideshowLinks') !== 'here') return null;
+    const link = plainClickOnSlide(event, 'a');
+    const address = link && linkAddress(link);
+    return address && { address, shown: shownAddress(address) };
+  }
+
+  // Slides sends links through Google's redirect (google.com/url?q=<address>). Links to a slide of
+  // the deck are Slides' own to follow.
+  function linkAddress(link) {
+    const href = link.href?.baseVal ?? link.getAttribute('href') ?? '';
+    if (href.startsWith('#')) return null;
+    try {
+      let address = new URL(href, location.href);
+      if (address.hostname === 'www.google.com' && address.pathname === '/url') address = new URL(address.searchParams.get('q'));
+      if (!['http:', 'https:'].includes(address.protocol)) return null;
+      if (address.origin === location.origin && address.pathname === location.pathname) return null;
+      return address;
+    } catch {
+      return null;
+    }
+  }
+
+  // YouTube refuses to show its watch page inside another page, but its embedded player may be:
+  // the video plays from where the link starts it (?t=90, 1m30s).
+  function shownAddress(address) {
+    const host = address.hostname.replace(/^(www|m)\./, '');
+    const id =
+      host === 'youtu.be' ? address.pathname.slice(1) : host === 'youtube.com' && address.pathname === '/watch' ? address.searchParams.get('v') : null;
+    if (!id) return address.href;
+    const player = new URL(`https://www.youtube.com/embed/${encodeURIComponent(id)}`);
+    player.searchParams.set('autoplay', '1');
+    const [, hours = 0, minutes = 0, seconds = 0] = (address.searchParams.get('t') ?? '').match(/^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s?)?$/) ?? [];
+    const start = hours * 3600 + minutes * 60 + Number(seconds);
+    if (start) player.searchParams.set('start', start);
+    return player.href;
+  }
+
+  function openPage(page) {
+    openStage([page], 0, siteName(page));
   }
 
   if (IN_SLIDESHOW) {
@@ -563,11 +655,18 @@
     window.addEventListener(
       'click',
       (event) => {
-        const object = clickedImage(event);
-        if (!object) return;
+        const page = clickedPage(event);
+        const object = !page && clickedImage(event);
+        if (!page && !object) return;
         event.preventDefault();
         event.stopImmediatePropagation();
-        open([object]);
+        if (page) {
+          // The click focused the link, where keys don't reach the slideshow once it's back.
+          event.target.closest('a').blur();
+          openPage(page);
+        } else {
+          openGallery([object]);
+        }
       },
       true,
     );
@@ -580,7 +679,7 @@
       const name = document.querySelector('.punch-viewer-svgpage-a11yelement')?.getAttribute('aria-label');
       if (!name || name === slideName) return;
       slideName = name;
-      close();
+      closeStage();
     }).observe(document, { subtree: true, childList: true, attributes: true, attributeFilter: ['aria-label'] });
     // A pointing hand over images says they can be clicked.
     window.addEventListener(

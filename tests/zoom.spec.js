@@ -272,9 +272,10 @@ test('ink drawn while zoomed is in place after coming back to the slide', async 
   await drawStroke(page, [400, 300], [600, 420]);
   const drawn = await ink(show);
   await page.keyboard.press('Shift+L');
-  await page.keyboard.press('ArrowRight');
-  await expect.poll(() => slideNumber(show)).toBe(4);
+  // Slide 4 has a video, where Slides' ← does nothing, so this goes back a slide and returns.
   await page.keyboard.press('ArrowLeft');
+  await expect.poll(() => slideNumber(show)).toBe(2);
+  await page.keyboard.press('ArrowRight');
   await expect.poll(() => slideNumber(show)).toBe(3);
   const whole = { x: (drawn.x - x) / scale, y: (drawn.y - y) / scale, right: (drawn.right - x) / scale, bottom: (drawn.bottom - y) / scale };
   await expect.poll(async () => near(await ink(show), whole)).toBe(true);
@@ -439,13 +440,14 @@ test('keys and clicks still change slides', async ({ context }) => {
   await page.mouse.wheel(0, 300);
   await page.waitForTimeout(300);
   expect(await slideNumber(show)).toBe(3);
-  await page.keyboard.press('PageDown');
-  await expect.poll(() => slideNumber(show)).toBe(4);
+  // Slide 4 has a video, where Slides' ← does nothing, so this goes back a slide and returns.
   await page.keyboard.press('PageUp');
+  await expect.poll(() => slideNumber(show)).toBe(2);
+  await page.keyboard.press('PageDown');
   await expect.poll(() => slideNumber(show)).toBe(3);
-  await page.keyboard.press('ArrowDown');
-  await expect.poll(() => slideNumber(show)).toBe(4);
   await page.keyboard.press('ArrowUp');
+  await expect.poll(() => slideNumber(show)).toBe(2);
+  await page.keyboard.press('ArrowDown');
   await expect.poll(() => slideNumber(show)).toBe(3);
   await page.mouse.click(width * 0.9, height * 0.9); // The empty bottom right of the slide.
   await expect.poll(() => slideNumber(show)).toBe(4);

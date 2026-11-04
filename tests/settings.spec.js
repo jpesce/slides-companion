@@ -22,6 +22,7 @@ test('the companion shows a tooltip and opens Settings', async ({ context }) => 
   await expect(dialog(page)).toBeVisible();
   await expect(spotlightOnClick(page)).toBeChecked();
   await expect(together(page)).toBeChecked();
+  await expect(dialog(page).getByRole('radio', { name: /Open it over the slide/ })).toBeChecked();
   await expect(dialog(page).getByRole('group', { name: 'During a slideshow' }).getByRole('radio', { name: /Zoom into the slide/ })).toBeChecked();
   await expect(dialog(page).getByRole('group', { name: 'While editing' }).getByRole('radio', { name: /next or previous slide/ })).toBeChecked();
   await expect(dialog(page).getByRole('checkbox', { name: /Keep what you draw/ })).not.toBeChecked();

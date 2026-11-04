@@ -97,10 +97,11 @@ test.describe('with keeping turned on in Settings', () => {
     // Another window shape: the slide sits between bars, at another size.
     const { page, show } = await startSlideshow(context, { width: 1000, height: 700 });
     expect(near(await strokes(show), drawn)).toBe(true);
-    await page.keyboard.press('ArrowRight');
-    await expect.poll(() => slideNumber(show)).toBe(4);
-    expect(await strokes(show)).toEqual([]);
+    // Slide 4 has a video, where Slides' ← does nothing, so this goes back a slide and returns.
     await page.keyboard.press('ArrowLeft');
+    await expect.poll(() => slideNumber(show)).toBe(2);
+    expect(await strokes(show)).toEqual([]);
+    await page.keyboard.press('ArrowRight');
     await expect.poll(() => slideNumber(show)).toBe(3);
     await expect.poll(async () => near(await strokes(show), drawn)).toBe(true);
 

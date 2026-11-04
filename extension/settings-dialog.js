@@ -41,6 +41,16 @@
           ${radio('groupedImages', 'together', 'Show the group as one image', 'for example, a photo grouped with its caption')}
           ${radio('groupedImages', 'apart', 'Show each image on its own', 'for example, photos grouped to keep a layout tidy')}
         </fieldset>
+        <h3 class="slides-companion-dialog-section">Links</h3>
+        <p class="slides-companion-dialog-text">
+          Some sites don’t allow being shown over a slide. For those, choose Open in new tab at the
+          bottom of the screen.
+        </p>
+        <fieldset class="slides-companion-dialog-group">
+          <legend class="slides-companion-dialog-legend">When you click a link during a slideshow</legend>
+          ${radio('slideshowLinks', 'here', 'Open it over the slide', 'press Esc to come back to your slide, right where you left it')}
+          ${radio('slideshowLinks', 'tab', 'Open it in a new tab', 'as Slides does on its own')}
+        </fieldset>
         <h3 class="slides-companion-dialog-section">Scrolling</h3>
         <p class="slides-companion-dialog-text">
           What happens when you scroll over a slide with a mouse wheel or trackpad.
@@ -101,7 +111,7 @@
   let root = null;
   let returnFocusTo = null;
 
-  function open(opener) {
+  function openDialog(opener) {
     if (root) return;
     const { settings } = globalThis.slidesCompanion;
     returnFocusTo = opener ?? null;
@@ -118,8 +128,8 @@
       root.addEventListener(type, (event) => event.stopPropagation());
     }
     root.addEventListener('keydown', onKeydown);
-    root.querySelector('.slides-companion-dialog-scrim').addEventListener('click', close);
-    root.querySelector('[data-action="cancel"]').addEventListener('click', close);
+    root.querySelector('.slides-companion-dialog-scrim').addEventListener('click', closeDialog);
+    root.querySelector('[data-action="cancel"]').addEventListener('click', closeDialog);
     root.querySelector('[data-action="ok"]').addEventListener('click', save);
 
     document.body.append(root);
@@ -133,10 +143,10 @@
     globalThis.slidesCompanion.settings.set(
       Object.fromEntries(choices.map((input) => [input.name, input.type === 'checkbox' ? input.checked : input.value])),
     );
-    close();
+    closeDialog();
   }
 
-  function close() {
+  function closeDialog() {
     if (!root) return;
     const closing = root;
     root = null;
@@ -149,7 +159,7 @@
   function onKeydown(event) {
     if (event.key === 'Escape') {
       event.preventDefault();
-      close();
+      closeDialog();
     } else if (event.key === 'Enter' && !event.target.matches('button')) {
       event.preventDefault();
       save();
@@ -177,5 +187,5 @@
   }
 
   globalThis.slidesCompanion ??= {};
-  globalThis.slidesCompanion.openSettings = open;
+  globalThis.slidesCompanion.openSettings = openDialog;
 }

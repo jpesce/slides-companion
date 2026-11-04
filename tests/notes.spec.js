@@ -37,13 +37,13 @@ test('Shift+S opens the slide’s notes in a floating window that follows the sl
   const { page, show } = await startSlideshow(context);
   const notes = await openNotes(context, page);
   // Slides names the slide in the deck's language ("Slide 3 of 10").
-  await expect(header(notes)).toHaveText(/^\D*3\D+10$/);
+  await expect(header(notes)).toHaveText(/^\D*3\D+11$/);
   await expect(body(notes)).toHaveText('');
 
   // Keys pressed in the notes window still drive the slideshow.
   await notes.keyboard.press('PageDown');
   await expect.poll(() => slideNumber(show)).toBe(4);
-  await expect(header(notes)).toHaveText(/^\D*4\D+10$/);
+  await expect(header(notes)).toHaveText(/^\D*4\D+11$/);
   await expect(body(notes).locator('p').first()).toHaveText(new RegExp(`^${SLIDE_4_STARTS}`));
   // Paragraphs as presenter view writes them: a blank line is a line break.
   await expect(body(notes).locator(':scope > *')).toHaveCount(9);
@@ -53,10 +53,14 @@ test('Shift+S opens the slide’s notes in a floating window that follows the sl
     expect(paragraph).not.toMatch(/[a-z][A-Z]|\s\s|[.,][a-zA-Z]/);
   }
 
-  // And back, from the slideshow.
-  await page.keyboard.press('PageUp');
-  await expect(header(notes)).toHaveText(/^\D*3\D+10$/);
-  await expect(body(notes)).toHaveText('');
+  // And on, from the slideshow. (Slide 4 has a video, where Slides' ← does nothing, and its
+  // first key can go to the video's step instead.)
+  for (let tries = 0; (await slideNumber(show)) !== 5 && tries < 3; tries++) {
+    await page.keyboard.press('PageDown');
+    await page.waitForTimeout(1500);
+  }
+  await expect(header(notes)).toHaveText(/^\D*5\D+11$/);
+  await expect(body(notes)).not.toHaveText(new RegExp(`^${SLIDE_4_STARTS}`));
 
   // Shift+S again, in either window, closes it.
   await closeFromInside(notes);
@@ -290,10 +294,15 @@ test('the floating notes leave out what Slides writes in an empty notes box', as
     for (const [paragraph, parent, next] of window.setAside.reverse()) parent.insertBefore(paragraph, next);
   });
   await expect(body(notes).locator(':scope > *')).toHaveCount(9);
+  // Slide 4 has a video, where Slides' ← does nothing, so this goes on a slide and back. Its first
+  // key can go to the video's step instead.
+  for (let tries = 0; (await slideNumber(show)) !== 5 && tries < 3; tries++) {
+    await notes.keyboard.press('PageDown');
+    await page.waitForTimeout(1500);
+  }
+  expect(await slideNumber(show)).toBe(5);
+  await expect(body(notes)).not.toHaveText(new RegExp(`^${SLIDE_4_STARTS}`));
   await notes.keyboard.press('PageUp');
-  await expect.poll(() => slideNumber(show)).toBe(3);
-  await expect(body(notes)).toHaveText('');
-  await notes.keyboard.press('PageDown');
   await expect.poll(() => slideNumber(show)).toBe(4);
   await expect(body(notes).locator('p').first()).toHaveText(new RegExp(`^${SLIDE_4_STARTS}`));
 });
@@ -301,7 +310,7 @@ test('the floating notes leave out what Slides writes in an empty notes box', as
 test('the floating notes stay open after the slideshow, and follow the slide selected while editing', async ({ context }) => {
   const { page } = await startSlideshow(context);
   const notes = await openNotes(context, page);
-  await expect(header(notes)).toHaveText(/^\D*3\D+10$/);
+  await expect(header(notes)).toHaveText(/^\D*3\D+11$/);
   await page.keyboard.press('Escape');
   await expect(page.locator('iframe.punch-present-iframe')).toBeHidden();
   await page.waitForTimeout(500);
@@ -310,11 +319,12 @@ test('the floating notes stay open after the slideshow, and follow the slide sel
   // Named in the slideshow's words.
   const slideshowWords = (await header(notes).textContent()).replace(/\d+/g, '#');
   await page.locator('.punch-filmstrip-thumbnail').nth(3).click();
-  await expect(header(notes)).toHaveText(/^\D*4\D+10$/);
+  // The editor counts the deck's slides itself.
+  await expect(header(notes)).toHaveText(/^\D*4\D+\d+$/);
   expect((await header(notes).textContent()).replace(/\d+/g, '#')).toBe(slideshowWords);
   await expect(body(notes).locator('p').first()).toHaveText(new RegExp(`^${SLIDE_4_STARTS}`));
   await page.locator('.punch-filmstrip-thumbnail').nth(0).click();
-  await expect(header(notes)).toHaveText(/^\D*1\D+10$/);
+  await expect(header(notes)).toHaveText(/^\D*1\D+\d+$/);
 });
 
 test('View › Show floating notes opens them before presenting, and they stay on top as it goes full screen', async ({ context }) => {
