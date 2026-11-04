@@ -111,7 +111,8 @@
       placeholder = stored.notesPlaceholder ?? placeholder;
     });
 
-    const slideshow = () => document.querySelector('iframe.punch-present-iframe')?.contentDocument ?? null;
+    // The player on screen: a copy may have taken over from Slides' own (see live-edits.js).
+    const slideshow = () => globalThis.slidesCompanion.slideshowFrame()?.contentDocument ?? null;
 
     // During a slideshow, Slides labels the slide for screen readers: "Slide 3 of 9: Title". While
     // editing, it's the selected slide, in the slideshow's words.

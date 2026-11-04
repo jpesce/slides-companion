@@ -80,6 +80,17 @@
           ${radio('countdownWarning', '2', '2 minutes before the end', 'time to wrap up most talks')}
           ${radio('countdownWarning', '5', '5 minutes before the end', 'for long talks and workshops')}
         </fieldset>
+        <h3 class="slides-companion-dialog-section">Edits during a slideshow</h3>
+        <p class="slides-companion-dialog-text">
+          When the deck is edited while you present it, by you in another tab or by someone else, the
+          slideshow shows it within a few seconds. Other slides update without anyone noticing.
+        </p>
+        <fieldset class="slides-companion-dialog-group">
+          <legend class="slides-companion-dialog-legend">The slide on screen changes</legend>
+          ${radio('liveEdits', 'now', 'Right away', 'it fades into its new version once nothing on it is moving')}
+          ${radio('liveEdits', 'later', 'Once you’ve moved to another slide', 'so it never changes while you’re talking about it')}
+          ${radio('liveEdits', 'off', 'Not until the next slideshow', 'the whole slideshow stays as it was when you started, as Slides does on its own')}
+        </fieldset>
       </div>
       <div class="slides-companion-dialog-actions">
         <button type="button" class="slides-companion-button-text" data-action="cancel">Cancel</button>

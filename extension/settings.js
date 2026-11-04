@@ -17,6 +17,9 @@ if (!globalThis.slidesCompanion?.settings) {
     keepInk: false,
     // In presenter view, how many minutes before the end the countdown turns orange.
     countdownWarning: '2',
+    // An edit made during a slideshow from the editor shows in it: 'now' as soon as it's calm,
+    // 'later' once the slide on screen isn't the one edited, 'off' not until the next slideshow.
+    liveEdits: 'now',
   };
 
   let values = { ...DEFAULTS };

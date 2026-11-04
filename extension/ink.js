@@ -21,6 +21,10 @@
   let kept = {};
   // What's saved: the kept strokes, and what's drawn on top of them this time.
   let saved = {};
+  // When a fresh player takes over mid-slideshow (see live-edits.js), what the pen drew goes with
+  // it, by slide: what this player was handed, and that with what's drawn here.
+  let carried = {};
+  let carrying = {};
   const loaded = chrome.storage.local.get(KEY).then((stored) => {
     kept = stored[KEY] ?? {};
     saved = { ...kept };
@@ -59,19 +63,37 @@
     });
   }
 
+  // Handed over on the player's frame, and handed on from its page.
+  function takeCarried() {
+    const handed = window.frameElement?.dataset.slidesCompanionInk;
+    carried = handed ? JSON.parse(handed) : {};
+    carrying = { ...carried };
+  }
+  function handOn() {
+    document.documentElement.dataset.slidesCompanionInk = JSON.stringify(carrying);
+  }
+
   // After each stroke, the slide's ink is saved: what was kept, and what was drawn this time.
+  // Not kept, it's still handed on.
   function save() {
     const ink = inkLayer();
     const slide = slideId();
-    if (!ink || !slide || !keeping()) return;
+    if (!ink || !slide) return;
     const space = globalThis.slidesCompanion.inkSpace(ink);
-    store(slide, [...(kept[slide] ?? []), ...[...ink.querySelectorAll(STROKES)].map((stroke) => read(stroke, space))]);
+    const drawn = [...ink.querySelectorAll(STROKES)].map((stroke) => read(stroke, space));
+    if (keeping()) return store(slide, [...(kept[slide] ?? []), ...drawn]);
+    carrying[slide] = [...(carried[slide] ?? []), ...drawn];
+    handOn();
   }
 
   // Slides erases only its own strokes, so the kept ones go too.
   function eraseAll() {
     const slide = slideId();
-    if (!slide || !keeping()) return;
+    if (!slide) return;
+    delete carried[slide];
+    delete carrying[slide];
+    handOn();
+    if (!keeping()) return render();
     delete kept[slide];
     render();
     store(slide, []);
@@ -95,8 +117,9 @@
   // Slides draws its ink again on coming back to a slide and on a new window size, and drops the
   // kept strokes when it does; they go back in under what's drawn this time.
   let shown = { ink: null, slide: null };
+  const shownStrokes = (slide) => (keeping() ? (kept[slide] ?? []) : (carried[slide] ?? []));
   const inkRedraws = new MutationObserver(() => {
-    const strokes = keeping() ? (kept[shown.slide] ?? []) : [];
+    const strokes = shownStrokes(shown.slide);
     if (shown.ink.querySelectorAll(`:scope > .${KEPT_CLASS}`).length !== strokes.length) render();
   });
 
@@ -110,7 +133,7 @@
     }
     shown = { ink, slide };
     ink.querySelectorAll(`:scope > .${KEPT_CLASS}`).forEach((stroke) => stroke.remove());
-    const strokes = keeping() ? (kept[slide] ?? []) : [];
+    const strokes = shownStrokes(slide);
     if (!strokes.length) return;
     const space = globalThis.slidesCompanion.inkSpace(ink);
     ink.prepend(...strokes.map((stroke) => draw(stroke, space)));
@@ -129,6 +152,12 @@
   }
 
   if (IN_SLIDESHOW) {
+    takeCarried();
+    // Handed over again just before taking over, with what was drawn since.
+    document.addEventListener('slides-companion-ink', () => {
+      takeCarried();
+      render();
+    });
     Promise.all([loaded, globalThis.slidesCompanion.settings.ready]).then(() => {
       render();
       new MutationObserver(() => {

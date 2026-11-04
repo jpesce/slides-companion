@@ -86,6 +86,13 @@
     if (!elapsed) return;
     const time = timeOnTimer();
     if (time === null) return;
+    // A fresh player taking over presenter view mid-slideshow (see live-edits.js) starts Slides'
+    // timer from nothing for a moment, before it catches up: what's shown stays as it was.
+    if (document.documentElement.hasAttribute('data-slides-companion-taking-over')) {
+      if (countdown.hidden || !counting.down) countdown.textContent = format(last);
+      [countdown.hidden, elapsed.hidden] = [false, true];
+      return;
+    }
     // Reset starts the countdown over, from the time chosen.
     if (time < last) [start, added] = [0, 0];
     last = time;
@@ -396,6 +403,7 @@
     timerButton = button();
     document.querySelector('.punch-viewer-speakernotes-timer-button-container')?.append(timerButton);
     new MutationObserver(show).observe(elapsed, { childList: true, characterData: true, subtree: true });
+    new MutationObserver(show).observe(document.documentElement, { attributes: true, attributeFilter: ['data-slides-companion-taking-over'] });
     show();
   }
 
