@@ -342,6 +342,17 @@
     frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-downloads allow-presentation');
     frame.allow = 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';
     frame.src = shown;
+    // Pages can take the keys as they open (a search box), and the slideshow can't hear keys there,
+    // so Esc wouldn't close it. The page sleeps until the pointer comes over it, and the keys come
+    // back if it takes them before.
+    frame.inert = true;
+    // A page on Slides' own site (a Doc, another deck) is in reach: Esc there closes it too, once
+    // the presenter has gone into it. Other sites can't be listened to (card 56).
+    frame.addEventListener('load', () => {
+      try {
+        frame.contentWindow.addEventListener('keydown', onPageKeydown, true);
+      } catch {}
+    });
     return frame;
   }
 
@@ -407,6 +418,7 @@
   // Where a click can move, the pointer becomes an arrow pointing the way it goes.
   function onMouseMove(event) {
     gallery.pointer = { x: event.clientX, y: event.clientY };
+    wakePage(event);
     updateBars();
     revealPointer();
     const direction = clickDirection(event);
@@ -430,6 +442,32 @@
     const direction = clickDirection(event);
     if (direction) step(direction);
     onMouseMove(event);
+  }
+
+  // Its release, if it happens with the page gone, comes to this window (see onKeyUp).
+  function onPageKeydown(event) {
+    if (event.key !== 'Escape' || !gallery) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    heldKey = event.key;
+    closeStage();
+  }
+
+  // The window loses the keys to a page inside it.
+  function keepKeysFromSleepingPage() {
+    const frame = gallery?.stage.querySelector('.slides-companion-spotlight-website[inert]');
+    if (frame && document.activeElement === frame) frame.blur();
+  }
+  window.addEventListener('blur', () => setTimeout(keepKeysFromSleepingPage));
+
+  // Chrome also says the pointer moved when the page appears under it, so it has to really move.
+  function wakePage(event) {
+    const frame = gallery.stage.querySelector('.slides-companion-spotlight-website[inert]');
+    if (!frame) return;
+    gallery.restingAt ??= { x: event.clientX, y: event.clientY };
+    const area = frame.getBoundingClientRect();
+    const over = event.clientX >= area.left && event.clientX <= area.right && event.clientY >= area.top && event.clientY <= area.bottom;
+    if (over && Math.hypot(event.clientX - gallery.restingAt.x, event.clientY - gallery.restingAt.y) > 4) frame.inert = false;
   }
 
   // The slide comes back first, so it's there on coming back to this tab.
@@ -611,7 +649,8 @@
   function clickedPage(event) {
     if (globalThis.slidesCompanion.settings.get('slideshowLinks') !== 'here') return null;
     const link = plainClickOnSlide(event, 'a');
-    const address = link && linkAddress(link);
+    // Waiting for its animation, the link isn't shown yet: the click goes on to the next step.
+    const address = link && isShowing(link) && linkAddress(link);
     return address && { address, shown: shownAddress(address) };
   }
 
@@ -631,14 +670,28 @@
     }
   }
 
-  // YouTube refuses to show its watch page inside another page, but its embedded player may be:
-  // the video plays from where the link starts it (?t=90, 1m30s).
+  // What the page shows for a link. YouTube and Drive refuse to show their pages inside another
+  // page, but their players may be: a video plays from where the link starts it (?t=90, 1m30s).
+  // A plain http page isn't let into the slideshow (an https page), so its https address is tried.
   function shownAddress(address) {
     const host = address.hostname.replace(/^(www|m)\./, '');
-    const id =
-      host === 'youtu.be' ? address.pathname.slice(1) : host === 'youtube.com' && address.pathname === '/watch' ? address.searchParams.get('v') : null;
-    if (!id) return address.href;
-    const player = new URL(`https://www.youtube.com/embed/${encodeURIComponent(id)}`);
+    const [, first, second, third] = address.pathname.split('/');
+    if (host === 'drive.google.com') {
+      const file = first === 'file' && second === 'd' ? third : first === 'open' ? address.searchParams.get('id') : null;
+      if (file) return `https://drive.google.com/file/d/${encodeURIComponent(file)}/preview`;
+    }
+    const video =
+      host === 'youtu.be' ? first
+      : host !== 'youtube.com' ? null
+      : first === 'watch' ? address.searchParams.get('v')
+      : ['shorts', 'live'].includes(first) ? second
+      : null;
+    if (!video) {
+      const secure = new URL(address);
+      secure.protocol = 'https:';
+      return secure.href;
+    }
+    const player = new URL(`https://www.youtube.com/embed/${encodeURIComponent(video)}`);
     player.searchParams.set('autoplay', '1');
     const [, hours = 0, minutes = 0, seconds = 0] = (address.searchParams.get('t') ?? '').match(/^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s?)?$/) ?? [];
     const start = hours * 3600 + minutes * 60 + Number(seconds);

@@ -38,6 +38,16 @@ async function clickCentre(page, locator, options) {
 const stage = (show) => show.locator('.slides-companion-spotlight');
 const website = (show) => stage(show).locator('iframe.slides-companion-spotlight-website');
 const clickLink = (page, show, options) => clickCentre(page, link(show), options);
+// The page sleeps until the pointer moves over it.
+async function overPage(page, show) {
+  const box = await website(show).boundingBox();
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 5 });
+}
+// Points the photo's link somewhere else, as if the deck linked there.
+const linkTo = (show, href) =>
+  show.locator(`[id="${LINKED_PHOTO}"] a`).evaluateAll((links, href) => {
+    for (const link of links) link.setAttribute('href', href);
+  }, href);
 
 test('clicking a link during a slideshow opens its page over the slide, and Esc goes back', async ({ context }) => {
   const { page, show } = await startSlideshow(context);
@@ -67,6 +77,7 @@ test('clicking a link during a slideshow opens its page over the slide, and Esc 
 test('the page can be browsed, and the ✕ brings the slide back', async ({ context }) => {
   const { page, show } = await startSlideshow(context);
   await clickLink(page, show);
+  await overPage(page, show);
   const linked = show.frameLocator('iframe.slides-companion-spotlight-website');
   await linked.getByRole('link', { name: 'Second page' }).click();
   await expect(linked.getByRole('heading', { name: 'The second page' })).toBeVisible();
@@ -121,9 +132,7 @@ test('set to open links in a new tab, a click opens a new tab as Slides does', a
 test('a YouTube link plays in YouTube’s player, from where the link starts it', async ({ context }) => {
   await context.route('https://www.youtube.com/embed/**', (route) => route.fulfill({ contentType: 'text/html', body: '<h1>Player</h1>' }));
   const { page, show } = await startSlideshow(context);
-  await show.locator(`[id="${LINKED_PHOTO}"] a`).evaluateAll((links) => {
-    for (const link of links) link.setAttribute('href', 'https://www.google.com/url?q=https://www.youtube.com/watch?v%3D10QOOvxw0uA%26t%3D1m30s&sa=D');
-  });
+  await linkTo(show, 'https://www.google.com/url?q=https://www.youtube.com/watch?v%3D10QOOvxw0uA%26t%3D1m30s&sa=D');
   await clickLink(page, show);
   await expect(website(show)).toHaveAttribute('src', 'https://www.youtube.com/embed/10QOOvxw0uA?autoplay=1&start=90');
   await page.keyboard.press('Escape');
@@ -160,4 +169,95 @@ test('a slideshow opened from a link opens the real address over the slide', asy
   await expect(page.locator('iframe.slides-companion-spotlight-website')).toHaveAttribute('src', 'https://www.google.com/');
   await page.keyboard.press('Escape');
   await expect(page.locator('.slides-companion-spotlight')).toHaveCount(0);
+});
+
+test('Shorts, live videos and Drive files open in their players', async ({ context }) => {
+  await context.route(/^https:\/\/(www\.youtube|drive\.google)\.com\//, (route) => route.fulfill({ contentType: 'text/html', body: '<h1>Player</h1>' }));
+  const { page, show } = await startSlideshow(context);
+  for (const [href, shown] of [
+    ['https://youtube.com/shorts/abc123', 'https://www.youtube.com/embed/abc123?autoplay=1'],
+    ['https://www.youtube.com/live/def456?t=30', 'https://www.youtube.com/embed/def456?autoplay=1&start=30'],
+    ['https://drive.google.com/file/d/1AbC/view?usp=sharing', 'https://drive.google.com/file/d/1AbC/preview'],
+    ['https://drive.google.com/open?id=2DeF', 'https://drive.google.com/file/d/2DeF/preview'],
+  ]) {
+    await linkTo(show, href);
+    await clickLink(page, show);
+    await expect(website(show)).toHaveAttribute('src', shown);
+    await page.keyboard.press('Escape');
+    await expect(stage(show)).toHaveCount(0);
+  }
+});
+
+// The slideshow is an https page, where Chrome blocks plain http ones.
+test('an http link opens at its https address, and in a new tab as it was', async ({ context }) => {
+  await context.route('http://www.google.com/', (route) => route.fulfill({ contentType: 'text/html', body: PAGE }));
+  const { page, show } = await startSlideshow(context);
+  await linkTo(show, 'http://www.google.com/');
+  await clickLink(page, show);
+  await expect(website(show)).toHaveAttribute('src', 'https://www.google.com/');
+  await page.mouse.move(200, page.viewportSize().height - 40);
+  const opened = context.waitForEvent('page');
+  await stage(show).getByRole('button', { name: 'Open in new tab' }).click();
+  expect((await opened).url()).toBe('http://www.google.com/');
+});
+
+// An object waiting for its animation is on the slide, invisible, where a click means "next".
+test('a link that isn’t shown yet leaves the click to the slideshow', async ({ context }) => {
+  const { page, show } = await startSlideshow(context);
+  await show.locator(`[id="${LINKED_PHOTO}"]`).evaluate((photo) => (photo.style.opacity = '0'));
+  await clickLink(page, show);
+  await page.waitForTimeout(500);
+  await expect(stage(show)).toHaveCount(0);
+});
+
+// A page can take the keys as it opens (a search box), where the slideshow can't hear Esc.
+test('a page can’t take the keys until the pointer goes over it, so Esc still closes it', async ({ context }) => {
+  const GRABBING = `<input autofocus><script>setTimeout(() => document.querySelector('input').focus(), 300);</script>`;
+  const { page, show } = await startSlideshow(context);
+  await context.route('https://www.google.com/', (route) => route.fulfill({ contentType: 'text/html', body: GRABBING }));
+  await context.route('https://docs.google.com/document/d/test/edit', (route) => route.fulfill({ contentType: 'text/html', body: GRABBING }));
+  const keysInPage = () => website(show).evaluate((frame) => document.activeElement === frame);
+  const input = show.frameLocator('iframe.slides-companion-spotlight-website').locator('input');
+
+  await clickLink(page, show);
+  await expect(input).toBeAttached();
+  await page.waitForTimeout(600);
+  expect(await keysInPage()).toBe(false);
+  await page.keyboard.press('Escape');
+  await expect(stage(show)).toHaveCount(0);
+
+  // Over the page, it's the presenter's to use.
+  await clickLink(page, show);
+  await overPage(page, show);
+  await input.click();
+  await page.keyboard.type('jazz');
+  await expect(input).toHaveValue('jazz');
+  await stage(show).getByRole('button', { name: 'Close' }).click();
+  await expect(stage(show)).toHaveCount(0);
+
+  // A page on Slides' own site closes with Esc even then.
+  await linkTo(show, 'https://docs.google.com/document/d/test/edit');
+  await clickLink(page, show);
+  await overPage(page, show);
+  await input.click();
+  expect(await keysInPage()).toBe(true);
+  await page.keyboard.press('Escape');
+  await expect(stage(show)).toHaveCount(0);
+  expect(await slideNumber(show)).toBe(4);
+});
+
+// Slide 5 has a photo, flying in on the first click, linked to the next slide.
+test('a link to another slide of the deck is Slides’ own to follow', async ({ context }) => {
+  const page = await context.newPage();
+  await page.goto(`${deckUrl}#slide=id.h32d70ce72e2f224_8_0`);
+  await page.locator('#punch-start-presentation-left').click();
+  const show = page.frameLocator('iframe.punch-present-iframe');
+  const toNext = show.locator('.punch-viewer-svgpage-svgcontainer a[*|href="#slide=next"]').first();
+  await expect(toNext).toBeAttached();
+  await page.keyboard.press('ArrowRight');
+  await expect.poll(async () => (await toNext.boundingBox())?.x).toBeGreaterThan(0);
+  await page.waitForTimeout(1000);
+  await clickCentre(page, toNext);
+  await expect.poll(() => slideNumber(show)).toBe(6);
+  await expect(stage(show)).toHaveCount(0);
 });
