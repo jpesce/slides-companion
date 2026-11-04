@@ -102,3 +102,45 @@ test('the Settings checkbox shows every site is allowed, like the dialog’s oth
   expect([framedBox.x, framedBox.width, framedBox.height]).toEqual([ownBox.x, ownBox.width, ownBox.height]);
   expect(await type(framed)).toEqual(await type(own));
 });
+
+test('Back and Forward go through the pages visited, never taking the tab anywhere', async ({ context }) => {
+  const { page, show, google } = await openLinkedPage(context);
+  const back = stage(show).locator('.slides-companion-spotlight-back');
+  const forward = stage(show).locator('.slides-companion-spotlight-forward');
+  const showBars = async () => {
+    const { x, y } = await centre(site(show));
+    await page.mouse.move(x, y + 2, { steps: 3 });
+  };
+  const shown = () => page.frames().find((frame) => frame.name() === 'slides-companion-page')?.url();
+  const editor = page.url();
+  const tabHistory = await page.evaluate(() => history.length);
+
+  await expect(back).toBeDisabled();
+  await expect(forward).toBeDisabled();
+  await google.evaluate(() => location.assign('https://example.com/'));
+  await expect(site(show)).toHaveText('example.com');
+  await frameAt(page, 'https://example.com/').evaluate(() => history.pushState(null, '', '/moved'));
+  await expect(back).toBeEnabled();
+
+  await showBars();
+  await back.click();
+  await expect.poll(shown).toBe('https://example.com/');
+  await back.click();
+  await expect.poll(shown).toBe('https://www.google.com/');
+  await expect(site(show)).toHaveText('google.com');
+  await expect(back).toBeDisabled();
+  await forward.click();
+  await expect.poll(shown).toBe('https://example.com/');
+  await expect(forward).toBeEnabled();
+
+  // Somewhere new from the middle: the way forward goes.
+  await frameAt(page, 'https://example.com/').evaluate(() => location.assign('https://example.org/'));
+  await expect(site(show)).toHaveText('example.org');
+  await expect(forward).toBeDisabled();
+  await back.click();
+  await expect.poll(shown).toBe('https://example.com/');
+
+  expect(page.url()).toBe(editor);
+  // The tab's history has only the page's own three moves; Back and Forward added none.
+  expect(await page.evaluate(() => history.length)).toBe(tabHistory + 3);
+});

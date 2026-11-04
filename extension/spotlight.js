@@ -21,6 +21,8 @@
   const CLOSE_ICON = icon('M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z');
   const PREVIOUS_ICON = icon('M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z');
   const NEXT_ICON = icon('M10 6 8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z');
+  const BACK_ICON = icon('M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z');
+  const FORWARD_ICON = icon('m12 4-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z');
   const NEW_TAB_ICON = icon('M19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2v-7h-2zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3z');
 
   let gallery = null;
@@ -241,9 +243,11 @@
   }
 
   // Items are objects on the slide, or a page a link goes to: { address, shown }. With every site
-  // allowed (card 56), page.js says where the page has gone since: `first` and `current` addresses.
+  // allowed (card 56), page.js says where the page goes: `visited` lists the addresses, `at` is
+  // where it is among them (Back and Forward move it), and `frameId` is how to reach it.
   const isPage = (item) => !(item instanceof Element);
-  const browsedTo = (page) => (page.current && page.current !== page.first ? new URL(page.current) : page.address);
+  // The first is the link's own page: its address (a YouTube video's page, not its player).
+  const browsedTo = (page) => (page.at > 0 ? new URL(page.visited[page.at]) : page.address);
   const siteName = (page) => browsedTo(page).hostname.replace(/^www\./, '');
 
   function openStage(items, start, label) {
@@ -263,6 +267,8 @@
         <button type="button" class="slides-companion-spotlight-next" aria-label="Next image" title="Next (→)">${NEXT_ICON}</button>
       </div>
       <div class="slides-companion-spotlight-bar slides-companion-spotlight-sitebar" hidden>
+        <button type="button" class="slides-companion-spotlight-back" aria-label="Back" title="Back" hidden>${BACK_ICON}</button>
+        <button type="button" class="slides-companion-spotlight-forward" aria-label="Forward" title="Forward" hidden>${FORWARD_ICON}</button>
         <div class="slides-companion-spotlight-site"></div>
         <button type="button" class="slides-companion-spotlight-new-tab" aria-label="Open in new tab" title="Open in new tab">${NEW_TAB_ICON}</button>
       </div>
@@ -388,6 +394,12 @@
     const page = isPage(items[index]) ? items[index] : null;
     stage.querySelector('.slides-companion-spotlight-sitebar').hidden = !page;
     stage.querySelector('.slides-companion-spotlight-site').textContent = page ? siteName(page) : '';
+    // Only once page.js says where the page is (card 56).
+    const back = stage.querySelector('.slides-companion-spotlight-back');
+    const forward = stage.querySelector('.slides-companion-spotlight-forward');
+    back.hidden = forward.hidden = page?.frameId === undefined;
+    back.disabled = !(page?.at > 0);
+    forward.disabled = !(page?.at < page?.visited.length - 1);
     stage.querySelector('.slides-companion-spotlight-navbar').hidden = count < 2;
     stage.querySelector('.slides-companion-spotlight-page').textContent = `${index + 1}/${count}`;
     stage.querySelector('.slides-companion-spotlight-previous').disabled = index === 0;
@@ -442,6 +454,8 @@
     if (bar) {
       if (event.target.closest('.slides-companion-spotlight-close')) closeStage();
       else if (event.target.closest('.slides-companion-spotlight-new-tab')) openInNewTab();
+      else if (event.target.closest('.slides-companion-spotlight-back')) goInPage(-1);
+      else if (event.target.closest('.slides-companion-spotlight-forward')) goInPage(1);
       else if (event.target.closest('.slides-companion-spotlight-previous')) step(-1);
       else if (event.target.closest('.slides-companion-spotlight-next')) step(1);
       return;
@@ -487,11 +501,35 @@
       heldKey = message.key;
       closeStage();
     } else if (message?.type === 'page-address') {
-      page.first ??= message.href;
-      page.current = message.href;
-      updateNavbar();
+      onPageAddress(page, message);
     }
   });
+
+  // A page the presenter went to in it starts a new way forward, as in a tab; one Back or Forward
+  // went to only says where it landed.
+  function onPageAddress(page, { href, frameId }) {
+    page.frameId = frameId;
+    if (page.going) {
+      page.going = false;
+      page.visited[page.at] = href;
+    } else if (href !== page.visited[page.at]) {
+      page.visited.splice(page.at + 1, Infinity, href);
+      page.at = page.visited.length - 1;
+    }
+    updateNavbar();
+  }
+
+  // Back and Forward go through the pages visited in the frame. The tab's own Back would take the
+  // whole tab back, out of the slideshow if the page has no page before it.
+  function goInPage(delta) {
+    const page = gallery.items[gallery.index];
+    const at = page.at + delta;
+    if (at < 0 || at >= page.visited.length) return;
+    page.at = at;
+    page.going = true;
+    askBackground({ type: 'page-go', frameId: page.frameId, href: page.visited[at] });
+    updateNavbar();
+  }
 
   // The slideshow ending with the page open, or the tab going elsewhere.
   window.addEventListener('pagehide', () => gallery && isPage(gallery.items[0]) && askBackground({ type: 'page-closed' }));
@@ -686,7 +724,7 @@
     const link = plainClickOnSlide(event, 'a');
     // Waiting for its animation, the link isn't shown yet: the click goes on to the next step.
     const address = link && isShowing(link) && linkAddress(link);
-    return address && { address, shown: shownAddress(address) };
+    return address && { address, shown: shownAddress(address), visited: [], at: -1 };
   }
 
   // Slides sends links through Google's redirect (google.com/url?q=<address>). Links to a slide of

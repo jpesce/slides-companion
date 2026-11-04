@@ -66,6 +66,9 @@ test('clicking a link during a slideshow opens its page over the slide, and Esc 
   const viewport = page.viewportSize();
   expect(await website(show).boundingBox()).toEqual({ x: 48, y: 80, width: viewport.width - 96, height: viewport.height - 160 });
 
+  // Without every site allowed (card 56), the page can't say where it is: no Back or Forward.
+  await expect(stage(show).locator('.slides-companion-spotlight-back')).toBeHidden();
+
   await page.keyboard.press('Escape');
   await expect(stage(show)).toHaveCount(0);
   // Still presenting, on the same slide, and no tab was opened.
