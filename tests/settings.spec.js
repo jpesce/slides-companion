@@ -92,6 +92,8 @@ async function playChromesQuestion(page) {
     chrome.permissions.request = async () => (await chrome.storage.local.set({ asked: true }), true);
     chrome.permissions.remove = async () => (await chrome.storage.local.set({ gaveBack: true }), true);
   });
+  // The box doesn't move inside its frame while the dialog grows in, so a click would miss it.
+  await page.locator('.slides-companion-dialog-root').evaluate((root) => Promise.all(root.getAnimations({ subtree: true }).map((animation) => animation.finished)));
 }
 const allSites = (page) =>
   dialog(page).frameLocator('iframe.slides-companion-dialog-frame').getByRole('checkbox', { name: /Show every site over the slide/ });
@@ -113,6 +115,8 @@ test('ticking "Show every site" asks Chrome; Cancel gives the access back, OK ke
   await companion(page).click();
   await playChromesQuestion(page);
   await allSites(page).click();
+  await expect(allSites(page)).toBeChecked();
+  await expect.poll(() => asked(serviceWorker)).toEqual({ asked: true });
   await dialog(page).getByRole('button', { name: 'OK' }).click();
   await expect(dialog(page)).toHaveCount(0);
   await page.waitForTimeout(300);

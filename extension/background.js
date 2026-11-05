@@ -67,7 +67,8 @@ const frameHeadersRule = (tabId) => ({
       { header: 'content-security-policy', operation: 'remove' },
     ],
   },
-  condition: { tabIds: [tabId], resourceTypes: ['sub_frame'] },
+  // Slides' own frames (the slideshow) keep theirs.
+  condition: { tabIds: [tabId], resourceTypes: ['sub_frame'], excludedRequestDomains: ['docs.google.com'] },
 });
 const dropFrameHeadersRule = (tabId) => chrome.declarativeNetRequest.updateSessionRules({ removeRuleIds: [tabId] });
 chrome.tabs.onRemoved.addListener((tabId) => dropFrameHeadersRule(tabId).catch(() => {}));

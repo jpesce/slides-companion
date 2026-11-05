@@ -12,6 +12,8 @@ const stage = (show) => show.locator('.slides-companion-spotlight');
 const website = (show) => stage(show).locator('iframe.slides-companion-spotlight-website');
 const site = (show) => stage(show).locator('.slides-companion-spotlight-site');
 const frameAt = (page, start) => page.frames().find((frame) => frame.url().startsWith(start));
+// The page's frame, by the name page.js knows it by (with which Back or Forward brought it there).
+const shownIn = (page) => () => page.frames().find((frame) => frame.name().startsWith('slides-companion-page'))?.url();
 const sessionRules = (serviceWorker) => serviceWorker.evaluate(() => chrome.declarativeNetRequest.getSessionRules());
 
 async function centre(locator) {
@@ -91,9 +93,11 @@ test('the Settings checkbox shows every site is allowed, like the dialog’s oth
   const own = dialog.locator('label', { hasText: 'Spotlight an image when you click it' });
   const framed = dialog.frameLocator('iframe.slides-companion-dialog-frame').locator('label');
   const type = (row) =>
-    row.evaluate((label) => {
+    row.evaluate(async (label) => {
       const text = getComputedStyle(label.querySelector('.slides-companion-dialog-label'));
       const hint = getComputedStyle(label.querySelector('.slides-companion-dialog-hint'));
+      // A font loads only once something needs it.
+      await document.fonts.load(text.font);
       return [text.font, text.color, text.letterSpacing, hint.font, hint.color, document.fonts.check(text.font)];
     });
   await expect.poll(() => own.locator('.slides-companion-checkbox').boundingBox().then((box) => box.width)).toBe(36);
@@ -111,7 +115,7 @@ test('Back and Forward go through the pages visited, never taking the tab anywhe
     const { x, y } = await centre(site(show));
     await page.mouse.move(x, y + 2, { steps: 3 });
   };
-  const shown = () => page.frames().find((frame) => frame.name() === 'slides-companion-page')?.url();
+  const shown = shownIn(page);
   const editor = page.url();
   const tabHistory = await page.evaluate(() => history.length);
 
@@ -143,4 +147,74 @@ test('Back and Forward go through the pages visited, never taking the tab anywhe
   expect(page.url()).toBe(editor);
   // The tab's history has only the page's own three moves; Back and Forward added none.
   expect(await page.evaluate(() => history.length)).toBe(tabHistory + 3);
+});
+
+test('Back and Forward keep up with the page: a tidied address, the tab’s own Back, Back pressed twice', async ({ context, serviceWorker }) => {
+  const { page, show, google } = await openLinkedPage(context);
+  const back = stage(show).locator('.slides-companion-spotlight-back');
+  const forward = stage(show).locator('.slides-companion-spotlight-forward');
+  const shown = shownIn(page);
+  await google.evaluate(() => location.assign('https://example.com/'));
+  await expect(site(show)).toHaveText('example.com');
+  // A site moving to another of its pages, then tidying that page's address.
+  await frameAt(page, 'https://example.com/').evaluate(() => {
+    history.pushState(null, '', '/moved');
+    history.replaceState(null, '', '/tidied');
+  });
+  const { x, y } = await centre(site(show));
+  await page.mouse.move(x, y + 2, { steps: 3 });
+
+  // One page back, not the address it had before tidying.
+  await back.click();
+  await expect.poll(shown).toBe('https://example.com/');
+  await forward.click();
+  await expect.poll(shown).toBe('https://example.com/tidied');
+  await expect(forward).toBeDisabled();
+
+  // The tab's own Back (a mouse's back button) goes back in the page, keeping the way forward.
+  await frameAt(page, 'https://example.com/tidied').evaluate(() => history.back());
+  await expect.poll(shown).toBe('https://example.com/');
+  await expect(forward).toBeEnabled();
+  await forward.click();
+  await expect.poll(shown).toBe('https://example.com/tidied');
+
+  // Back twice, the page passed on the way saying where it is only after the second.
+  await serviceWorker.evaluate(() => {
+    const send = chrome.tabs.sendMessage.bind(chrome.tabs);
+    chrome.tabs.sendMessage = (tabId, message, ...rest) =>
+      message?.type === 'page-address' ? new Promise((done) => setTimeout(done, 500)).then(() => send(tabId, message, ...rest)) : send(tabId, message, ...rest);
+  });
+  await back.click();
+  await expect.poll(shown).toBe('https://example.com/');
+  await back.click();
+  await expect.poll(shown).toBe('https://www.google.com/');
+  await page.waitForTimeout(1200);
+  await expect(site(show)).toHaveText('google.com');
+  await expect(back).toBeDisabled();
+  await forward.click();
+  await expect.poll(shown).toBe('https://example.com/');
+  await forward.click();
+  await expect.poll(shown).toBe('https://example.com/tidied');
+});
+
+test('after Forward to a part of the same page, a link clicked still adds a page', async ({ context }) => {
+  const { page, show, google } = await openLinkedPage(context);
+  const back = stage(show).locator('.slides-companion-spotlight-back');
+  const forward = stage(show).locator('.slides-companion-spotlight-forward');
+  const shown = shownIn(page);
+  await google.evaluate(() => location.assign('https://example.com/'));
+  await expect(site(show)).toHaveText('example.com');
+  await frameAt(page, 'https://example.com/').evaluate(() => (location.hash = 'part'));
+  const { x, y } = await centre(site(show));
+  await page.mouse.move(x, y + 2, { steps: 3 });
+  await back.click();
+  await expect.poll(shown).toBe('https://example.com/');
+  // Within the page: no new page is loaded.
+  await forward.click();
+  await expect.poll(shown).toBe('https://example.com/#part');
+
+  await frameAt(page, 'https://example.com/').evaluate(() => location.assign('https://example.org/'));
+  await expect(site(show)).toHaveText('example.org');
+  await back.click();
+  await expect.poll(shown).toBe('https://example.com/#part');
 });

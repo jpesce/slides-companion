@@ -243,8 +243,9 @@
   }
 
   // Items are objects on the slide, or a page a link goes to: { address, shown }. With every site
-  // allowed (card 56), page.js says where the page goes: `visited` lists the addresses, `at` is
-  // where it is among them (Back and Forward move it), and `frameId` is how to reach it.
+  // allowed (card 56), page.js says where the page goes: `visited` lists the addresses, from the one
+  // first shown, `at` is where it is among them (Back and Forward move it), `goes` counts Back and
+  // Forward, and `frameId` is how to reach it.
   const isPage = (item) => !(item instanceof Element);
   // The first is the link's own page: its address (a YouTube video's page, not its player).
   const browsedTo = (page) => (page.at > 0 ? new URL(page.visited[page.at]) : page.address);
@@ -505,16 +506,21 @@
     }
   });
 
-  // A page the presenter went to in it starts a new way forward, as in a tab; one Back or Forward
-  // went to only says where it landed.
-  function onPageAddress(page, { href, frameId }) {
+  // A page the presenter went to in it starts a new way forward, as in a tab. The same page under
+  // another address (a site tidying it, a redirect, a reload) takes its place, and the tab's own Back
+  // and Forward move along. Back and Forward here only say where they landed: the last one pressed,
+  // not a page passed on the way when pressed in a row.
+  function onPageAddress(page, { href, how, went, frameId }) {
     page.frameId = frameId;
-    if (page.going) {
-      page.going = false;
-      page.visited[page.at] = href;
-    } else if (href !== page.visited[page.at]) {
-      page.visited.splice(page.at + 1, Infinity, href);
-      page.at = page.visited.length - 1;
+    if (went !== undefined && went !== page.goes) return;
+    const { visited, at } = page;
+    if (how === 'push') {
+      visited.splice(at + 1, Infinity, href);
+      page.at = visited.length - 1;
+    } else if (how === 'traverse' && [visited[at - 1], visited[at + 1]].includes(href)) {
+      page.at = visited[at - 1] === href ? at - 1 : at + 1;
+    } else {
+      visited[at] = href;
     }
     updateNavbar();
   }
@@ -526,8 +532,8 @@
     const at = page.at + delta;
     if (at < 0 || at >= page.visited.length) return;
     page.at = at;
-    page.going = true;
-    askBackground({ type: 'page-go', frameId: page.frameId, href: page.visited[at] });
+    page.goes = (page.goes ?? 0) + 1;
+    askBackground({ type: 'page-go', frameId: page.frameId, href: page.visited[at], go: page.goes });
     updateNavbar();
   }
 
@@ -724,7 +730,9 @@
     const link = plainClickOnSlide(event, 'a');
     // Waiting for its animation, the link isn't shown yet: the click goes on to the next step.
     const address = link && isShowing(link) && linkAddress(link);
-    return address && { address, shown: shownAddress(address), visited: [], at: -1 };
+    if (!address) return null;
+    const shown = shownAddress(address);
+    return { address, shown, visited: [shown], at: 0 };
   }
 
   // Slides sends links through Google's redirect (google.com/url?q=<address>). Links to a slide of
@@ -772,10 +780,12 @@
     return player.href;
   }
 
-  // With every site allowed (card 56), the rule letting sites be shown goes in first.
+  // With every site allowed (card 56), the rule letting sites be shown goes in first. If an image
+  // opened on the stage meanwhile, the rule comes out again.
   async function openPage(page) {
     await askBackground({ type: 'page-open' });
     if (!gallery) openStage([page], 0, siteName(page));
+    else if (!isPage(gallery.items[0])) askBackground({ type: 'page-closed' });
   }
 
   if (IN_SLIDESHOW) {
