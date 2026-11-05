@@ -1,4 +1,4 @@
-import { test, expect, deckUrl } from './fixtures.js';
+import { test, expect, deckUrl, openSettings } from './fixtures.js';
 
 // Slide 3 of the test deck: two photos side by side and a caption text box.
 const slide = `${deckUrl}#slide=id.g35a1872bb6d_1_0`;
@@ -61,7 +61,7 @@ const strokes = (show, selector = KEPT) =>
 async function turnOnKeeping(context) {
   const page = await context.newPage();
   await page.goto(slide);
-  await page.locator('.slides-companion-button').click();
+  await openSettings(page, 'Pen');
   await page.getByRole('checkbox', { name: /Keep what you draw/ }).check();
   await page.getByRole('button', { name: 'OK' }).click();
   await page.close();

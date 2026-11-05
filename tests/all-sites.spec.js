@@ -87,9 +87,8 @@ test('the Settings checkbox shows every site is allowed, like the dialog’s oth
   await page.locator('.slides-companion-button').click();
   const dialog = page.getByRole('dialog', { name: 'Slides Companion settings' });
   const allSites = dialog.frameLocator('iframe.slides-companion-dialog-frame').getByRole('checkbox', { name: /Show every site over the slide/ });
-  await expect(allSites).toBeChecked();
 
-  // The same box, place and type as "Spotlight an image when you click it".
+  // The same box, place and type as "Spotlight an image when you click it", on the page before.
   const own = dialog.locator('label', { hasText: 'Spotlight an image when you click it' });
   const framed = dialog.frameLocator('iframe.slides-companion-dialog-frame').locator('label');
   const type = (row) =>
@@ -102,9 +101,12 @@ test('the Settings checkbox shows every site is allowed, like the dialog’s oth
     });
   await expect.poll(() => own.locator('.slides-companion-checkbox').boundingBox().then((box) => box.width)).toBe(36);
   const box = (row) => row.locator('.slides-companion-checkbox').boundingBox();
-  const [ownBox, framedBox] = [await box(own), await box(framed)];
+  const [ownBox, ownType] = [await box(own), await type(own)];
+  await dialog.getByRole('tab', { name: 'Links' }).click();
+  await expect(allSites).toBeChecked();
+  const framedBox = await box(framed);
   expect([framedBox.x, framedBox.width, framedBox.height]).toEqual([ownBox.x, ownBox.width, ownBox.height]);
-  expect(await type(framed)).toEqual(await type(own));
+  expect(await type(framed)).toEqual(ownType);
 });
 
 test('Back and Forward go through the pages visited, never taking the tab anywhere', async ({ context }) => {

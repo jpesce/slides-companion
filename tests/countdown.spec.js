@@ -1,4 +1,4 @@
-import { test, expect, deckUrl } from './fixtures.js';
+import { test, expect, deckUrl, openSettings } from './fixtures.js';
 
 // Starts the slideshow with presenter view, the window Slides opens beside it.
 async function openPresenterView(context) {
@@ -321,7 +321,7 @@ test('the audience’s slideshow never shows the countdown', async ({ context })
 test('with the warning set to 5 minutes in Settings, the timer turns orange 5 minutes before the end', async ({ context }) => {
   const page = await context.newPage();
   await page.goto(deckUrl);
-  await page.locator('.slides-companion-button').click();
+  await openSettings(page, 'Timer');
   await page.getByRole('radio', { name: /5 minutes before the end/ }).check();
   await page.getByRole('button', { name: 'OK' }).click();
   await page.close();

@@ -46,3 +46,9 @@ export const test = base.extend({
 });
 
 export const expect = test.expect;
+
+// Opens Settings from the companion, on a feature's page.
+export async function openSettings(page, feature) {
+  await page.locator('.slides-companion-button').click();
+  await page.getByRole('dialog', { name: 'Slides Companion settings' }).getByRole('tab', { name: feature }).click();
+}

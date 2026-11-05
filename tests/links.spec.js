@@ -1,4 +1,4 @@
-import { test, expect, deckUrl } from './fixtures.js';
+import { test, expect, deckUrl, openSettings } from './fixtures.js';
 
 // Slide 4 of the test deck: a photo linked to google.com, and a video. The photo flies in from
 // above as the slide starts.
@@ -118,7 +118,7 @@ test('set to open links in a new tab, a click opens a new tab as Slides does', a
   await servePages(context);
   const page = await context.newPage();
   await page.goto(slide);
-  await page.locator('.slides-companion-button').click();
+  await openSettings(page, 'Links');
   await page.getByRole('radio', { name: /Open it in a new tab/ }).check();
   await page.getByRole('button', { name: 'OK' }).click();
   await page.locator('#punch-start-presentation-left').click();

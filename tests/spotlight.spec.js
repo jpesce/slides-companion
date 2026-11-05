@@ -1,4 +1,4 @@
-import { test, expect, deckUrl } from './fixtures.js';
+import { test, expect, deckUrl, openSettings } from './fixtures.js';
 
 // Slide 3 of the test deck: two photos side by side and a caption text box.
 const slide = `${deckUrl}#slide=id.g35a1872bb6d_1_0`;
@@ -203,7 +203,7 @@ test('the "When images are grouped" setting decides how a group is shown', async
   expect(await showing(page)).toEqual({ id: RIGHT, status: '' });
   await page.keyboard.press('Escape');
 
-  await page.locator('.slides-companion-button').click();
+  await openSettings(page, 'Spotlight');
   await page.getByRole('radio', { name: /Show each image on its own/ }).check();
   await page.getByRole('button', { name: 'OK' }).click();
 

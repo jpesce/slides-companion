@@ -1,4 +1,4 @@
-import { test, expect, deckUrl } from './fixtures.js';
+import { test, expect, deckUrl, openSettings } from './fixtures.js';
 
 // Slide 3 of the test deck: two photos side by side and a caption text box.
 const slide = `${deckUrl}#slide=id.g35a1872bb6d_1_0`;
@@ -159,7 +159,7 @@ test('while zoomed, clicking an image spotlights it', async ({ context }) => {
 test('while zoomed, with clicking to spotlight turned off, clicking an image does nothing', async ({ context }) => {
   const page = await context.newPage();
   await page.goto(slide);
-  await page.locator('.slides-companion-button').click();
+  await openSettings(page, 'Spotlight');
   await page.getByRole('checkbox', { name: /Spotlight an image when you click it/ }).uncheck();
   await page.getByRole('button', { name: 'OK' }).click();
   await page.close();
@@ -403,7 +403,7 @@ test('changing slides while zoomed starts the next slide whole', async ({ contex
 async function chooseSlideshowScroll(context, choice) {
   const page = await context.newPage();
   await page.goto(slide);
-  await page.locator('.slides-companion-button').click();
+  await openSettings(page, 'Scrolling');
   await page.getByRole('group', { name: 'During a slideshow' }).getByRole('radio', { name: choice }).check();
   await page.getByRole('button', { name: 'OK' }).click();
   await expect(page.locator('.slides-companion-dialog-root')).toHaveCount(0);

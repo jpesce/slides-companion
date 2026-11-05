@@ -1,4 +1,4 @@
-import { test, expect, deckUrl } from './fixtures.js';
+import { test, expect, deckUrl, openSettings } from './fixtures.js';
 
 // Slide 3 of the test deck: two photos and a caption ("Top kids playing…"); slide 2 is text.
 const SLIDE_2 = 'g35a1872bb6d_1_75';
@@ -77,7 +77,7 @@ const replaced = (page) => expect(slidesOwn(page)).toHaveAttribute('data-slides-
 async function choose(context, option) {
   const page = await context.newPage();
   await page.goto(slide);
-  await page.locator('.slides-companion-button').click();
+  await openSettings(page, 'Edits during a slideshow');
   await page.getByRole('radio', { name: option }).check();
   await page.getByRole('button', { name: 'OK', exact: true }).click();
   await page.close();

@@ -1,4 +1,4 @@
-import { test, expect, deckUrl } from './fixtures.js';
+import { test, expect, deckUrl, openSettings } from './fixtures.js';
 
 // Slide 3 of the test deck: two photos side by side and a caption text box.
 const slide = `${deckUrl}#slide=id.g35a1872bb6d_1_0`;
@@ -121,7 +121,7 @@ test('with the pen on, clicking an image leaves it to the pen', async ({ context
 test('turning the setting off keeps clicks on images going to the next slide', async ({ context }) => {
   const page = await context.newPage();
   await page.goto(slide);
-  await page.locator('.slides-companion-button').click();
+  await openSettings(page, 'Spotlight');
   await page.getByRole('checkbox', { name: /Spotlight an image when you click it/ }).uncheck();
   await page.getByRole('button', { name: 'OK' }).click();
   await page.close();

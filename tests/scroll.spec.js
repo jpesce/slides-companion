@@ -1,4 +1,4 @@
-import { test, expect, deckUrl } from './fixtures.js';
+import { test, expect, deckUrl, openSettings } from './fixtures.js';
 
 // Slide 3 of the test deck, in the editor.
 const slide = `${deckUrl}#slide=id.g35a1872bb6d_1_0`;
@@ -24,7 +24,7 @@ async function openSlide(context) {
 }
 
 async function chooseEditorScroll(page, choice) {
-  await page.locator('.slides-companion-button').click();
+  await openSettings(page, 'Scrolling');
   await page.getByRole('group', { name: 'While editing' }).getByRole('radio', { name: choice }).check();
   await page.getByRole('button', { name: 'OK' }).click();
   await expect(page.locator('.slides-companion-dialog-root')).toHaveCount(0);
