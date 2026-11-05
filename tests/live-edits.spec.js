@@ -88,9 +88,11 @@ test('an edit to the slide on screen shows within seconds, and the slideshow car
   await edit(page, SLIDE_3, 'Lisbon');
   await expect(words(page, 'Lisbon')).toBeVisible({ timeout: 15000 });
   await replaced(page);
-  // The copy is the same size, in the same place, and Slides' own is hidden behind it.
+  // The copy is the same size, in the same place, and Slides' own is out of sight behind it, and
+  // can't be reached.
   expect(await copies(page).boundingBox()).toEqual(await slidesOwn(page).boundingBox());
-  await expect(slidesOwn(page)).toHaveCSS('visibility', 'hidden');
+  await expect(slidesOwn(page)).toHaveCSS('opacity', '0');
+  expect(await slidesOwn(page).evaluate((frame) => frame.inert)).toBe(true);
 
   // Keys go to the new player, and the editor follows it.
   expect(await slideNumber(page)).toBe(3);
@@ -248,4 +250,88 @@ test('auto-play carries on, at the same pace, looping', async ({ context }) => {
   expect([src.searchParams.get('start'), src.searchParams.get('delayms'), src.searchParams.get('loop')]).toEqual(['true', '5000', 'true']);
   const at = await slideNumber(page);
   await expect.poll(() => slideNumber(page), { timeout: 8000 }).toBe(at + 1);
+});
+
+// Presenting through Meet, as far as the slideshow sees it (the test browser can't present through
+// Meet). Meet puts SK_remoteCoordinator on the editor's window, and a player hands Meet its
+// controls (Next, Previous) through it, then says what's on screen: as it loads, and when the
+// editor says Meet has connected. Meet keeps the last player that handed it its controls.
+async function presentThroughMeet(page) {
+  await page.evaluate(() => {
+    const meet = (window.meet = { player: null, controls: null, view: null });
+    const playerOf = (object) => [...document.querySelectorAll('iframe.punch-present-iframe')].find((frame) => object instanceof frame.contentWindow.Object) ?? null;
+    const listener = {};
+    for (const name of ['onApiExported', 'onCurrentViewChange', 'onNavigation', 'onPreviousPreviewChange', 'onNextPreviewChange', 'onNextNextPreviewChange', 'onSlideLoadStateChange', 'onFinishedLoading', 'onActionEnabledStateChange', 'onContentAnimationChange']) listener[name] = () => {};
+    listener.onApiExported = (content, controls) => Object.assign(meet, { player: playerOf(controls), controls });
+    // The slide on screen, counting from 0, and the step it's at: "2-0-…".
+    listener.onCurrentViewChange = (view) => (meet.view = view);
+    const accessibility = Object.assign(new EventTarget(), { isEnabled: () => false });
+    window.SK_remoteCoordinator = new (class {
+      getRemoteEventListener = () => listener;
+      getNativeScreenReader = () => ({ speakMessages() {}, isStopSupported: () => false, stop() {} });
+      getA11yVerbalizationConfig = () => ({ getNativeAccessibilityState: () => accessibility });
+      getActiveFeatureStateList = () => '';
+      getDynamicContextFunctions = () => ({});
+      getContentPreviewsSupported = () => true;
+      getAsyncRemoteEventsSupported = () => false;
+      setViewerToastService() {}
+    })();
+  });
+}
+// Which player Meet has: Slides' own, or the copy on screen.
+const meetHas = (page) =>
+  page.evaluate(() => (!window.meet.player ? null : 'slidesCompanionCopy' in window.meet.player.dataset ? `copy, ${window.meet.player.dataset.slidesCompanionPlayer}` : 'Slides’ own'));
+const meetPresses = (page, button) => page.evaluate((button) => window.meet.controls[button](), button);
+const meetShows = (page) => page.evaluate(() => Number(window.meet.view?.split('-')[0]) + 1);
+
+test('presenting through Meet, Meet’s Next and Previous move the slide on screen after an edit', async ({ context }) => {
+  const page = await openDeck(context);
+  await presentThroughMeet(page);
+  await page.locator('#punch-start-presentation-left').click();
+  await expect(slidesOwn(page)).toHaveAttribute('data-slides-companion-loaded');
+  await expect.poll(() => meetHas(page)).toBe('Slides’ own');
+
+  await edit(page, SLIDE_3, 'Lisbon');
+  await expect(words(page, 'Lisbon')).toBeVisible({ timeout: 15000 });
+  await replaced(page);
+  await expect.poll(() => meetHas(page)).toBe('copy, shown');
+  await meetPresses(page, 'goPrev');
+  await expect.poll(() => slideNumber(page)).toBe(2);
+  await expect.poll(() => meetShows(page)).toBe(2);
+  await meetPresses(page, 'goNext');
+  await expect.poll(() => slideNumber(page)).toBe(3);
+  await expect.poll(() => meetShows(page)).toBe(3);
+});
+
+test('presenting through Meet, a new player waiting out of sight leaves Meet with the slide on screen', async ({ context }) => {
+  await choose(context, /Once you’ve moved to another slide/);
+  const page = await openDeck(context);
+  await presentThroughMeet(page);
+  await page.locator('#punch-start-presentation-left').click();
+  await expect(slidesOwn(page)).toHaveAttribute('data-slides-companion-loaded');
+
+  await edit(page, SLIDE_3, 'Lisbon');
+  await expect(copies(page)).toHaveAttribute('data-slides-companion-loaded', '', { timeout: 15000 });
+  await page.waitForTimeout(2000);
+  expect(await meetHas(page)).toBe('Slides’ own');
+  // Moving on from Meet, the new player takes over on the slide moved to, and Meet has it.
+  await meetPresses(page, 'goPrev');
+  await expect.poll(() => slideNumber(page)).toBe(2);
+  await replaced(page);
+  await expect.poll(() => meetHas(page)).toBe('copy, shown');
+  await meetPresses(page, 'goNext');
+  await expect(words(page, 'Lisbon')).toBeVisible();
+  await expect.poll(() => meetShows(page)).toBe(3);
+});
+
+test('Meet joining after an edit has showed gets the player on screen', async ({ context }) => {
+  const page = await startSlideshow(context);
+  await edit(page, SLIDE_2, 'Edited');
+  await replaced(page);
+  await presentThroughMeet(page);
+  // What the editor does as Meet joins: it tells the player it started.
+  await slidesOwn(page).evaluate((frame) => frame.contentWindow.SK_editorEventListener.onConnectRemote());
+  await expect.poll(() => meetHas(page)).toBe('copy, shown');
+  await meetPresses(page, 'goPrev');
+  await expect.poll(() => slideNumber(page)).toBe(2);
 });

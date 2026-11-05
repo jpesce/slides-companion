@@ -3,9 +3,10 @@
 // once, as the slideshow starts, and can't be given a new one; reloading it ends the slideshow. So
 // a fresh copy of the player loads out of sight on the slide on screen, at the same animation step,
 // and takes over when nothing is moving: unchanged, the slide looks just the same; edited, it
-// dissolves into its new version. Full screen, the clicker, presenter view, auto-play and the pen
-// or laser carry on. Slides' own player stays, hidden and silenced: the editor ends the slideshow
-// through it. See live-edits-main.js for what's done in the editor page's own world.
+// dissolves into its new version. Full screen, the clicker, presenter view, presenting through
+// Meet, auto-play and the pen or laser carry on. Slides' own player stays, out of sight and
+// silenced: the editor ends the slideshow through it. See live-edits-main.js for what's done in the
+// editor page's own world.
 {
   const IN_EDITOR = window === window.top && !/\/(local)?present$/.test(location.pathname);
   const PLAYER = 'iframe.punch-present-iframe';
@@ -14,6 +15,7 @@
   const RESULT_EVENT = 'slides-companion-live-result';
   const STARTED_EVENT = 'slides-companion-slideshow-started';
   const ENDED_EVENT = 'slides-companion-slideshow-ended';
+  const SHOWN_EVENT = 'slides-companion-player-shown';
   // How often the deck is checked while it's edited. An edit is taken once a check finds nothing
   // new since the one before.
   const CHECK_MS = 1000;
@@ -146,6 +148,7 @@
     const frame = own.cloneNode(false);
     frame.removeAttribute('id');
     delete frame.dataset.slidesCompanionLoaded;
+    frame.inert = false;
     frame.dataset.slidesCompanionCopy = '';
     frame.dataset.slidesCompanionPlayer = 'loading';
     frame.dataset.slidesCompanionInk = doc.documentElement.dataset.slidesCompanionInk ?? '';
@@ -316,11 +319,12 @@
     if (pen) press(copyDoc, 'L', true);
     if (laser) press(copyDoc, 'l');
     if (presenterView) takeOverPresenterView(copyDoc);
+    // Presenting through Meet, Meet's controls go with it (see live-edits-main.js).
+    tell(SHOWN_EVENT);
 
     const done = () => {
-      shown.style.visibility = 'hidden';
       if ('slidesCompanionCopy' in shown.dataset) shown.remove();
-      else silence(shown);
+      else putAway(shown);
       if (copy?.frame === frame) copy = null;
       edited = null;
       lastVersion = null;
@@ -337,8 +341,17 @@
     }
   }
 
-  // Slides' own player, replaced, keeps quiet: its videos stopped, and stopped again should it move
-  // on by itself (auto-play).
+  // Slides' own player, replaced, stays in its place out of sight, and can't be reached. Not hidden:
+  // presenting through Meet, Meet shows what's on screen where the slide of Slides' own player is,
+  // and shows nothing new once that's hidden.
+  function putAway(frame) {
+    frame.style.opacity = '0';
+    frame.inert = true;
+    silence(frame);
+  }
+
+  // And it keeps quiet: its videos stopped, and stopped again should it move on by itself
+  // (auto-play).
   const hushed = new WeakMap();
   function silence(frame) {
     const doc = frame.contentDocument;
@@ -384,7 +397,8 @@
       hushed.get(frame)?.disconnect();
       hushed.delete(frame);
       delete frame.dataset.slidesCompanionPlayer;
-      frame.style.visibility = '';
+      frame.style.opacity = '';
+      frame.inert = false;
     }
     watching = false;
     filmstrip.disconnect();

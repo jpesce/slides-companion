@@ -7,6 +7,7 @@
 //   or asking for the deck's fonts (which makes the editor switch off its Slideshow button); it gets
 //   the fonts the first player got instead;
 // - a player that's been replaced can't move the editor to its slide;
+// - presenting through Meet, Meet's controls work the player on screen;
 // - it knows whether presenter view is open (see live-edits-frame.js).
 // Players are told apart by the window their code runs in; live-edits.js marks each player's frame
 // with data-slides-companion-player: "loading", "shown" or "replaced" (Slides' own player, until
@@ -20,6 +21,7 @@
   const RESULT_EVENT = 'slides-companion-live-result';
   const STARTED_EVENT = 'slides-companion-slideshow-started';
   const ENDED_EVENT = 'slides-companion-slideshow-ended';
+  const SHOWN_EVENT = 'slides-companion-player-shown';
 
   // The player whose code a function belongs to.
   function playerOf(fn) {
@@ -170,6 +172,49 @@
       return onAllPagesLoad.apply(this, arguments);
     };
   });
+
+  // ----- Presenting through Meet -----
+
+  // Meet's code in the editor puts SK_remoteCoordinator on the window, once. A player hands Meet
+  // its controls (Next, Previous, a slide's number) through it, and from then on says what's on
+  // screen: as it loads, and when the editor tells it Meet has joined (onConnectRemote). Meet works
+  // the last player that did. So only the player on screen gets Meet: a copy loading out of sight
+  // finds Meet isn't there, and connects as it's shown; a replaced one goes quiet, and Meet joining
+  // it joins the one on screen instead.
+  const connect = (frame) => {
+    try {
+      frame?.contentWindow.SK_editorEventListener?.onConnectRemote();
+    } catch {}
+  };
+  const quietUnlessShown = (frame, listener) =>
+    new Proxy(listener, {
+      get(target, key) {
+        const value = Reflect.get(target, key);
+        if (typeof value !== 'function') return value;
+        return function () {
+          if (state(frame) === 'shown') return value.apply(target, arguments);
+        };
+      },
+    });
+  let coordinator;
+  Object.defineProperty(window, 'SK_remoteCoordinator', {
+    configurable: true,
+    enumerable: true,
+    get: () => coordinator,
+    set(next) {
+      coordinator = next;
+      const getRemoteEventListener = next?.getRemoteEventListener;
+      if (typeof getRemoteEventListener !== 'function') return;
+      next.getRemoteEventListener = function asked() {
+        const frame = playerOf(asked.caller);
+        const listener = getRemoteEventListener.apply(this, arguments);
+        if (!frame || !listener) return listener;
+        if (state(frame) === 'replaced') connect(shownPlayer());
+        return state(frame) === 'shown' ? quietUnlessShown(frame, listener) : null;
+      };
+    },
+  });
+  document.addEventListener(SHOWN_EVENT, () => coordinator && connect(shownPlayer()));
 
   // The fonts, from the first player's request, and the copies waiting for them.
   const fonts = { setWebFontsMetadataCallback: null, setWebFontsListCallback: null };
