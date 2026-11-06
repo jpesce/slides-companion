@@ -110,6 +110,7 @@ test('each deck remembers its time, and whether it was counting down', async ({ 
 
   const second = await openPresenterView(context);
   await expect(countdown(second.presenter)).toHaveText(/^01:(30:00|29:5\d)$/);
+  await expect(bar(second.presenter)).toBeVisible();
   await choose(second.presenter, 'Count up, as usual');
   await second.presenter.close();
   await second.page.close();
@@ -331,4 +332,123 @@ test('with the warning set to 5 minutes in Settings, the timer turns orange 5 mi
   await expect(countdown(presenter)).toHaveClass(/slides-companion-countdown-warning/);
   await countDownFrom(presenter, '6');
   await expect(countdown(presenter)).not.toHaveClass(/slides-companion-countdown-warning/);
+});
+
+const bar = (presenter) => presenter.locator('.slides-companion-countdown-bar');
+const box = (locator) => locator.evaluate((element) => element.getBoundingClientRect().toJSON());
+// The share of the bar filled, and of the time gone.
+const filled = (presenter) =>
+  bar(presenter).evaluate((element) => element.firstChild.getBoundingClientRect().width / element.getBoundingClientRect().width);
+const panel = (presenter) => presenter.locator('.punch-viewer-speakernotes-timer-panel');
+const below = (presenter) => presenter.locator('.punch-viewer-speakernotes-page-control-panel');
+
+test('counting down, a bar under the time fills up as it goes, and what’s below makes room for it', async ({ context }) => {
+  const { presenter } = await openPresenterView(context);
+  await expect(slidesTime(presenter)).toHaveText(/^00:00:0[3-9]$/, { timeout: 8000 });
+  await expect(bar(presenter)).toBeHidden();
+  const [before, row] = await Promise.all([box(below(presenter)), box(timer(presenter))]);
+  await choose(presenter, 'Count down from 5 minutes');
+  await expect(bar(presenter)).toBeVisible();
+  await expect(bar(presenter)).toHaveAttribute('aria-hidden', 'true');
+  // Lined up with the time and the slide picker. The row of the time and its buttons stays where
+  // Slides puts it, and the bar has as much room below it as the row has above (then the panel's 1px
+  // border). The slide picker and slides below it move down to make room.
+  const [track, time, edge, moved] = await Promise.all([box(bar(presenter)), box(timer(presenter)), box(panel(presenter)), box(below(presenter))]);
+  expect(time).toEqual(row);
+  expect(track.left).toBe(time.left);
+  expect(edge.right - track.right).toBe(track.left - edge.left);
+  const buttons = await box(pause(presenter));
+  expect(edge.bottom - 1 - track.bottom).toBe(buttons.top - edge.top);
+  expect(moved.top).toBeCloseTo(edge.bottom, 0);
+  expect(moved.top).toBeGreaterThan(before.top);
+  await expect.poll(() => secondsLeft(presenter), { timeout: 5000 }).toBeLessThan(5 * 60 - 1);
+  const share = async () => Math.abs((await filled(presenter)) - (1 - (await secondsLeft(presenter)) / (5 * 60)));
+  expect(await share()).toBeLessThan(0.01);
+
+  // Adding a minute makes the talk longer, so less of it has gone.
+  await choose(presenter, 'Add 1 minute');
+  expect(Math.abs((await filled(presenter)) - (1 - (await secondsLeft(presenter)) / (6 * 60)))).toBeLessThan(0.01);
+  await reset(presenter).click();
+  await expect.poll(() => filled(presenter)).toBeLessThan(0.01);
+
+  await choose(presenter, 'Count up, as usual');
+  await expect(bar(presenter)).toBeHidden();
+  expect(await box(below(presenter))).toEqual(before);
+});
+
+test('the bar turns orange and red with the timer, and is full past the end', async ({ context }) => {
+  const { presenter } = await openPresenterView(context);
+  await countDownFrom(presenter, '0:03');
+  const fill = bar(presenter).locator('.slides-companion-countdown-bar-fill');
+  await expect(fill).toHaveCSS('background-color', 'rgb(227, 116, 0)');
+  await expect(countdown(presenter)).toHaveClass(/slides-companion-countdown-over/, { timeout: 8000 });
+  await expect(fill).toHaveCSS('background-color', 'rgb(179, 38, 30)');
+  expect(await filled(presenter)).toBe(1);
+});
+
+// Slides' recording studio shows its time limit with a bar; its styles are in presenter view.
+test('the bar is made like Slides’ own time bar', async ({ context }) => {
+  const { presenter } = await openPresenterView(context);
+  await choose(presenter, 'Count down from 20 minutes');
+  await expect(bar(presenter)).toBeVisible();
+  // Slides' bar, put in beside ours with its own classes.
+  await presenter.evaluate(() => {
+    const track = document.createElement('div');
+    track.className = 'ttr-studio-time-indicator-bar-v2';
+    track.append(Object.assign(document.createElement('div'), { className: 'ttr-studio-time-indicator-progress-bar-v2' }));
+    document.body.append(track);
+  });
+  const looks = (track) =>
+    track.evaluate((element) =>
+      [element, element.firstChild].map((part) => {
+        const style = getComputedStyle(part);
+        return { height: style.height, borderRadius: style.borderRadius, background: style.backgroundColor, overflow: style.overflow };
+      }),
+    );
+  expect(await looks(bar(presenter))).toEqual(await looks(presenter.locator('.ttr-studio-time-indicator-bar-v2')));
+});
+
+// Windows' high-contrast mode takes away background colours, which would leave a gap.
+test('in a high-contrast mode, the bar still shows', async ({ context }) => {
+  const { presenter } = await openPresenterView(context);
+  await presenter.emulateMedia({ forcedColors: 'active' });
+  await countDownFrom(presenter, '0:03');
+  const fill = bar(presenter).locator('.slides-companion-countdown-bar-fill');
+  await expect(fill).toHaveCSS('background-color', 'rgb(227, 116, 0)');
+  await expect(bar(presenter)).not.toHaveCSS('outline-style', 'none');
+});
+
+test('turning the bar off or on in Settings shows at once in an open presenter view', async ({ context }) => {
+  const { page, presenter } = await openPresenterView(context);
+  await countDownFrom(presenter, '10');
+  await expect(bar(presenter)).toBeVisible();
+  const settings = await context.newPage();
+  await settings.goto(deckUrl);
+  const turn = async (on) => {
+    await openSettings(settings, 'Timer');
+    await settings.getByRole('checkbox', { name: /Show a bar under the time/ }).setChecked(on);
+    await settings.getByRole('button', { name: 'OK' }).click();
+  };
+  await turn(false);
+  await expect(bar(presenter)).toBeHidden();
+  expect((await box(below(presenter))).top).toBe((await box(panel(presenter))).bottom);
+  await turn(true);
+  await expect(bar(presenter)).toBeVisible();
+  expect(page.isClosed()).toBe(false);
+});
+
+test('turned off in Settings, there’s no bar under the countdown', async ({ context }) => {
+  const page = await context.newPage();
+  await page.goto(deckUrl);
+  await openSettings(page, 'Timer');
+  await page.getByRole('checkbox', { name: /Show a bar under the time/ }).uncheck();
+  await page.getByRole('button', { name: 'OK' }).click();
+  await page.close();
+
+  const { presenter } = await openPresenterView(context);
+  const before = await box(below(presenter));
+  await countDownFrom(presenter, '10');
+  await expect(countdown(presenter)).toBeVisible();
+  await expect(bar(presenter)).toBeHidden();
+  expect(await box(below(presenter))).toEqual(before);
 });

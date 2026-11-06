@@ -309,8 +309,9 @@ const scenes = {};
     </g>`) };
 }
 
-// Timer: presenter view's timer counts down from 15 minutes. Time lapses to two minutes left, where
-// it turns orange, then lapses to the end; the pointer clicks Reset and it starts again.
+// Timer: presenter view's timer counts down from 15 minutes, its bar filling up under it. Time lapses
+// to two minutes left, where it turns orange, then lapses to the end; the pointer clicks Reset and it
+// starts again.
 {
   T = 8;
   const easy = ease(0.33, 0, 0.67, 1);
@@ -327,10 +328,19 @@ const scenes = {};
     const to = ticks[i + 1]?.[1] ?? T;
     return `<text x="105" y="42" ${font} fill="${left <= 120 ? '#e37400' : '#1f1f1f'}" visibility="hidden">${during(from, to)}${format(left)}</text>`;
   }).join('\n    ');
+  // The bar under the time (countdown.css): Slides' recording studio's, filling up as the time goes.
+  const BAR = 190;
+  const times = ticks.map(([, from]) => from);
+  const fill = `<rect x="105" y="46" height="4" rx="2">
+      ${step('width', ticks.map(([left]) => Math.round((BAR * (900 - left)) / 900)), times)}
+      ${step('fill', ticks.map(([left]) => (left <= 120 ? '#e37400' : '#747775')), times)}
+    </rect>`;
   scenes.timer = { still: 4.0, svg: frame('timer', `
     <!-- Presenter view: the timer and its buttons along the top, the slide and its notes below. -->
     <rect x="87" y="14" width="321" height="152" rx="12" fill="#fff" stroke="#c4c7c5" stroke-width="2"/>
     ${time}
+    ${bar(105, 46, BAR, 4, '#dde3ea')}
+    ${fill}
     <!-- Slides' Pause and Reset, as text buttons, then the timer's button. -->
     ${bar(200, 31, 30, 8, '#c4c7c5')}${bar(238, 31, 30, 8, '#c4c7c5')}
     <circle cx="285" cy="35" r="10" fill="#f0f4f9"/>

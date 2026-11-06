@@ -163,6 +163,41 @@ test('presenter view moves to the new player, without another window', async ({ 
   await expect(presenter.locator('.slides-companion-countdown-button')).toBeVisible();
 });
 
+// While a new player takes over, presenter view is written afresh: the countdown and its bar stay as
+// they were, and nothing below them moves.
+test('presenter view’s countdown and its bar stay put while a new player takes over', async ({ context }) => {
+  const page = await openDeck(context);
+  await page.locator('#punch-start-presentation-right').click();
+  const opened = context.waitForEvent('page');
+  await page.locator('.goog-menuitem').filter({ visible: true }).first().click();
+  const presenter = await opened;
+  await presenter.locator('.slides-companion-countdown-button').click();
+  await presenter.locator('.slides-companion-countdown-menu .goog-menuitem').filter({ hasText: 'Count down from 20 minutes' }).click();
+  await expect(presenter.locator('.slides-companion-countdown-bar')).toBeVisible();
+  await expect(slidesOwn(page)).toHaveAttribute('data-slides-companion-loaded');
+
+  const look = () =>
+    presenter.evaluate(() => {
+      const shown = (element) => element && element.getBoundingClientRect().width > 0;
+      const time = [...document.querySelectorAll('.punch-viewer-speakernotes-timer-time')].find(shown);
+      const bar = document.querySelector('.slides-companion-countdown-bar');
+      const below = document.querySelector('.punch-viewer-speakernotes-page-control-panel');
+      return { time: time?.textContent, counting: time?.classList.contains('slides-companion-countdown'), bar: shown(bar), below: below?.getBoundingClientRect().top };
+    }).catch(() => null);
+  const before = await look();
+  const looks = [];
+  const watching = setInterval(() => look().then((seen) => seen && looks.push(seen)), 100);
+  await edit(page, SLIDE_3, 'Lisbon');
+  await expect(words(page, 'Lisbon')).toBeVisible({ timeout: 15000 });
+  await page.waitForTimeout(2500);
+  clearInterval(watching);
+  expect(looks.length).toBeGreaterThan(20);
+  for (const seen of looks) {
+    expect(seen).toMatchObject({ counting: true, bar: true, below: before.below });
+    expect(seen.time).toMatch(/^00:(19|20):\d\d$/);
+  }
+});
+
 test('it waits for a calm moment: an image spotlit keeps the slide as it is', async ({ context }) => {
   const page = await startSlideshow(context);
   const image = shown(page).locator(`[id="${LEFT}"] image`);

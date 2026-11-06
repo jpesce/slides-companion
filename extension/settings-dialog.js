@@ -116,6 +116,14 @@
           down from how long you have. Past the end, it keeps counting in red. Each deck remembers its
           time.
         </p>
+        <label class="slides-companion-dialog-option">
+          <input type="checkbox" name="countdownBar">
+          <span class="slides-companion-checkbox" aria-hidden="true">${CHECKMARK}</span>
+          <span class="slides-companion-dialog-label">
+            Show a bar under the time that fills up as it goes
+            <span class="slides-companion-dialog-hint">(a glance tells you how far through your talk you are)</span>
+          </span>
+        </label>
         <fieldset class="slides-companion-dialog-group">
           <legend class="slides-companion-dialog-legend">Turn the timer orange</legend>
           ${radio('countdownWarning', '1', '1 minute before the end', 'for short talks')}

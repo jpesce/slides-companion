@@ -65,3 +65,57 @@
   position: absolute;
   right: 100%;
 }
+
+/* Counting down, a bar of the time gone under the time: Slides' own time indicator, from its
+   recording studio (.ttr-studio-time-indicator-bar-v2), in the countdown's colours. It lines up with
+   the time and the slide picker below. The panel grows to make room, moving what's below down, and
+   its row stays where Slides puts it (13px from the top), so the bar has as much room below it. */
+.slides-companion-countdown-bar-shown .punch-viewer-speakernotes-side-panel .punch-viewer-speakernotes-timer-panel {
+  height: 71px;
+}
+
+.slides-companion-countdown-bar-shown .punch-viewer-speakernotes-side-panel .punch-viewer-speakernotes-timer-main-container {
+  height: 55px;
+}
+
+.slides-companion-countdown-bar-shown .punch-viewer-speakernotes-side-panel .punch-viewer-speakernotes-page-control-panel {
+  top: 72px;
+}
+
+.punch-viewer-speakernotes-timer-panel .slides-companion-countdown-bar {
+  position: absolute;
+  right: 18px;
+  bottom: 13px;
+  left: 18px;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 8px;
+  background-color: var(--gm3-sys-color-surface-container-highest, #dde3ea);
+}
+
+.slides-companion-countdown-bar-fill {
+  height: 100%;
+  border-radius: inherit;
+  background-color: var(--gm3-sys-color-outline, #747775);
+}
+
+.slides-companion-countdown-bar.slides-companion-countdown-warning .slides-companion-countdown-bar-fill {
+  background-color: #e37400;
+}
+
+.slides-companion-countdown-bar.slides-companion-countdown-over .slides-companion-countdown-bar-fill {
+  background-color: var(--gm3-sys-color-error, #b3261e);
+}
+
+/* A high-contrast mode takes away background colours: the track is outlined in its text colour, and
+   the fill keeps its own, which read on any background. */
+@media (forced-colors: active) {
+  .punch-viewer-speakernotes-timer-panel .slides-companion-countdown-bar {
+    outline: 1px solid CanvasText;
+    outline-offset: -1px;
+  }
+
+  .slides-companion-countdown-bar-fill {
+    forced-color-adjust: none;
+  }
+}

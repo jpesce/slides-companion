@@ -1,8 +1,9 @@
 // A countdown in presenter view. The timer button beside Pause and Reset, or the time itself, opens a
 // menu: count up, as usual, or count down from a time in the list or one the presenter types, and,
 // counting down, add a minute. Slides' own timer keeps the time, so Pause and Reset work as before. The
-// countdown turns orange shortly before the end, and red with a minus sign once time is up. Each deck
-// remembers its time and whether it was counting down, on this computer.
+// countdown turns orange shortly before the end, and red with a minus sign once time is up. Under it,
+// a bar fills up as the time goes. Each deck remembers its time and whether it was counting down, on
+// this computer.
 {
   // Presenter view is a window Slides opens under this name: a slideshow page when signed in, and a
   // blank page Slides writes itself when not.
@@ -71,10 +72,14 @@
   let last = 0;
   let elapsed = null;
   let countdown = null;
+  let bar = null;
   let timerButton = null;
   let editor = null;
   let menu = null;
   let returnFocusTo = null;
+  // What presenter view shows: { down, text, warning, over, bar, gone }, gone being the share of the
+  // time gone.
+  let shown = { down: false, text: '', warning: false, over: false, bar: false, gone: 0 };
 
   // Slides' time, in seconds, or null while it doesn't show one.
   function timeOnTimer() {
@@ -86,26 +91,44 @@
     if (!elapsed) return;
     const time = timeOnTimer();
     if (time === null) return;
-    // A fresh player taking over presenter view mid-slideshow (see live-edits.js) starts Slides'
-    // timer from nothing for a moment, before it catches up: what's shown stays as it was.
-    if (document.documentElement.hasAttribute('data-slides-companion-taking-over')) {
-      if (countdown.hidden || !counting.down) countdown.textContent = format(last);
-      [countdown.hidden, elapsed.hidden] = [false, true];
-      return;
-    }
+    // A fresh player taking over presenter view mid-slideshow (see live-edits.js) has Slides write it
+    // afresh, and starts Slides' timer from nothing for a moment, before it catches up: what was shown
+    // stays as it was, the countdown standing in for Slides' time.
+    if (document.documentElement.hasAttribute('data-slides-companion-taking-over')) return paint(shown, { standIn: true });
     // Reset starts the countdown over, from the time chosen.
     if (time < last) [start, added] = [0, 0];
     last = time;
-    const down = counting.down && !editor;
+    const total = counting.from + added;
+    const left = total - (time - start);
+    const warning = Number(globalThis.slidesCompanion.settings.get('countdownWarning')) * 60;
+    const down = counting.down && total > 0;
+    shown = {
+      down,
+      // Past the end, the minus sign comes from countdown.css.
+      text: format(down ? Math.abs(left) : time),
+      warning: down && left >= 0 && left <= warning,
+      over: down && left < 0,
+      bar: down && Boolean(globalThis.slidesCompanion.settings.get('countdownBar')),
+      gone: down ? Math.min(1, Math.max(0, 1 - left / total)) : 0,
+    };
+    paint(shown);
+  }
+
+  // The countdown in place of Slides' time (or the field, while a time is typed), and the bar, which
+  // stays while a time is typed.
+  function paint(view, { standIn = false } = {}) {
+    const down = (view.down || standIn) && !editor;
     elapsed.hidden = down || Boolean(editor);
     countdown.hidden = !down;
-    if (!down) return;
-    const left = counting.from + added - (time - start);
-    const warning = Number(globalThis.slidesCompanion.settings.get('countdownWarning')) * 60;
-    // Past the end, the minus sign comes from countdown.css.
-    countdown.textContent = format(Math.abs(left));
-    countdown.classList.toggle('slides-companion-countdown-warning', left >= 0 && left <= warning);
-    countdown.classList.toggle('slides-companion-countdown-over', left < 0);
+    // Only when it shows: presenter view's watch for Slides writing it (attach) hears every change.
+    if (down) countdown.textContent = view.text;
+    for (const element of [countdown, bar]) {
+      element.classList.toggle('slides-companion-countdown-warning', view.warning);
+      element.classList.toggle('slides-companion-countdown-over', view.over);
+    }
+    bar.hidden = !view.bar;
+    document.documentElement.classList.toggle(BAR_SHOWN, view.bar);
+    bar.firstChild.style.width = `${view.gone * 100}%`;
   }
 
   // Once the extension is updated or turned off, a presenter view already open can't save; the
@@ -343,6 +366,18 @@
 
   const toggleMenu = (anchor, options) => (menu ? closeMenu() : openMenu(anchor, options));
 
+  // Under the time, a bar of the time gone, as Slides' recording studio shows its time limit (see
+  // countdown.css). Decorative: the time says it all.
+  const BAR_SHOWN = 'slides-companion-countdown-bar-shown';
+  function makeBar() {
+    const element = document.createElement('div');
+    element.className = 'slides-companion-countdown-bar';
+    element.setAttribute('aria-hidden', 'true');
+    element.hidden = true;
+    element.append(Object.assign(document.createElement('div'), { className: 'slides-companion-countdown-bar-fill' }));
+    return element;
+  }
+
   const TITLE = 'Count down from a time you choose';
 
   // Material's timer icon.
@@ -402,6 +437,9 @@
     container.addEventListener('click', () => editor || toggleMenu(container));
     timerButton = button();
     document.querySelector('.punch-viewer-speakernotes-timer-button-container')?.append(timerButton);
+    bar?.remove();
+    bar = makeBar();
+    elapsed.closest('.punch-viewer-speakernotes-timer-panel').append(bar);
     new MutationObserver(show).observe(elapsed, { childList: true, characterData: true, subtree: true });
     new MutationObserver(show).observe(document.documentElement, { attributes: true, attributeFilter: ['data-slides-companion-taking-over'] });
     show();
@@ -414,6 +452,8 @@
       attach();
       new MutationObserver(attach).observe(document, { subtree: true, childList: true });
     });
-    chrome.storage.onChanged.addListener((changes, area) => area === 'sync' && 'countdownWarning' in changes && show());
+    chrome.storage.onChanged.addListener(
+      (changes, area) => area === 'sync' && ('countdownWarning' in changes || 'countdownBar' in changes) && show(),
+    );
   }
 }
