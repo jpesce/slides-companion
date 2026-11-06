@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "node scripts/dev.mjs",
     "chromium": "node scripts/chromium.mjs",
+    "illustrations": "node scripts/build-illustrations.mjs",
     "test": "playwright test",
     "test:headed": "playwright test --headed"
   },

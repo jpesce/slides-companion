@@ -6,7 +6,15 @@ const together = (page) => dialog(page).getByRole('radio', { name: /Show the gro
 const apart = (page) => dialog(page).getByRole('radio', { name: /Show each image on its own/ });
 const spotlightOnClick = (page) => dialog(page).getByRole('checkbox', { name: /Spotlight an image when you click it/ });
 const feature = (page, name) => dialog(page).getByRole('tab', { name });
-const FEATURES = ['Spotlight', 'Links', 'Scrolling', 'Pen', 'Timer', 'Edits during a slideshow'];
+// Each feature's name, and the line below it on what it's about.
+const FEATURES = [
+  ['Spotlight', 'See images full screen'],
+  ['Links', 'Open links over the slide'],
+  ['Zoom & scroll', 'Mouse wheel and trackpad'],
+  ['Pen', 'Draw on slides'],
+  ['Timer', 'Count down in presenter view'],
+  ['Edits during a slideshow', 'Shown within seconds'],
+];
 
 async function openDeck(context) {
   const page = await context.newPage();
@@ -28,9 +36,9 @@ test('the companion shows a tooltip and opens Settings', async ({ context }) => 
   await expect(together(page)).toBeChecked();
   await feature(page, 'Links').click();
   await expect(dialog(page).getByRole('radio', { name: /Open it over the slide/ })).toBeChecked();
-  await feature(page, 'Scrolling').click();
-  await expect(dialog(page).getByRole('group', { name: 'During a slideshow' }).getByRole('radio', { name: /Zoom into the slide/ })).toBeChecked();
-  await expect(dialog(page).getByRole('group', { name: 'While editing' }).getByRole('radio', { name: /next or previous slide/ })).toBeChecked();
+  await feature(page, 'Zoom & scroll').click();
+  await expect(dialog(page).getByRole('group', { name: 'When you scroll during a slideshow' }).getByRole('radio', { name: /Zoom into the slide/ })).toBeChecked();
+  await expect(dialog(page).getByRole('group', { name: 'When you scroll while editing' }).getByRole('radio', { name: /next or previous slide/ })).toBeChecked();
   await feature(page, 'Pen').click();
   await expect(dialog(page).getByRole('checkbox', { name: /Keep what you draw/ })).not.toBeChecked();
   await feature(page, 'Timer').click();
@@ -44,7 +52,16 @@ test('each feature has a page of its own, saying what the feature does, and the 
   await companion(page).click();
   // A list of the features, the first one shown.
   await expect(dialog(page).getByRole('tablist')).toHaveAttribute('aria-orientation', 'vertical');
-  await expect(dialog(page).getByRole('tab')).toHaveText(FEATURES);
+  const tabs = dialog(page).getByRole('tab');
+  await expect(tabs).toHaveCount(FEATURES.length);
+  // Each says in a line what it's about, read out after its name, and never cut short.
+  for (const [index, [name, summary]] of FEATURES.entries()) {
+    await expect(tabs.nth(index)).toHaveAccessibleName(name);
+    await expect(tabs.nth(index)).toHaveAccessibleDescription(summary);
+    await expect(tabs.nth(index)).toContainText(summary);
+  }
+  const cutShort = (lines) => lines.filter((line) => line.scrollWidth > line.clientWidth).length;
+  expect(await dialog(page).locator('.slides-companion-settings-feature-summary').evaluateAll(cutShort)).toBe(0);
   await expect(feature(page, 'Spotlight')).toHaveAttribute('aria-selected', 'true');
   await expect(dialog(page).getByRole('tabpanel')).toHaveCount(1);
   await expect(dialog(page).getByRole('tabpanel', { name: 'Spotlight' })).toContainText('press Space to see it full screen');
@@ -53,7 +70,7 @@ test('each feature has a page of its own, saying what the feature does, and the 
   await feature(page, 'Pen').click();
   await expect(feature(page, 'Pen')).toHaveAttribute('aria-selected', 'true');
   await expect(feature(page, 'Spotlight')).toHaveAttribute('aria-selected', 'false');
-  await expect(dialog(page).getByRole('tabpanel', { name: 'Pen' })).toContainText('press Shift + L to draw');
+  await expect(dialog(page).getByRole('tabpanel', { name: 'Pen' })).toContainText('press Shift + L to draw on a slide, and Shift + A to Erase all');
   await expect(together(page)).toHaveCount(0);
   await dialog(page).getByRole('checkbox', { name: /Keep what you draw/ }).check();
   await feature(page, 'Timer').click();
@@ -70,6 +87,31 @@ test('each feature has a page of its own, saying what the feature does, and the 
   await expect(dialog(page).getByRole('checkbox', { name: /Keep what you draw/ })).toBeChecked();
   await feature(page, 'Timer').click();
   await expect(dialog(page).getByRole('radio', { name: /5 minutes before the end/ })).toBeChecked();
+});
+
+test('each page opens with an illustration of its feature, which plays from its start, or holds still when motion is reduced', async ({ context }) => {
+  const page = await openDeck(context);
+  await companion(page).click();
+  const content = dialog(page).locator('.slides-companion-dialog-content');
+  const illustrations = dialog(page).locator('.slides-companion-dialog-illustration');
+  const shown = dialog(page).locator('.slides-companion-settings-page:not([hidden]) .slides-companion-dialog-illustration');
+  const playing = (all) => all.filter((illustration) => !illustration.animationsPaused()).length;
+  for (const [name] of FEATURES) {
+    await feature(page, name).click();
+    // First on the page, the pane's full width, and only decoration for a screen reader.
+    await expect(shown).toHaveAttribute('aria-hidden', 'true');
+    expect(await shown.evaluate((illustration) => illustration === illustration.parentElement.firstElementChild)).toBe(true);
+    expect(await shown.evaluate((illustration) => illustration.getBoundingClientRect().width)).toBe(495);
+    expect(await shown.evaluate((illustration) => illustration.getCurrentTime())).toBeLessThan(1);
+    expect(await illustrations.evaluateAll(playing)).toBe(1);
+    // With it, the page still fits without scrolling.
+    expect(await content.evaluate((pane) => pane.scrollHeight - pane.clientHeight)).toBeLessThanOrEqual(0);
+  }
+
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await feature(page, 'Pen').click();
+  expect(await illustrations.evaluateAll(playing)).toBe(0);
+  expect(await shown.evaluate((illustration) => illustration.getCurrentTime())).toBeCloseTo(Number(await shown.getAttribute('data-still')));
 });
 
 test('↑ and ↓ go through the features, Home and End to the first and last, and Tab goes on into the page', async ({ context }) => {
@@ -90,20 +132,20 @@ test('↑ and ↓ go through the features, Home and End to the first and last, a
   await expect(feature(page, 'Spotlight')).toBeFocused();
   await page.keyboard.press('ArrowDown');
   await page.keyboard.press('ArrowDown');
-  await expect(dialog(page).getByRole('tabpanel', { name: 'Scrolling' })).toBeVisible();
+  await expect(dialog(page).getByRole('tabpanel', { name: 'Zoom & scroll' })).toBeVisible();
 
   // The list is one Tab stop, then the page's own controls.
   await page.keyboard.press('Tab');
-  await expect(dialog(page).getByRole('group', { name: 'During a slideshow' }).getByRole('radio', { name: /Zoom into the slide/ })).toBeFocused();
+  await expect(dialog(page).getByRole('group', { name: 'When you scroll during a slideshow' }).getByRole('radio', { name: /Zoom into the slide/ })).toBeFocused();
   await page.keyboard.press('Shift+Tab');
-  await expect(feature(page, 'Scrolling')).toBeFocused();
+  await expect(feature(page, 'Zoom & scroll')).toBeFocused();
   // Enter on a feature only shows it.
   await page.keyboard.press('Enter');
   await expect(dialog(page)).toBeVisible();
   await page.keyboard.press('Shift+Tab');
   await expect(dialog(page).getByRole('button', { name: 'OK' })).toBeFocused();
   await page.keyboard.press('Tab');
-  await expect(feature(page, 'Scrolling')).toBeFocused();
+  await expect(feature(page, 'Zoom & scroll')).toBeFocused();
 });
 
 test('OK saves a choice, and it is still there after a reload', async ({ context }) => {

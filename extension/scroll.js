@@ -1,5 +1,5 @@
-// Scrolling in the editor: over a slide, Slides goes to the next or previous slide. The "While
-// editing" scroll setting can keep it from doing so. (During a slideshow, see zoom.js.)
+// Scrolling in the editor: over a slide, Slides goes to the next or previous slide. The "When you
+// scroll while editing" setting can keep it from doing so. (During a slideshow, see zoom.js.)
 {
   // Whether the browser can scroll the slide's area further the way the wheel turns.
   function canScroll(area, event) {

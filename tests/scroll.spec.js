@@ -24,8 +24,8 @@ async function openSlide(context) {
 }
 
 async function chooseEditorScroll(page, choice) {
-  await openSettings(page, 'Scrolling');
-  await page.getByRole('group', { name: 'While editing' }).getByRole('radio', { name: choice }).check();
+  await openSettings(page, 'Zoom & scroll');
+  await page.getByRole('group', { name: 'When you scroll while editing' }).getByRole('radio', { name: choice }).check();
   await page.getByRole('button', { name: 'OK' }).click();
   await expect(page.locator('.slides-companion-dialog-root')).toHaveCount(0);
 }

@@ -2,7 +2,7 @@
 // around. Fully zoomed out, everything works as usual. While zoomed in, only what shows a pointing
 // hand can be clicked (links, videos, images to spotlight); a click anywhere else does nothing, so
 // it never changes slides by accident. Changing slides starts the next one whole. The live slide is
-// scaled, so video and animations go on. The "During a slideshow" scroll setting can instead make
+// scaled, so video and animations go on. The "When you scroll during a slideshow" setting can make
 // scrolling do nothing, or give the wheel back to Slides, which then changes slides with it.
 // (Scrolling in the editor: see scroll.js.)
 {

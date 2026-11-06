@@ -403,8 +403,8 @@ test('changing slides while zoomed starts the next slide whole', async ({ contex
 async function chooseSlideshowScroll(context, choice) {
   const page = await context.newPage();
   await page.goto(slide);
-  await openSettings(page, 'Scrolling');
-  await page.getByRole('group', { name: 'During a slideshow' }).getByRole('radio', { name: choice }).check();
+  await openSettings(page, 'Zoom & scroll');
+  await page.getByRole('group', { name: 'When you scroll during a slideshow' }).getByRole('radio', { name: choice }).check();
   await page.getByRole('button', { name: 'OK' }).click();
   await expect(page.locator('.slides-companion-dialog-root')).toHaveCount(0);
   await page.close();

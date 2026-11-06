@@ -26,6 +26,7 @@
     {
       id: 'spotlight',
       name: 'Spotlight',
+      summary: 'See images full screen',
       icon: icon('M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm40-80h480L570-480 450-320l-90-120-120 160Zm-40 80v-560 560Z'),
       page: `
         <p class="slides-companion-dialog-text">
@@ -49,6 +50,7 @@
     {
       id: 'links',
       name: 'Links',
+      summary: 'Open links over the slide',
       icon: icon('M440-280H280q-83 0-141.5-58.5T80-480q0-83 58.5-141.5T280-680h160v80H280q-50 0-85 35t-35 85q0 50 35 85t85 35h160v80ZM320-440v-80h320v80H320Zm200 160v-80h160q50 0 85-35t35-85q0-50-35-85t-85-35H520v-80h160q83 0 141.5 58.5T880-480q0 83-58.5 141.5T680-280H520Z'),
       page: `
         <p class="slides-companion-dialog-text">
@@ -64,21 +66,23 @@
         </fieldset>`,
     },
     {
-      id: 'scrolling',
-      name: 'Scrolling',
-      icon: icon('M480-80q-116 0-198-82t-82-198v-240q0-116 82-198t198-82q116 0 198 82t82 198v240q0 116-82 198T480-80Zm40-520h160q0-72-45.5-127T520-796v196Zm-240 0h160v-196q-69 14-114.5 69T280-600Zm200 440q83 0 141.5-58.5T680-360v-160H280v160q0 83 58.5 141.5T480-160Zm0-360Zm40-80Zm-80 0Zm40 80Z'),
+      id: 'zoom',
+      name: 'Zoom & scroll',
+      summary: 'Mouse wheel and trackpad',
+      icon: icon('M784-120 532-372q-30 24-69 38t-83 14q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l252 252-56 56ZM380-400q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Zm-40-60v-80h-80v-80h80v-80h80v80h80v80h-80v80h-80Z'),
       page: `
         <p class="slides-companion-dialog-text">
-          What happens when you scroll over a slide with a mouse wheel or trackpad.
+          During a slideshow, scroll or pinch over a slide to zoom in, and drag to look around.
+          Changing slides zooms back out.
         </p>
         <fieldset class="slides-companion-dialog-group">
-          <legend class="slides-companion-dialog-legend">During a slideshow</legend>
-          ${radio('slideshowScroll', 'zoom', 'Zoom into the slide', 'drag to look around while zoomed in')}
+          <legend class="slides-companion-dialog-legend">When you scroll during a slideshow</legend>
+          ${radio('slideshowScroll', 'zoom', 'Zoom into the slide', 'while zoomed in, clicking the slide doesn’t change slides')}
           ${radio('slideshowScroll', 'nothing', 'Do nothing', 'so a brush of the trackpad never skips a slide')}
           ${radio('slideshowScroll', 'slides', 'Go to the next or previous slide', 'as Slides does on its own')}
         </fieldset>
         <fieldset class="slides-companion-dialog-group">
-          <legend class="slides-companion-dialog-legend">While editing</legend>
+          <legend class="slides-companion-dialog-legend">When you scroll while editing</legend>
           ${radio('editorScroll', 'slides', 'Go to the next or previous slide', 'as Slides does on its own')}
           ${radio('editorScroll', 'nothing', 'Do nothing', 'you can still scroll around a slide you’ve zoomed into')}
         </fieldset>`,
@@ -86,10 +90,11 @@
     {
       id: 'pen',
       name: 'Pen',
+      summary: 'Draw on slides',
       icon: icon('m490-527 37 37 217-217-37-37-217 217ZM200-200h37l233-233-37-37-233 233v37Zm355-205L405-555l167-167-29-29-219 219-56-56 218-219q24-24 56.5-24t56.5 24l29 29 50-50q12-12 28.5-12t28.5 12l93 93q12 12 12 28.5T828-678L555-405ZM270-120H120v-150l285-285 150 150-285 285Z'),
       page: `
         <p class="slides-companion-dialog-text">
-          During a slideshow, press Shift + L to draw on a slide.
+          During a slideshow, press Shift + L to draw on a slide, and Shift + A to Erase all.
         </p>
         <label class="slides-companion-dialog-option">
           <input type="checkbox" name="keepInk">
@@ -103,6 +108,7 @@
     {
       id: 'timer',
       name: 'Timer',
+      summary: 'Count down in presenter view',
       icon: icon('M360-840v-80h240v80H360Zm80 440h80v-240h-80v240Zm-99.5 291.5Q275-137 226-186t-77.5-114.5Q120-366 120-440t28.5-139.5Q177-645 226-694t114.5-77.5Q406-800 480-800q62 0 119 20t107 58l56-56 56 56-56 56q38 50 58 107t20 119q0 74-28.5 139.5T734-186q-49 49-114.5 77.5T480-80q-74 0-139.5-28.5ZM678-242q82-82 82-198t-82-198q-82-82-198-82t-198 82q-82 82-82 198t82 198q82 82 198 82t198-82ZM480-440Z'),
       page: `
         <p class="slides-companion-dialog-text">
@@ -120,6 +126,7 @@
     {
       id: 'live-edits',
       name: 'Edits during a slideshow',
+      summary: 'Shown within seconds',
       icon: icon('M160-160v-80h110l-16-14q-52-46-73-105t-21-119q0-111 66.5-197.5T400-790v84q-72 26-116 88.5T240-478q0 45 17 87.5t53 78.5l10 10v-98h80v240H160Zm400-10v-84q72-26 116-88.5T720-482q0-45-17-87.5T650-648l-10-10v98h-80v-240h240v80H690l16 14q49 49 71.5 106.5T800-482q0 111-66.5 197.5T560-170Z'),
       page: `
         <p class="slides-companion-dialog-text">
@@ -138,8 +145,10 @@
   const tabId = (feature) => `slides-companion-settings-tab-${feature.id}`;
   const pageId = (feature) => `slides-companion-settings-page-${feature.id}`;
 
-  // Laid out like Google Meet's Settings: the features down the side, the chosen one's page beside
-  // them, and the first one chosen.
+  // Laid out like Google Meet's Settings: the features down the side, each with a line on what it's
+  // about as in Android's Settings, the chosen one's page beside them, and the first one chosen.
+  // Each page opens with an illustration of the feature, as Android's Settings pages do
+  // (illustrations.js).
   const SETTINGS_HTML = `
     <div class="slides-companion-dialog-scrim"></div>
     <div class="slides-companion-dialog" role="dialog" aria-modal="true" aria-label="Slides Companion settings">
@@ -148,8 +157,13 @@
         <div class="slides-companion-settings-features" role="tablist" aria-orientation="vertical">
           ${FEATURES.map((feature, index) => `
             <button type="button" class="slides-companion-settings-feature" role="tab" id="${tabId(feature)}"
-              aria-controls="${pageId(feature)}" aria-selected="${index === 0}" tabindex="${index === 0 ? 0 : -1}">
-              ${feature.icon}<span>${feature.name}</span>
+              aria-controls="${pageId(feature)}" aria-selected="${index === 0}" tabindex="${index === 0 ? 0 : -1}"
+              aria-labelledby="${tabId(feature)}-name" aria-describedby="${tabId(feature)}-summary">
+              ${feature.icon}
+              <span class="slides-companion-settings-feature-text">
+                <span id="${tabId(feature)}-name">${feature.name}</span>
+                <span class="slides-companion-settings-feature-summary" id="${tabId(feature)}-summary">${feature.summary}</span>
+              </span>
             </button>`).join('')}
         </div>
       </div>
@@ -157,6 +171,7 @@
         <div class="slides-companion-dialog-content">
           ${FEATURES.map((feature, index) => `
             <div class="slides-companion-settings-page" role="tabpanel" id="${pageId(feature)}" aria-labelledby="${tabId(feature)}"${index === 0 ? '' : ' hidden'}>
+              ${globalThis.slidesCompanion.illustrations[feature.id]}
               ${feature.page}
             </div>`).join('')}
         </div>
@@ -204,6 +219,7 @@
 
     window.addEventListener('message', onFrameMessage);
     document.body.append(root);
+    playIllustration();
     root.getBoundingClientRect(); // Start the transition from the closed state.
     root.classList.add('slides-companion-dialog-open');
     controlStops()[0].focus();
@@ -253,6 +269,20 @@
       root.querySelector(`#${feature.getAttribute('aria-controls')}`).hidden = !isChosen;
     }
     root.querySelector('.slides-companion-dialog-content').scrollTop = 0;
+    playIllustration();
+  }
+
+  // The shown page's illustration plays from its start, and the others wait. With motion reduced,
+  // it holds still on the moment that shows the feature best.
+  function playIllustration() {
+    for (const illustration of root.querySelectorAll('.slides-companion-dialog-illustration')) illustration.pauseAnimations();
+    const shown = root.querySelector('.slides-companion-settings-page:not([hidden]) .slides-companion-dialog-illustration');
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      shown.setCurrentTime(Number(shown.dataset.still));
+    } else {
+      shown.setCurrentTime(0);
+      shown.unpauseAnimations();
+    }
   }
 
   // ↑ and ↓ go through the list, Home and End to its ends, showing each feature on the way.
