@@ -399,6 +399,128 @@ test('changing slides while zoomed starts the next slide whole', async ({ contex
   await expect.poll(() => zoom(show)).toEqual({ scale: 1, x: 0, y: 0 });
 });
 
+test('+ and − zoom in and out around the pointer, back to the whole slide', async ({ context }) => {
+  const { page, show } = await startSlideshow(context);
+  const { width, height } = page.viewportSize();
+  await page.mouse.move(width * 0.75, height * 0.25);
+  // = is + without Shift, and the number pad's + counts too.
+  for (const key of ['+', '=', 'NumpadAdd']) await page.keyboard.press(key);
+  await expect.poll(() => zoom(show).then(({ scale }) => scale)).toBe(3.38);
+  await settled(show);
+  // The point under the pointer stays under it (zoom() rounds the scale, so it's worked out here).
+  const scale = 1.5 ** 3;
+  const { x, y } = await zoom(show);
+  expect(Math.abs(x - width * 0.75 * (1 - scale))).toBeLessThan(2);
+  expect(Math.abs(y - height * 0.25 * (1 - scale))).toBeLessThan(2);
+
+  for (const key of ['-', 'NumpadSubtract', '-', '-']) await page.keyboard.press(key);
+  await expect.poll(() => zoom(show)).toEqual({ scale: 1, x: 0, y: 0 });
+  // Zoomed all the way out, a click changes slides as usual.
+  await page.mouse.click(width * 0.9, height * 0.9);
+  await expect.poll(() => slideNumber(show)).toBe(4);
+});
+
+// Any key brings back the slide from Slides' black or white screen, and + does just that.
+test('on a black screen, + brings the slide back whole', async ({ context }) => {
+  const { page, show } = await startSlideshow(context);
+  await page.mouse.move(640, 360);
+  await page.keyboard.press('b');
+  await expect(show.locator('.punch-viewer-interruption-black')).toBeVisible();
+  await page.keyboard.press('+');
+  await expect(show.locator('.punch-viewer-interruption-black')).toBeHidden();
+  await page.waitForTimeout(300);
+  expect(await zoom(show)).toEqual({ scale: 1, x: 0, y: 0 });
+  await page.keyboard.press('+');
+  await expect.poll(() => zoom(show).then(({ scale }) => scale)).toBe(1.5);
+});
+
+test('with the pointer hidden, + zooms into the middle of the slide', async ({ context }) => {
+  const { page, show } = await startSlideshow(context);
+  const { width, height } = page.viewportSize();
+  await page.mouse.move(width * 0.75, height * 0.25);
+  // Slides hides the pointer when it's left still.
+  await expect.poll(() => show.locator('body').evaluate((body) => body.style.cursor), { timeout: 15_000 }).toBe('none');
+  await page.keyboard.press('+');
+  await expect.poll(() => zoom(show).then(({ scale }) => scale)).toBe(1.5);
+  await settled(show);
+  const { scale, x, y } = await zoom(show);
+  expect(Math.abs(x - (width / 2) * (1 - scale))).toBeLessThan(2);
+  expect(Math.abs(y - (height / 2) * (1 - scale))).toBeLessThan(2);
+});
+
+test('with the pointer gone from the window, + zooms into the middle of the slide', async ({ context }) => {
+  const { page, show } = await startSlideshow(context);
+  const { width, height } = page.viewportSize();
+  await page.mouse.move(width * 0.75, height * 0.25);
+  await page.mouse.move(-10, height * 0.25);
+  await page.keyboard.press('+');
+  await expect.poll(() => zoom(show).then(({ scale }) => scale)).toBe(1.5);
+  await settled(show);
+  const { scale, x, y } = await zoom(show);
+  expect(Math.abs(x - (width / 2) * (1 - scale))).toBeLessThan(2);
+  expect(Math.abs(y - (height / 2) * (1 - scale))).toBeLessThan(2);
+});
+
+// Even once Slides has hidden the pointer, the hand that holds the slide is where it was.
+test('mid-drag, + zooms around the pointer, and the drag goes on from there', async ({ context }) => {
+  const { page, show } = await startSlideshow(context);
+  const [x, y] = [600, 340];
+  await zoomIn(page, show, 640, 360);
+  await page.mouse.down();
+  await page.mouse.move(x, y, { steps: 4 });
+  await expect.poll(() => show.locator('body').evaluate((body) => body.style.cursor), { timeout: 15_000 }).toBe('none');
+  const before = await zoom(show);
+  await page.keyboard.press('+');
+  await settled(show);
+  const after = await zoom(show);
+  expect(Math.abs(after.x - (x - (x - before.x) * 1.5))).toBeLessThan(2);
+  expect(Math.abs(after.y - (y - (y - before.y) * 1.5))).toBeLessThan(2);
+  await page.mouse.move(x - 20, y - 10, { steps: 2 });
+  expect(await zoom(show)).toEqual({ ...after, x: after.x - 20, y: after.y - 10 });
+  await page.mouse.up();
+});
+
+// Only choosing something else for scrolling zooms back out, not what the extension saves as it
+// goes (the pen's ink, kept for the next slideshow, after each line).
+test('with scrolling set to do nothing, + still zooms, and drawing keeps the zoom', async ({ context }) => {
+  await chooseSlideshowScroll(context, /Do nothing/);
+  const editor = await context.newPage();
+  await editor.goto(slide);
+  await openSettings(editor, 'Pen');
+  await editor.getByRole('checkbox', { name: /Keep what you draw/ }).check();
+  await editor.getByRole('button', { name: 'OK' }).click();
+  await editor.close();
+  const { page, show } = await startSlideshow(context);
+  await page.mouse.move(640, 360);
+  await page.keyboard.press('+');
+  await page.keyboard.press('+');
+  await expect.poll(() => zoom(show).then(({ scale }) => scale)).toBe(2.25);
+  await page.keyboard.press('Shift+L');
+  await drawStroke(page, [500, 300], [700, 400]);
+  await page.waitForTimeout(500);
+  expect((await zoom(show)).scale).toBe(2.25);
+});
+
+test('with the pointer over a video, + zooms into the video', async ({ context }) => {
+  const page = await context.newPage();
+  await page.goto(`${deckUrl}#slide=id.h2c87d6044fe40693_46_0`);
+  await page.locator('#punch-start-presentation-left').click();
+  const show = page.frameLocator('iframe.punch-present-iframe');
+  const video = show.locator('.sketchyViewerContent iframe');
+  await expect(video).toBeVisible();
+  const before = await video.boundingBox();
+  // Into the video near its corner: its frame keeps the pointer's moves from then on.
+  await page.mouse.move(before.x - 20, before.y + 20);
+  await page.mouse.move(before.x + 20, before.y + 20, { steps: 4 });
+  await page.keyboard.press('+');
+  await expect.poll(() => zoom(show).then(({ scale }) => scale)).toBe(1.5);
+  await settled(show);
+  const after = await video.boundingBox();
+  expect(after.width / before.width).toBeCloseTo(1.5, 1);
+  expect(Math.abs(after.x + after.width / 2 - (before.x + before.width / 2))).toBeLessThan(2);
+  expect(Math.abs(after.y + after.height / 2 - (before.y + before.height / 2))).toBeLessThan(2);
+});
+
 // Picks what scrolling does during a slideshow, in Settings.
 async function chooseSlideshowScroll(context, choice) {
   const page = await context.newPage();

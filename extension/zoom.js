@@ -1,7 +1,7 @@
-// Zoom: during a slideshow, scroll to zoom into the slide where the pointer is, and drag to look
-// around. Fully zoomed out, everything works as usual. While zoomed in, only what shows a pointing
-// hand can be clicked (links, videos, images to spotlight); a click anywhere else does nothing, so
-// it never changes slides by accident. Changing slides starts the next one whole. The live slide is
+// Zoom: during a slideshow, scroll (or press + and −) to zoom into the slide where the pointer is,
+// and drag to look around. Fully zoomed out, everything works as usual. While zoomed in, only what
+// shows a pointing hand can be clicked (links, videos, images to spotlight); a click anywhere else
+// does nothing, so it never changes slides by accident. Changing slides starts the next one whole. The live slide is
 // scaled, so video and animations go on. The "When you scroll during a slideshow" setting can make
 // scrolling do nothing, or give the wheel back to Slides, which then changes slides with it.
 // (Scrolling in the editor: see scroll.js.)
@@ -210,20 +210,75 @@
     event.stopImmediatePropagation();
     const element = slideView();
     if (choice !== 'zoom' || !element) return;
-    // Ink keeps the zoom it's drawn at, so the zoom holds still while the pen draws.
-    if (penOn() && event.buttons & 1) return;
-    // Steps add up on where the zoom is going, so quick scrolling isn't lost to the easing.
-    const from = target;
     const rate = event.ctrlKey ? PINCH_RATE : WHEEL_RATE;
-    const scale = clamp(from.scale * Math.exp(-event.deltaY * rate), 1, MAX_SCALE);
+    zoomAround(element, Math.exp(-event.deltaY * rate), event.clientX, event.clientY);
+  }
+
+  // Zooms by a factor, keeping the point on the screen at (clientX, clientY) in place. Steps add up
+  // on where the zoom is going, so quick scrolling isn't lost to the easing.
+  function zoomAround(element, factor, clientX, clientY) {
+    // Ink keeps the zoom it's drawn at, so the zoom holds still while the pen draws.
+    if (penOn() && pointer?.buttons & 1) return;
+    const from = target;
+    const scale = clamp(from.scale * factor, 1, MAX_SCALE);
     if (scale === from.scale) return;
-    // The point under the pointer stays under it.
     const origin = layoutOrigin(element);
-    const px = event.clientX - origin.left;
-    const py = event.clientY - origin.top;
+    const px = clientX - origin.left;
+    const py = clientY - origin.top;
     easeTo(fitted(element, scale, px - ((px - from.x) * scale) / from.scale, py - ((py - from.y) * scale) / from.scale));
-    // Scrolling mid-drag: the drag goes on from the new zoom.
-    if (press && !press.released) Object.assign(press, { startX: event.clientX, startY: event.clientY, from: target });
+    // Zooming mid-drag: the drag goes on from the new zoom.
+    if (press && !press.released) Object.assign(press, { startX: clientX, startY: clientY, from: target });
+  }
+
+  // ----- Keys to zoom -----
+
+  // + and − zoom in and out too, so the keyboard alone can zoom (= is + without Shift, and the number
+  // pad's keys count). They zoom around the pointer, around the middle of a video it's over (a
+  // video's frame keeps the pointer's moves to itself), or around the middle of the slide when Slides
+  // has hidden the pointer. Slides has no use for these keys in a slideshow, so it still hears them.
+  // On a black or white screen, they just bring the slide back, as any key does, without zooming it.
+  // With ⌘, Ctrl or Alt, they're the browser's zoom.
+  const ZOOM_KEYS = { '+': 1, '=': 1, '-': -1, _: -1 };
+  // Each press zooms in or out this much: from the whole slide to the closest in four presses.
+  const KEY_FACTOR = 1.5;
+  const IN_PRESENTER_VIEW = /^punch_speaker_notes_/.test(window.name);
+  // Where the pointer last was: { x, y, buttons, frame }, frame being the video it went over, if it
+  // did. Null when it has left the window, or hasn't come in yet.
+  let pointer = null;
+
+  function trackPointer(event) {
+    if (event.type === 'mouseout') {
+      if (!event.relatedTarget) pointer = null;
+      return;
+    }
+    const frame = event.target instanceof HTMLIFrameElement && slideView()?.contains(event.target) ? event.target : null;
+    pointer = { x: event.clientX, y: event.clientY, buttons: event.buttons, frame };
+  }
+
+  function zoomPoint(element) {
+    const origin = layoutOrigin(element);
+    const area = { left: origin.left, top: origin.top, right: origin.left + element.offsetWidth, bottom: origin.top + element.offsetHeight };
+    // Holding the slide, it's the pointer, which is where the drag goes on from.
+    if (pointer && press && !press.released) return [pointer.x, pointer.y];
+    // The middle of what shows of the video, when zooming has taken part of it off the screen.
+    if (pointer?.frame?.isConnected) {
+      const box = pointer.frame.getBoundingClientRect();
+      const left = Math.max(box.left, area.left);
+      const top = Math.max(box.top, area.top);
+      return [(left + Math.min(box.right, area.right)) / 2, (top + Math.min(box.bottom, area.bottom)) / 2];
+    }
+    // Slides hides the pointer (and the laser's and the pen's dot) when it's left still.
+    if (pointer && document.body.style.cursor !== 'none') return [pointer.x, pointer.y];
+    return [(area.left + area.right) / 2, (area.top + area.bottom) / 2];
+  }
+
+  function onKeydown(event) {
+    const direction = ZOOM_KEYS[event.key];
+    if (!direction || event.metaKey || event.ctrlKey || event.altKey || event.isComposing || galleryOpen()) return;
+    if (event.target instanceof Element && event.target.closest('input, textarea, select, [contenteditable=""], [contenteditable="true"]')) return;
+    if ([...document.querySelectorAll('.punch-viewer-interruption')].some((screen) => screen.checkVisibility())) return;
+    const element = slideView();
+    if (element) zoomAround(element, KEY_FACTOR ** direction, ...zoomPoint(element));
   }
 
   // ----- Drag to look around -----
@@ -338,9 +393,13 @@
     // Registered at document_start, and before the spotlight's, so a drag over an image isn't taken
     // for a click on it.
     window.addEventListener('wheel', onWheel, { capture: true, passive: false });
+    // Ahead of the presses the zoom keeps from everything else.
+    for (const type of ['mousemove', 'mouseover', 'mouseout', 'mousedown', 'mouseup']) window.addEventListener(type, trackPointer, { capture: true, passive: true });
     window.addEventListener('pointerdown', onPointerDown, true);
     window.addEventListener('mousedown', onMouseDown, true);
     window.addEventListener('mousemove', onMouseMove, { capture: true, passive: true });
+    // Presenter view's copies of the slides aren't for zooming.
+    if (!IN_PRESENTER_VIEW) window.addEventListener('keydown', onKeydown, true);
     window.addEventListener('pointerup', onRelease, true);
     window.addEventListener('mouseup', onRelease, true);
     window.addEventListener('click', onClick, true);
@@ -356,7 +415,8 @@
       attributes: true,
       attributeFilter: ['aria-label'],
     });
-    // Choosing something else mid-slideshow leaves nothing zoomed.
-    chrome.storage.onChanged.addListener(() => scrolling() === 'zoom' || reset());
+    // Choosing something else mid-slideshow leaves nothing zoomed. (Only that choice: the extension
+    // saves other things as it goes, such as the pen's ink after each line.)
+    chrome.storage.onChanged.addListener((changes, area) => area === 'sync' && 'slideshowScroll' in changes && scrolling() !== 'zoom' && reset());
   }
 }
