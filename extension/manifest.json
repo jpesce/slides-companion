@@ -30,8 +30,8 @@
     },
     {
       "matches": ["https://docs.google.com/presentation/*/present*", "https://docs.google.com/presentation/*/localpresent*"],
-      "js": ["settings.js", "content.js", "zoom.js", "ink.js", "spotlight.js", "countdown.js", "notes.js"],
-      "css": ["spotlight.css", "zoom.css", "countdown.css"],
+      "js": ["settings.js", "content.js", "zoom.js", "ink.js", "spotlight.js", "notes.js"],
+      "css": ["spotlight.css", "zoom.css"],
       "all_frames": true,
       "run_at": "document_start"
     },

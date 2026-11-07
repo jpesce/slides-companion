@@ -5,8 +5,8 @@
 // a bar fills up as the time goes. Each deck remembers its time and whether it was counting down, on
 // this computer.
 {
-  // Presenter view is a window Slides opens under this name: a slideshow page when signed in, and a
-  // blank page Slides writes itself when not.
+  // Presenter view is a window Slides opens under this name: a blank page it writes itself, which
+  // signed in takes on the slideshow's address. (So the slideshow's own scripts never run there.)
   const IN_PRESENTER_VIEW = /^punch_speaker_notes_/.test(window.name);
   const ELAPSED = '.punch-viewer-speakernotes-timer-time:not(.slides-companion-countdown)';
 

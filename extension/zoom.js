@@ -241,7 +241,6 @@
   const ZOOM_KEYS = { '+': 1, '=': 1, '-': -1, _: -1 };
   // Each press zooms in or out this much: from the whole slide to the closest in four presses.
   const KEY_FACTOR = 1.5;
-  const IN_PRESENTER_VIEW = /^punch_speaker_notes_/.test(window.name);
   // Where the pointer last was: { x, y, buttons, frame }, frame being the video it went over, if it
   // did. Null when it has left the window, or hasn't come in yet.
   let pointer = null;
@@ -398,8 +397,7 @@
     window.addEventListener('pointerdown', onPointerDown, true);
     window.addEventListener('mousedown', onMouseDown, true);
     window.addEventListener('mousemove', onMouseMove, { capture: true, passive: true });
-    // Presenter view's copies of the slides aren't for zooming.
-    if (!IN_PRESENTER_VIEW) window.addEventListener('keydown', onKeydown, true);
+    window.addEventListener('keydown', onKeydown, true);
     window.addEventListener('pointerup', onRelease, true);
     window.addEventListener('mouseup', onRelease, true);
     window.addEventListener('click', onClick, true);
