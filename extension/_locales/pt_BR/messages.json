@@ -55,7 +55,7 @@
 
   "spotlightName": { "message": "Destaque" },
   "spotlightSummary": { "message": "Veja imagens em tela cheia" },
-  "spotlightAbout": { "message": "Selecione uma imagem e pressione Espaço para vê-la em tela cheia, sobre um fundo preto. Use ← e → para passar pelas outras imagens do slide." },
+  "spotlightAbout": { "message": "Selecione uma imagem e pressione Espaço para vê-la em tela cheia e passar pelas outras imagens do slide." },
   "spotlightOnClick": { "message": "Destacar uma imagem ao clicar nela durante uma apresentação de slides em tela cheia" },
   "spotlightOnClickHint": { "message": "clicar em qualquer outro lugar passa para o próximo slide, a não ser que você tenha aumentado o zoom" },
   "groupedImages": { "message": "Quando as imagens estão agrupadas" },
@@ -66,13 +66,10 @@
 
   "linksName": { "message": "Links" },
   "linksSummary": { "message": "Abra sites enquanto apresenta" },
-  "linksAbout": {
-    "message": "Durante uma apresentação de slides, clique em um link para abri-lo sobre o slide e pressione Esc para voltar. Alguns sites não permitem ser mostrados sobre um slide. Para eles, escolha $BUTTON$ na parte de baixo da tela, ou deixe que todos sejam mostrados.",
-    "placeholders": { "button": { "content": "$1" } }
-  },
+  "linksAbout": { "message": "Durante uma apresentação de slides, os links abrem sobre o seu slide, e o público vê a página sem você sair da apresentação." },
   "allSitesFrame": { "message": "Todos os sites" },
-  "allSites": { "message": "Mostrar todos os sites sobre o slide, mesmo os que não permitem" },
-  "allSitesHint": { "message": "o Chrome vai pedir sua permissão uma vez. Depois, Esc sempre traz seu slide de volta" },
+  "allSitesLine": { "message": "Alguns sites não abrem sobre o seu slide até você permitir." },
+  "allSitesAllow": { "message": "Permitir todos os sites" },
   "slideshowLinks": { "message": "Quando você clica em um link durante uma apresentação de slides" },
   "linksHere": { "message": "Abrir sobre o slide" },
   "linksHereHint": { "message": "pressione Esc para voltar ao seu slide, exatamente onde você parou" },
@@ -80,7 +77,7 @@
 
   "zoomName": { "message": "Zoom e rolagem" },
   "zoomSummary": { "message": "Amplie qualquer detalhe" },
-  "zoomAbout": { "message": "Durante uma apresentação de slides, role, faça o movimento de pinça ou pressione + e − para aplicar zoom, e arraste para olhar em volta. Ao mudar de slide, o zoom volta ao normal." },
+  "zoomAbout": { "message": "Durante uma apresentação de slides, aumente o zoom com o trackpad ou a roda do mouse para mostrar um detalhe de perto." },
   "slideshowScroll": { "message": "Quando você rola durante uma apresentação de slides" },
   "scrollZoom": { "message": "Aumentar o zoom no slide" },
   "scrollZoomHint": { "message": "com o zoom aumentado, clicar no slide não muda de slide" },
@@ -92,13 +89,13 @@
 
   "penName": { "message": "Caneta" },
   "penSummary": { "message": "Mantenha o que você desenhou" },
-  "penAbout": { "message": "Durante uma apresentação de slides, pressione Shift + L para desenhar em um slide e Shift + A para Apagar tudo." },
+  "penAbout": { "message": "Desenhe em um slide durante a apresentação com a caneta do Google Slides e encontre o desenho lá na próxima vez que apresentar." },
   "keepInk": { "message": "Manter o que você desenhou depois que a apresentação de slides terminar" },
   "keepInkHint": { "message": "o desenho volta no mesmo slide na próxima vez que você apresentar neste computador, até você escolher Apagar tudo" },
 
   "timerName": { "message": "Contador" },
   "timerSummary": { "message": "Para terminar no horário" },
-  "timerAbout": { "message": "Na visualização de apresentador, pressione o botão do contador ao lado de Pausar e Redefinir, ou o próprio tempo, para fazer uma contagem regressiva do tempo que você tem. Depois do fim, ele continua contando em vermelho. Cada apresentação lembra o próprio tempo." },
+  "timerAbout": { "message": "Na visualização de apresentador, clique no contador para fazer uma contagem regressiva do tempo que você tem. Cada apresentação lembra o próprio tempo." },
   "countdownBar": { "message": "Mostrar uma barra sob o tempo, que vai se enchendo" },
   "countdownBarHint": { "message": "basta uma olhada para saber em que ponto da palestra você está" },
   "countdownWarning": { "message": "Deixar o contador laranja" },

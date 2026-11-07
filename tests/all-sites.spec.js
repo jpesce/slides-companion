@@ -81,32 +81,23 @@ test('Open in new tab opens the page browsed to', async ({ context }) => {
   await expect(stage(show)).toHaveCount(0);
 });
 
-test('the Settings checkbox shows every site is allowed, like the dialog’s other checkboxes', async ({ context }) => {
+test('with every site allowed, Settings doesn’t ask for it', async ({ context }) => {
   const page = await context.newPage();
   await page.goto(deckUrl);
   await page.locator('.slides-companion-button').click();
   const dialog = page.getByRole('dialog', { name: 'Slides Companion settings' });
-  const allSites = dialog.frameLocator('iframe.slides-companion-dialog-frame').getByRole('checkbox', { name: /Show every site over the slide/ });
-
-  // The same box, place and type as "Spotlight an image when you click it", on the page before.
-  const own = dialog.locator('label', { hasText: 'Spotlight an image when you click it' });
-  const framed = dialog.frameLocator('iframe.slides-companion-dialog-frame').locator('label');
-  const type = (row) =>
-    row.evaluate(async (label) => {
-      const text = getComputedStyle(label.querySelector('.slides-companion-dialog-label'));
-      const hint = getComputedStyle(label.querySelector('.slides-companion-dialog-hint'));
-      // A font loads only once something needs it.
-      await document.fonts.load(text.font);
-      return [text.font, text.color, text.letterSpacing, hint.font, hint.color, document.fonts.check(text.font)];
-    });
-  await expect.poll(() => own.locator('.slides-companion-checkbox').boundingBox().then((box) => box.width)).toBe(36);
-  const box = (row) => row.locator('.slides-companion-checkbox').boundingBox();
-  const [ownBox, ownType] = [await box(own), await type(own)];
-  await dialog.getByRole('tab', { name: 'Links' }).click();
-  await expect(allSites).toBeChecked();
-  const framedBox = await box(framed);
-  expect([framedBox.x, framedBox.width, framedBox.height]).toEqual([ownBox.x, ownBox.width, ownBox.height]);
-  expect(await type(framed)).toEqual(ownType);
+  const links = dialog.getByRole('tab', { name: 'Links' });
+  await links.click();
+  // The frame knows, and takes no room: the choices sit right under the intro, as on other pages.
+  await expect(dialog.frameLocator('iframe.slides-companion-dialog-frame').locator('p')).toBeHidden();
+  await expect.poll(() => dialog.locator('iframe.slides-companion-dialog-frame').evaluate((frame) => frame.offsetHeight)).toBe(0);
+  const intro = await dialog.getByRole('tabpanel').locator('.slides-companion-dialog-text').boundingBox();
+  const group = await dialog.getByRole('group', { name: 'When you click a link during a slideshow' }).boundingBox();
+  expect(Math.round(group.y)).toBe(Math.round(intro.y + intro.height + 16));
+  // Nor is it a Tab stop.
+  await links.focus();
+  await page.keyboard.press('Tab');
+  await expect(dialog.getByRole('radio', { name: /Open it over the slide/ })).toBeFocused();
 });
 
 test('Back and Forward go through the pages visited, never taking the tab anywhere', async ({ context }) => {

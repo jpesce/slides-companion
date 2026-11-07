@@ -64,13 +64,13 @@ test('each feature has a page of its own, saying what the feature does, and the 
   expect(await dialog(page).locator('.slides-companion-settings-feature-summary').evaluateAll(cutShort)).toBe(0);
   await expect(feature(page, 'Spotlight')).toHaveAttribute('aria-selected', 'true');
   await expect(dialog(page).getByRole('tabpanel')).toHaveCount(1);
-  await expect(dialog(page).getByRole('tabpanel', { name: 'Spotlight' })).toContainText('press Space to see it full screen');
+  await expect(dialog(page).getByRole('tabpanel', { name: 'Spotlight' })).toContainText('press Space to see it full screen, and go through the other images');
   await expect(together(page)).toBeVisible();
 
   await feature(page, 'Pen').click();
   await expect(feature(page, 'Pen')).toHaveAttribute('aria-selected', 'true');
   await expect(feature(page, 'Spotlight')).toHaveAttribute('aria-selected', 'false');
-  await expect(dialog(page).getByRole('tabpanel', { name: 'Pen' })).toContainText('press Shift + L to draw on a slide, and Shift + A to Erase all');
+  await expect(dialog(page).getByRole('tabpanel', { name: 'Pen' })).toContainText('find it there again the next time you present');
   await expect(together(page)).toHaveCount(0);
   await dialog(page).getByRole('checkbox', { name: /Keep what you draw/ }).uncheck();
   await feature(page, 'Timer').click();
@@ -200,9 +200,9 @@ test('the keyboard opens Settings from the companion', async ({ context }) => {
   await expect(together(page)).toBeFocused();
 });
 
-// The "Show every site over the slide" checkbox lives in a frame of the extension's own (Chrome
-// asks for access to every site only from there). Chrome's question can't be answered by a test,
-// so the frame's calls to it are played: they note what they were asked in the extension's storage.
+// The notice asking for every site lives in a frame of the extension's own (Chrome asks for access
+// to every site only from there). Chrome's question can't be answered by a test, so the frame's
+// call to it is played: it notes it was asked in the extension's storage, and says yes.
 async function playChromesQuestion(page) {
   const isAllSites = (frame) => frame.url().includes('/all-sites.html');
   await expect.poll(() => page.frames().some(isAllSites)).toBe(true);
@@ -210,56 +210,82 @@ async function playChromesQuestion(page) {
   await frame.waitForFunction(() => document.readyState === 'complete');
   await frame.evaluate(() => {
     chrome.permissions.request = async () => (await chrome.storage.local.set({ asked: true }), true);
-    chrome.permissions.remove = async () => (await chrome.storage.local.set({ gaveBack: true }), true);
   });
-  // The box doesn't move inside its frame while the dialog grows in, so a click would miss it.
+  // The line doesn't move inside its frame while the dialog grows in, so a click would miss it.
   await page.locator('.slides-companion-dialog-root').evaluate((root) => Promise.all(root.getAnimations({ subtree: true }).map((animation) => animation.finished)));
   await feature(page, 'Links').click();
 }
-const allSites = (page) =>
-  dialog(page).frameLocator('iframe.slides-companion-dialog-frame').getByRole('checkbox', { name: /Show every site over the slide/ });
-const asked = (serviceWorker) => serviceWorker.evaluate(() => chrome.storage.local.get(['asked', 'gaveBack']));
+const allSitesFrame = (page) => dialog(page).locator('iframe.slides-companion-dialog-frame');
+const allSitesNotice = (page) => dialog(page).frameLocator('iframe.slides-companion-dialog-frame').locator('.slides-companion-banner');
+const allowAllSites = (page) => dialog(page).frameLocator('iframe.slides-companion-dialog-frame').getByRole('button', { name: 'Allow all sites' });
+const asked = (serviceWorker) => serviceWorker.evaluate(() => chrome.storage.local.get('asked'));
 
-test('ticking "Show every site" asks Chrome; Cancel gives the access back, OK keeps it', async ({ context, serviceWorker }) => {
+test('while every site isn’t allowed, a notice says so, and Allow all sites asks Chrome right away', async ({ context, serviceWorker }) => {
   const page = await openDeck(context);
   await companion(page).click();
   await playChromesQuestion(page);
-  await expect(allSites(page)).not.toBeChecked();
-  await allSites(page).click();
-  await expect(allSites(page)).toBeChecked();
-  expect(await asked(serviceWorker)).toEqual({ asked: true });
-  await dialog(page).getByRole('button', { name: 'Cancel' }).click();
-  await expect.poll(() => asked(serviceWorker)).toEqual({ asked: true, gaveBack: true });
-  await expect(page.locator('.slides-companion-dialog-root')).toHaveCount(0);
+  const text = allSitesNotice(page).locator('p');
+  await expect(text).toHaveText('Some sites won’t open over your slide until you allow them.');
+  // Workspace's notice in Slides: tonal, rounded, its text read like the intro's.
+  expect(await allSitesNotice(page).evaluate((node) => (({ backgroundColor, borderRadius, padding }) => ({ backgroundColor, borderRadius, padding }))(getComputedStyle(node)))).toEqual({
+    backgroundColor: 'rgb(240, 244, 249)',
+    borderRadius: '16px',
+    padding: '16px 24px 16px 64px',
+  });
+  const intro = dialog(page).getByRole('tabpanel').locator('.slides-companion-dialog-text');
+  const look = (node) => node.evaluate((element) => (({ font, color, letterSpacing }) => ({ font, color, letterSpacing }))(getComputedStyle(element)));
+  expect(await look(text)).toEqual(await look(intro));
+  // Right under the intro, the frame as tall as the notice, the button under the text, its label lined up with it.
+  const [introBox, frameBox, noticeBox, textBox, buttonBox] = await Promise.all(
+    [intro, allSitesFrame(page), allSitesNotice(page), text, allowAllSites(page)].map((node) => node.boundingBox()),
+  );
+  expect(Math.round(frameBox.y)).toBe(Math.round(introBox.y + introBox.height + 16));
+  expect(frameBox.height).toBe(noticeBox.height);
+  expect(Math.round(buttonBox.x)).toBe(Math.round(textBox.x - 12));
+  expect(Math.round(buttonBox.y)).toBe(Math.round(textBox.y + textBox.height + 12));
 
-  await serviceWorker.evaluate(() => chrome.storage.local.remove(['asked', 'gaveBack']));
-  await companion(page).click();
-  await playChromesQuestion(page);
-  await allSites(page).click();
-  await expect(allSites(page)).toBeChecked();
-  await expect.poll(() => asked(serviceWorker)).toEqual({ asked: true });
-  await dialog(page).getByRole('button', { name: 'OK' }).click();
-  await expect(dialog(page)).toHaveCount(0);
-  await page.waitForTimeout(300);
+  await allowAllSites(page).click();
   expect(await asked(serviceWorker)).toEqual({ asked: true });
+  // Once allowed, the notice goes, and the choices move up into its place.
+  await expect(allSitesNotice(page)).toBeHidden();
+  await expect.poll(() => allSitesFrame(page).evaluate((frame) => frame.offsetHeight)).toBe(0);
+  const group = dialog(page).getByRole('group', { name: 'When you click a link during a slideshow' });
+  expect(Math.round((await group.boundingBox()).y)).toBe(Math.round(introBox.y + introBox.height + 16));
+  // Allowing is done at once, as Chrome's question is: Cancel doesn't undo it.
+  await dialog(page).getByRole('button', { name: 'Cancel' }).click();
+  await expect(dialog(page)).toHaveCount(0);
 });
 
-test('Tab goes through the framed checkbox like the others, and Space ticks it', async ({ context, serviceWorker }) => {
+test('Tab reaches Allow all sites like the dialog’s other controls, and Enter asks Chrome', async ({ context, serviceWorker }) => {
   const page = await openDeck(context);
   await companion(page).click();
   await playChromesQuestion(page);
   // From the feature, the first control on its page.
   await expect(feature(page, 'Links')).toBeFocused();
   await page.keyboard.press('Tab');
-  await expect(allSites(page)).toBeFocused();
-  await page.keyboard.press('Space');
-  await expect(allSites(page)).toBeChecked();
-  expect(await asked(serviceWorker)).toEqual({ asked: true });
+  await expect(allowAllSites(page)).toBeFocused();
   await page.keyboard.press('Tab');
   await expect(dialog(page).getByRole('radio', { name: /Open it over the slide/ })).toBeFocused();
   await page.keyboard.press('Shift+Tab');
-  await expect(allSites(page)).toBeFocused();
-  // Esc in the frame is the dialog's.
+  await expect(allowAllSites(page)).toBeFocused();
+  await page.keyboard.press('Enter');
+  expect(await asked(serviceWorker)).toEqual({ asked: true });
+  // Gone, the keys go on to what takes its place, and it's no longer a stop.
+  await expect(allSitesNotice(page)).toBeHidden();
+  await expect(dialog(page).getByRole('radio', { name: /Open it over the slide/ })).toBeFocused();
+  await feature(page, 'Links').focus();
+  await page.keyboard.press('Tab');
+  await expect(dialog(page).getByRole('radio', { name: /Open it over the slide/ })).toBeFocused();
+});
+
+// Esc in the frame is the dialog's.
+test('Esc pressed on Allow all sites closes the dialog', async ({ context }) => {
+  const page = await openDeck(context);
+  await companion(page).click();
+  await playChromesQuestion(page);
+  await expect(feature(page, 'Links')).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(allowAllSites(page)).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(dialog(page)).toHaveCount(0);
 });

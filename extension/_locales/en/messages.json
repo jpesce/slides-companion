@@ -184,7 +184,7 @@
     "description": "The line under its name."
   },
   "spotlightAbout": {
-    "message": "Select an image and press Space to see it full screen, on black. Use ← and → to go through the other images on the slide.",
+    "message": "Select an image and press Space to see it full screen, and go through the other images on the slide.",
     "description": "What the feature does, at the top of its page."
   },
   "spotlightOnClick": {
@@ -225,23 +225,20 @@
     "description": "The line under its name: the page shows where the audience can see it, rather than in a tab of its own."
   },
   "linksAbout": {
-    "message": "During a slideshow, click a link to open it over the slide, and press Esc to come back. Some sites don’t allow being shown over a slide. For those, choose $BUTTON$ at the bottom of the screen, or let them all be shown.",
-    "description": "What the feature does, at the top of its page.",
-    "placeholders": {
-      "button": { "content": "$1", "example": "Open in new tab" }
-    }
+    "message": "During a slideshow, links open over your slide, so your audience sees the page without you leaving the slideshow.",
+    "description": "What the feature does, at the top of its page."
   },
   "allSitesFrame": {
     "message": "Every site",
-    "description": "For screen readers, the frame that holds the checkbox to show every site over the slide."
+    "description": "For screen readers, the frame that holds the line asking for every site, below."
   },
-  "allSites": {
-    "message": "Show every site over the slide, even those that don’t allow it",
-    "description": "A checkbox."
+  "allSitesLine": {
+    "message": "Some sites won’t open over your slide until you allow them.",
+    "description": "In a notice on the Links page of Settings, shown only while Chrome hasn't given the extension every site (some sites refuse to be shown inside another page unless it has)."
   },
-  "allSitesHint": {
-    "message": "Chrome will ask you once. Esc then always brings your slide back",
-    "description": "The note after it, shown in brackets."
+  "allSitesAllow": {
+    "message": "Allow all sites",
+    "description": "The notice's button: Chrome asks the presenter to let the extension work on every site."
   },
   "slideshowLinks": {
     "message": "When you click a link during a slideshow",
@@ -269,7 +266,7 @@
     "description": "The line under its name: zoom into the slide during a slideshow."
   },
   "zoomAbout": {
-    "message": "During a slideshow, scroll, pinch or press + and − to zoom, and drag to look around. Changing slides zooms back out.",
+    "message": "During a slideshow, zoom into a slide with your trackpad or mouse wheel to show a detail up close.",
     "description": "What the feature does, at the top of its page."
   },
   "slideshowScroll": {
@@ -314,8 +311,8 @@
     "description": "The line under its name: what the pen draws comes back the next time the deck is presented, where Slides wipes it."
   },
   "penAbout": {
-    "message": "During a slideshow, press Shift + L to draw on a slide, and Shift + A to Erase all.",
-    "description": "What the feature does, at the top of its page. \"Erase all\" is the name of the item in Slides' own slideshow menu."
+    "message": "Draw on a slide during a slideshow with Slides’ pen, and find it there again the next time you present.",
+    "description": "What the feature does, at the top of its page."
   },
   "keepInk": {
     "message": "Keep what you draw after the slideshow ends",
@@ -335,8 +332,8 @@
     "description": "The line under its name."
   },
   "timerAbout": {
-    "message": "In presenter view, press the timer button beside Pause and Reset, or the time itself, to count down from how long you have. Past the end, it keeps counting in red. Each deck remembers its time.",
-    "description": "What the feature does, at the top of its page. \"Pause\" and \"Reset\" are the names of the buttons of Slides' own timer."
+    "message": "In presenter view, click the timer to count down from how long you have. Each deck remembers its time.",
+    "description": "What the feature does, at the top of its page. \"Presenter view\" as Slides names it."
   },
   "countdownBar": {
     "message": "Show a bar under the time that fills up as it goes",

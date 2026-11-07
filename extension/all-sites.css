@@ -28,8 +28,49 @@ body {
   overflow: visible;
 }
 
-/* Focus moved in from the dialog's Tab shows like any other control's. */
-.slides-companion-tabbed input:focus + .slides-companion-checkbox {
+/* Workspace's notice in Slides (appsElementsWorkspaceRecommendationBanner, Small, with an icon),
+   inset as Slides' own banners are (16px corners), in its default colours: the icon on the left,
+   the text beside it, and the action under the text, lined up with it. */
+.slides-companion-banner {
+  position: relative;
+  padding-block: 16px;
+  padding-inline: 64px 24px;
+  border-radius: 16px;
+  background: #f0f4f9;
+  color: #444746;
+}
+
+.slides-companion-banner[hidden] {
+  display: none;
+}
+
+.slides-companion-banner-icon {
+  position: absolute;
+  inset-block-start: 14px;
+  inset-inline-start: 24px;
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+
+.slides-companion-banner-text {
+  margin: 0;
+}
+
+.slides-companion-banner-actions {
+  display: flex;
+  gap: 12px;
+  padding: 12px 0 4px;
+}
+
+/* Its label lined up with the text, its hover shape around it. */
+.slides-companion-banner-action {
+  margin: 0;
+  margin-inline-start: -12px;
+}
+
+/* Focus moved in from the dialog's Tab shows like the dialog's own buttons'. */
+.slides-companion-tabbed .slides-companion-banner-action:focus {
   outline: 3px solid #0b57d0;
-  outline-offset: -1px;
+  outline-offset: 2px;
 }

@@ -59,10 +59,10 @@
       name: 'linksName',
       summary: 'linksSummary',
       icon: icon('M440-280H280q-83 0-141.5-58.5T80-480q0-83 58.5-141.5T280-680h160v80H280q-50 0-85 35t-35 85q0 50 35 85t85 35h160v80ZM320-440v-80h320v80H320Zm200 160v-80h160q50 0 85-35t35-85q0-50-35-85t-85-35H520v-80h160q83 0 141.5 58.5T880-480q0 83-58.5 141.5T680-280H520Z'),
-      // The framed checkbox speaks the dialog's language.
+      // The framed notice speaks the dialog’s language.
       page: () => `
-        ${about('linksAbout', globalThis.slidesCompanion.text('openInNewTab'))}
-        <iframe class="slides-companion-dialog-frame" src="${chrome.runtime.getURL(`all-sites.html?hl=${globalThis.slidesCompanion.locale()}`)}" title="${words('allSitesFrame')}"></iframe>
+        ${about('linksAbout')}
+        <iframe class="slides-companion-dialog-frame slides-companion-dialog-frame-empty" src="${chrome.runtime.getURL(`all-sites.html?hl=${globalThis.slidesCompanion.locale()}`)}" title="${words('allSitesFrame')}"></iframe>
         <fieldset class="slides-companion-dialog-group">
           ${legend('slideshowLinks')}
           ${radio('slideshowLinks', 'here', 'linksHere', 'linksHereHint')}
@@ -168,7 +168,7 @@
       </div>
     </div>`;
 
-  // Sent to the framed "Show every site" checkbox (all-sites.js), which acts on OK or Cancel.
+  // The framed notice asking for every site (all-sites.js), shown only while it's missing.
   const ALL_SITES_SOURCE = 'slides-companion-all-sites';
   const allSitesFrame = () => root?.querySelector('.slides-companion-dialog-frame');
   const tellAllSites = (message) => allSitesFrame()?.contentWindow.postMessage(message, new URL(allSitesFrame().src).origin);
@@ -216,13 +216,11 @@
     globalThis.slidesCompanion.settings.set(
       Object.fromEntries(choices.map((input) => [input.name, input.type === 'checkbox' ? input.checked : input.value])),
     );
-    tellAllSites('save');
     closeDialog();
   }
 
   function closeDialog() {
     if (!root) return;
-    tellAllSites('cancel'); // Unheard after OK.
     window.removeEventListener('message', onFrameMessage);
     const closing = root;
     root = null;
@@ -283,22 +281,28 @@
     feature.focus();
   }
 
-  // The framed checkbox: its size, and the dialog's keys pressed in it.
+  // The framed notice: its size, and the dialog's keys pressed in it.
   function onFrameMessage(event) {
     const frame = allSitesFrame();
     if (!frame || event.source !== frame.contentWindow || event.data?.source !== ALL_SITES_SOURCE) return;
-    if (event.data.type === 'height') frame.style.height = `${event.data.height}px`;
+    if (event.data.type === 'height') {
+      // Gone while it had the keys (its button chosen with Enter): they go to what takes its place.
+      const held = document.activeElement === frame ? controlStops().indexOf(frame) : -1;
+      frame.style.height = `${event.data.height}px`;
+      frame.classList.toggle('slides-companion-dialog-frame-empty', !event.data.height);
+      if (!event.data.height && held > 0) controlStops()[held]?.focus();
+    }
     if (event.data.type !== 'key') return;
     if (event.data.key === 'Escape') closeDialog();
-    else if (event.data.key === 'Enter') save();
     else trapFocus({ shiftKey: event.data.shiftKey, preventDefault() {} });
   }
 
   // One Tab stop per control, in order: the chosen feature in the list, then on its page each
-  // checkbox (one of them framed) and each radio group (its checked option, or its first).
+  // checkbox, the framed notice's button while it shows, and each radio group (its checked option, or
+  // its first).
   function controlStops() {
     const page = root.querySelector('.slides-companion-settings-page:not([hidden])');
-    const controls = page.querySelectorAll(':scope > label input, .slides-companion-dialog-frame, fieldset');
+    const controls = page.querySelectorAll(':scope > label input, .slides-companion-dialog-frame:not(.slides-companion-dialog-frame-empty), fieldset');
     return [
       root.querySelector('[role="tab"][aria-selected="true"]'),
       ...[...controls].map((control) =>

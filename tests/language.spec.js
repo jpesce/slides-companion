@@ -33,10 +33,11 @@ test('with Slides in Portuguese, our menu items, Settings and presenter view spe
   await expect(dialog.getByRole('heading')).toHaveText('Configurações');
   await expect(dialog.getByRole('button', { name: 'Cancelar' })).toBeVisible();
   await dialog.getByRole('tab', { name: 'Links' }).click();
-  await expect(dialog.getByText('escolha Abrir em uma nova guia na parte de baixo')).toBeVisible();
+  await expect(dialog.getByText('o público vê a página sem você sair da apresentação')).toBeVisible();
   const allSites = page.frameLocator('.slides-companion-dialog-frame');
   await expect(allSites.locator('html')).toHaveAttribute('lang', 'pt-BR');
-  await expect(allSites.locator('.slides-companion-dialog-label')).toContainText('Mostrar todos os sites sobre o slide');
+  await expect(allSites.locator('p')).toHaveText('Alguns sites não abrem sobre o seu slide até você permitir.');
+  await expect(allSites.getByRole('button')).toHaveText('Permitir todos os sites');
   await dialog.getByRole('tab', { name: 'Contador' }).click();
   await expect(dialog.getByRole('radio', { name: /2 minutos antes do fim/ })).toBeVisible();
   await dialog.getByRole('button', { name: 'Cancelar' }).click();
