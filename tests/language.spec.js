@@ -99,3 +99,20 @@ test('with Slides in Portuguese, the message for a site that won’t open over t
   await expect(message.getByRole('button')).toHaveText(['Abrir em uma nova guia', 'Permitir todos os sites']);
   expect(await message.locator('html').getAttribute('lang')).toBe('pt-BR');
 });
+
+test('with Slides in Portuguese, our keys in Slides’ Keyboard shortcuts dialog speak Portuguese', async ({ context }) => {
+  const page = await context.newPage();
+  await page.goto(slide);
+  await expect(page.locator(RIGHT_IMAGE)).toBeVisible();
+  await page.keyboard.press('ControlOrMeta+/');
+  const ours = page.locator('.slides-companion-shortcuts');
+  await expect(ours.locator('.appsElementsKeyboardShortcutsDialogCategoryLabel')).toHaveText('Slides Companion');
+  const names = ours.locator('.appsElementsKeyboardShortcutsDialogShortcutName');
+  await expect(names.first()).toHaveText('Destacar a imagem selecionada');
+  await expect(ours.locator('kbd').first()).toHaveText('Espaço');
+  await expect(names.nth(1)).toHaveText('Próxima imagem no Destaque');
+  await expect(ours.locator('.appsElementsKeyboardShortcutsDialogKeySequenceList').nth(1)).toContainText('ou');
+  // Found by the dialog's search in Portuguese, as Slides' own.
+  await page.locator('.appsElementsKeyboardShortcutsDialogSearchInputField').fill('anotações');
+  await expect(names).toHaveText(['Abrir ou fechar as anotações flutuantes durante a apresentação']);
+});

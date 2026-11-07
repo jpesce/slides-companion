@@ -118,5 +118,16 @@
   "liveEditsLater": { "message": "Depois que você passar para outro slide" },
   "liveEditsLaterHint": { "message": "assim ele nunca muda enquanto você fala sobre ele" },
   "liveEditsOff": { "message": "Só na próxima apresentação de slides" },
-  "liveEditsOffHint": { "message": "a apresentação de slides inteira fica como estava quando você começou, como o Google Slides faz normalmente" }
+  "liveEditsOffHint": { "message": "a apresentação de slides inteira fica como estava quando você começou, como o Google Slides faz normalmente" },
+  "shortcutSpotlight": { "message": "Destacar a imagem selecionada" },
+  "shortcutNextImage": { "message": "Próxima imagem no Destaque" },
+  "shortcutPreviousImage": { "message": "Imagem anterior no Destaque" },
+  "shortcutFirstImage": { "message": "Primeira imagem no Destaque" },
+  "shortcutLastImage": { "message": "Última imagem no Destaque" },
+  "shortcutCloseSpotlight": { "message": "Fechar o Destaque" },
+  "shortcutZoomIn": { "message": "Aumentar o zoom no slide durante a apresentação" },
+  "shortcutZoomOut": { "message": "Diminuir o zoom durante a apresentação" },
+  "shortcutFloatingNotes": { "message": "Abrir ou fechar as anotações flutuantes durante a apresentação" },
+  "shortcutClosePage": { "message": "Fechar uma página aberta sobre o slide" },
+  "shortcutOr": { "message": "ou" }
 }

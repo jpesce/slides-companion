@@ -103,7 +103,18 @@ globalThis.slidesCompanion.messages = {
     "liveEditsLater": "Once you’ve moved to another slide",
     "liveEditsLaterHint": "so it never changes while you’re talking about it",
     "liveEditsOff": "Not until the next slideshow",
-    "liveEditsOffHint": "the whole slideshow stays as it was when you started, as Slides does on its own"
+    "liveEditsOffHint": "the whole slideshow stays as it was when you started, as Slides does on its own",
+    "shortcutSpotlight": "Spotlight the selected image",
+    "shortcutNextImage": "Next image in Spotlight",
+    "shortcutPreviousImage": "Previous image in Spotlight",
+    "shortcutFirstImage": "First image in Spotlight",
+    "shortcutLastImage": "Last image in Spotlight",
+    "shortcutCloseSpotlight": "Close Spotlight",
+    "shortcutZoomIn": "Zoom in on the slide while presenting",
+    "shortcutZoomOut": "Zoom out while presenting",
+    "shortcutFloatingNotes": "Open or close floating notes while presenting",
+    "shortcutClosePage": "Close a page opened over the slide",
+    "shortcutOr": "or"
   },
   "pt_BR": {
     "extensionName": "Slides Companion",
@@ -206,6 +217,17 @@ globalThis.slidesCompanion.messages = {
     "liveEditsLater": "Depois que você passar para outro slide",
     "liveEditsLaterHint": "assim ele nunca muda enquanto você fala sobre ele",
     "liveEditsOff": "Só na próxima apresentação de slides",
-    "liveEditsOffHint": "a apresentação de slides inteira fica como estava quando você começou, como o Google Slides faz normalmente"
+    "liveEditsOffHint": "a apresentação de slides inteira fica como estava quando você começou, como o Google Slides faz normalmente",
+    "shortcutSpotlight": "Destacar a imagem selecionada",
+    "shortcutNextImage": "Próxima imagem no Destaque",
+    "shortcutPreviousImage": "Imagem anterior no Destaque",
+    "shortcutFirstImage": "Primeira imagem no Destaque",
+    "shortcutLastImage": "Última imagem no Destaque",
+    "shortcutCloseSpotlight": "Fechar o Destaque",
+    "shortcutZoomIn": "Aumentar o zoom no slide durante a apresentação",
+    "shortcutZoomOut": "Diminuir o zoom durante a apresentação",
+    "shortcutFloatingNotes": "Abrir ou fechar as anotações flutuantes durante a apresentação",
+    "shortcutClosePage": "Fechar uma página aberta sobre o slide",
+    "shortcutOr": "ou"
   }
 };

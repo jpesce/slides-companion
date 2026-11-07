@@ -140,7 +140,7 @@
   }
 
   function onKeydown(event) {
-    if (event.repeat || event.ctrlKey || event.metaKey || event.altKey) return;
+    if (event.repeat || event.ctrlKey || event.metaKey || event.altKey || globalThis.slidesCompanion.isTyping(event)) return;
     // Erase all is Shift + A, or Enter or Space on it in the eraser's menu.
     const menuItem = document.querySelector('.punch-viewer-navbar-eraser-menu .goog-menuitem-highlight');
     const fromMenu = menuItem?.offsetParent && (event.key === 'Enter' || event.key === ' ');

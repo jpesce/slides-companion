@@ -163,6 +163,23 @@ test.describe('kept from the start', () => {
     await show.locator('.punch-viewer-navbar-eraser-menu-button').click();
   }
 
+  test('a capital A typed in a search box (Slides’ Keyboard shortcuts) keeps the ink', async ({ context }) => {
+    await drawAndLeave(context, (page) => drawStroke(page, [400, 300], [600, 420]));
+    const { page, show } = await startSlideshow(context);
+    await expect(show.locator(KEPT)).toHaveCount(1);
+    const search = show.locator('.appsElementsKeyboardShortcutsDialogSearchInputField');
+    // The slideshow takes keys a moment after it shows.
+    await expect(async () => {
+      if (!(await search.count())) await page.keyboard.press('ControlOrMeta+/');
+      await expect(search).toBeVisible({ timeout: 2000 });
+    }).toPass();
+    await search.click();
+    await page.keyboard.press('Shift+A');
+    await expect(search).toHaveValue('A');
+    await page.waitForTimeout(300);
+    await expect(show.locator(KEPT)).toHaveCount(1);
+  });
+
   for (const [way, eraseAll] of Object.entries(ERASE_ALL)) {
     test(`Erase all with ${way} erases kept ink too, for good`, async ({ context }) => {
       await drawAndLeave(context, (page) => drawStroke(page, [400, 300], [600, 420]));

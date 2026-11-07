@@ -426,5 +426,49 @@
   "liveEditsOffHint": {
     "message": "the whole slideshow stays as it was when you started, as Slides does on its own",
     "description": "The note after it, shown in brackets."
+  },
+  "shortcutSpotlight": {
+    "message": "Spotlight the selected image",
+    "description": "In Slides' Keyboard shortcuts dialog, what Space does while editing."
+  },
+  "shortcutNextImage": {
+    "message": "Next image in Spotlight",
+    "description": "In Slides' Keyboard shortcuts dialog. Spotlight is the feature's name."
+  },
+  "shortcutPreviousImage": {
+    "message": "Previous image in Spotlight",
+    "description": "In Slides' Keyboard shortcuts dialog."
+  },
+  "shortcutFirstImage": {
+    "message": "First image in Spotlight",
+    "description": "In Slides' Keyboard shortcuts dialog."
+  },
+  "shortcutLastImage": {
+    "message": "Last image in Spotlight",
+    "description": "In Slides' Keyboard shortcuts dialog."
+  },
+  "shortcutCloseSpotlight": {
+    "message": "Close Spotlight",
+    "description": "In Slides' Keyboard shortcuts dialog."
+  },
+  "shortcutZoomIn": {
+    "message": "Zoom in on the slide while presenting",
+    "description": "In Slides' Keyboard shortcuts dialog."
+  },
+  "shortcutZoomOut": {
+    "message": "Zoom out while presenting",
+    "description": "In Slides' Keyboard shortcuts dialog."
+  },
+  "shortcutFloatingNotes": {
+    "message": "Open or close floating notes while presenting",
+    "description": "In Slides' Keyboard shortcuts dialog."
+  },
+  "shortcutClosePage": {
+    "message": "Close a page opened over the slide",
+    "description": "In Slides' Keyboard shortcuts dialog: a page a link opened during a slideshow."
+  },
+  "shortcutOr": {
+    "message": "or",
+    "description": "Between two keys that do the same, as in “→ or ↓”, as Slides' Keyboard shortcuts dialog says it."
   }
 }

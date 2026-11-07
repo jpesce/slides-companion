@@ -41,6 +41,17 @@
     }).observe(document, { subtree: true, childList: true });
   }
 
+  // A slideshow started from the editor; one in a tab of its own has no notes to read.
+  function slideshowEditor() {
+    try {
+      return window.top !== window && window.top.document.querySelector('#speakernotes') ? window.top.document : null;
+    } catch {
+      return null;
+    }
+  }
+  // Whether floating notes can open here (for Slides' Keyboard shortcuts dialog, shortcuts.js).
+  globalThis.slidesCompanion.floatingNotesHere = () => !IN_SLIDESHOW || Boolean(slideshowEditor());
+
   if (!IN_SLIDESHOW && window === window.top) inEditor();
   if (IN_SLIDESHOW) inSlideshow();
 
@@ -453,14 +464,7 @@
   }
 
   function inSlideshow() {
-    // A slideshow started from the editor; one in a tab of its own has no notes to read.
-    const editor = (() => {
-      try {
-        return window.top !== window && window.top.document.querySelector('#speakernotes') ? window.top.document : null;
-      } catch {
-        return null;
-      }
-    })();
+    const editor = slideshowEditor();
     if (!editor) return;
     const tell = (type) => editor.dispatchEvent(new CustomEvent(type));
     const isWindowed = () => editor.documentElement.hasAttribute(WINDOWED_ATTRIBUTE);
@@ -469,7 +473,8 @@
     window.addEventListener(
       'keydown',
       (event) => {
-        if (!isToggleKey(event) || event.repeat) return;
+        // Not a capital S typed in a search box (Slides' Keyboard shortcuts dialog).
+        if (!isToggleKey(event) || event.repeat || globalThis.slidesCompanion.isTyping(event)) return;
         event.preventDefault();
         event.stopImmediatePropagation();
         tell(TOGGLE_EVENT);

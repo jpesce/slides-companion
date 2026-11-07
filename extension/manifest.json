@@ -18,7 +18,7 @@
     {
       "matches": ["https://docs.google.com/presentation/*"],
       "exclude_matches": ["https://docs.google.com/presentation/*/present*", "https://docs.google.com/presentation/*/localpresent*"],
-      "js": ["settings.js", "messages.js", "i18n.js", "content.js", "menus.js", "illustrations.js", "settings-dialog.js", "companion.js", "spotlight.js", "scroll.js", "live-edits.js", "notes.js"],
+      "js": ["settings.js", "messages.js", "i18n.js", "content.js", "menus.js", "illustrations.js", "settings-dialog.js", "companion.js", "spotlight.js", "scroll.js", "live-edits.js", "notes.js", "shortcuts.js"],
       "css": ["companion.css", "settings-dialog.css", "spotlight.css"],
       "run_at": "document_idle"
     },
@@ -31,7 +31,7 @@
     },
     {
       "matches": ["https://docs.google.com/presentation/*/present*", "https://docs.google.com/presentation/*/localpresent*"],
-      "js": ["settings.js", "messages.js", "i18n.js", "content.js", "menus.js", "zoom.js", "ink.js", "spotlight.js", "notes.js"],
+      "js": ["settings.js", "messages.js", "i18n.js", "content.js", "menus.js", "zoom.js", "ink.js", "spotlight.js", "notes.js", "shortcuts.js"],
       "css": ["spotlight.css", "zoom.css"],
       "all_frames": true,
       "run_at": "document_start"

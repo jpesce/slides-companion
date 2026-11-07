@@ -274,7 +274,7 @@
   function onKeydown(event) {
     const direction = ZOOM_KEYS[event.key];
     if (!direction || event.metaKey || event.ctrlKey || event.altKey || event.isComposing || galleryOpen()) return;
-    if (event.target instanceof Element && event.target.closest('input, textarea, select, [contenteditable=""], [contenteditable="true"]')) return;
+    if (globalThis.slidesCompanion.isTyping(event)) return;
     if ([...document.querySelectorAll('.punch-viewer-interruption')].some((screen) => screen.checkVisibility())) return;
     const element = slideView();
     if (element) zoomAround(element, KEY_FACTOR ** direction, ...zoomPoint(element));
