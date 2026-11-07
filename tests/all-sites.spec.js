@@ -1,4 +1,4 @@
-import { test, expect, deckUrl } from './fixtures.js';
+import { test, expect, deckUrl, press } from './fixtures.js';
 
 // With every site allowed from Settings (card 56). Chrome's header rule doesn't apply to pages a
 // test plays, so these go to real sites: google.com refuses being shown inside another page.
@@ -76,7 +76,7 @@ test('Open in new tab opens the page browsed to', async ({ context }) => {
 
   const opened = context.waitForEvent('page');
   await page.mouse.move((await centre(site(show))).x, (await centre(site(show))).y, { steps: 3 });
-  await stage(show).locator('.slides-companion-spotlight-new-tab').click();
+  await press(page, stage(show).locator('.slides-companion-spotlight-new-tab'));
   expect((await opened).url()).toBe('https://example.com/moved');
   await expect(stage(show)).toHaveCount(0);
 });
@@ -120,13 +120,13 @@ test('Back and Forward go through the pages visited, never taking the tab anywhe
   await expect(back).toBeEnabled();
 
   await showBars();
-  await back.click();
+  await press(page, back);
   await expect.poll(shown).toBe('https://example.com/');
-  await back.click();
+  await press(page, back);
   await expect.poll(shown).toBe('https://www.google.com/');
   await expect(site(show)).toHaveText('google.com');
   await expect(back).toBeDisabled();
-  await forward.click();
+  await press(page, forward);
   await expect.poll(shown).toBe('https://example.com/');
   await expect(forward).toBeEnabled();
 
@@ -134,7 +134,7 @@ test('Back and Forward go through the pages visited, never taking the tab anywhe
   await frameAt(page, 'https://example.com/').evaluate(() => location.assign('https://example.org/'));
   await expect(site(show)).toHaveText('example.org');
   await expect(forward).toBeDisabled();
-  await back.click();
+  await press(page, back);
   await expect.poll(shown).toBe('https://example.com/');
 
   expect(page.url()).toBe(editor);
@@ -158,9 +158,9 @@ test('Back and Forward keep up with the page: a tidied address, the tab’s own 
   await page.mouse.move(x, y + 2, { steps: 3 });
 
   // One page back, not the address it had before tidying.
-  await back.click();
+  await press(page, back);
   await expect.poll(shown).toBe('https://example.com/');
-  await forward.click();
+  await press(page, forward);
   await expect.poll(shown).toBe('https://example.com/tidied');
   await expect(forward).toBeDisabled();
 
@@ -168,7 +168,7 @@ test('Back and Forward keep up with the page: a tidied address, the tab’s own 
   await frameAt(page, 'https://example.com/tidied').evaluate(() => history.back());
   await expect.poll(shown).toBe('https://example.com/');
   await expect(forward).toBeEnabled();
-  await forward.click();
+  await press(page, forward);
   await expect.poll(shown).toBe('https://example.com/tidied');
 
   // Back twice, the page passed on the way saying where it is only after the second.
@@ -177,16 +177,16 @@ test('Back and Forward keep up with the page: a tidied address, the tab’s own 
     chrome.tabs.sendMessage = (tabId, message, ...rest) =>
       message?.type === 'page-address' ? new Promise((done) => setTimeout(done, 500)).then(() => send(tabId, message, ...rest)) : send(tabId, message, ...rest);
   });
-  await back.click();
+  await press(page, back);
   await expect.poll(shown).toBe('https://example.com/');
-  await back.click();
+  await press(page, back);
   await expect.poll(shown).toBe('https://www.google.com/');
   await page.waitForTimeout(1200);
   await expect(site(show)).toHaveText('google.com');
   await expect(back).toBeDisabled();
-  await forward.click();
+  await press(page, forward);
   await expect.poll(shown).toBe('https://example.com/');
-  await forward.click();
+  await press(page, forward);
   await expect.poll(shown).toBe('https://example.com/tidied');
 });
 
@@ -200,14 +200,14 @@ test('after Forward to a part of the same page, a link clicked still adds a page
   await frameAt(page, 'https://example.com/').evaluate(() => (location.hash = 'part'));
   const { x, y } = await centre(site(show));
   await page.mouse.move(x, y + 2, { steps: 3 });
-  await back.click();
+  await press(page, back);
   await expect.poll(shown).toBe('https://example.com/');
   // Within the page: no new page is loaded.
-  await forward.click();
+  await press(page, forward);
   await expect.poll(shown).toBe('https://example.com/#part');
 
   await frameAt(page, 'https://example.com/').evaluate(() => location.assign('https://example.org/'));
   await expect(site(show)).toHaveText('example.org');
-  await back.click();
+  await press(page, back);
   await expect.poll(shown).toBe('https://example.com/#part');
 });

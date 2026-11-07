@@ -1,5 +1,8 @@
 import { test, expect, deckUrl } from './fixtures.js';
 
+// The extension as it comes, live edits on.
+test.use({ settings: {} });
+
 const companion = (page) => page.locator('.slides-companion-button');
 const dialog = (page) => page.getByRole('dialog', { name: 'Slides Companion settings' });
 const together = (page) => dialog(page).getByRole('radio', { name: /Show the group as one image/ });

@@ -52,6 +52,10 @@
     "message": "Forward",
     "description": "The button that goes forward again, on a web page opened over the slide during a slideshow."
   },
+  "downloadImage": {
+    "message": "Download image",
+    "description": "In an image's right-click menu, and a button under an image shown full screen: saves the image's file to the computer."
+  },
   "openInNewTab": {
     "message": "Open in new tab",
     "description": "The button at the bottom of a web page opened over the slide during a slideshow: opens it in a browser tab instead."

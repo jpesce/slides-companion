@@ -1,4 +1,4 @@
-import { test, expect, deckUrl, openSettings } from './fixtures.js';
+import { test, expect, deckUrl, openSettings, press, pointTo } from './fixtures.js';
 
 // Slide 3 of the test deck: two photos side by side and a caption text box.
 const slide = `${deckUrl}#slide=id.g35a1872bb6d_1_0`;
@@ -8,6 +8,8 @@ const CAPTION = 'editor-g35a1872bb6d_1_1';
 const object = (id) => `#workspace [id="${id}"]`;
 
 const stage = (page) => page.locator('.slides-companion-spotlight');
+// The bar's buttons that show, by the names screen readers hear.
+const buttonsIn = (bar) => bar.locator('button').evaluateAll((buttons) => buttons.filter((button) => button.checkVisibility()).map((button) => button.ariaLabel));
 const selected = (page) =>
   page.$$eval('#workspace path[stroke="#8ab4f8"]', (outlines) => [
     ...new Set(outlines.map((outline) => outline.closest('[id^="editor-"]').id)),
@@ -69,86 +71,122 @@ test('arrow keys go through the slide in reading order and stop at the ends', as
   await expect(stage(page).locator('.slides-companion-spotlight-page')).toHaveText('2/2');
 });
 
-test('clicking the right or left third moves; the middle and above or below the picture do nothing', async ({ context }) => {
+test('a click on the picture does nothing, and a click on the black around it closes', async ({ context }) => {
   const page = await openSlide(context);
   await clickCentre(page, `${object(LEFT)} image`);
   await page.keyboard.press('Space');
-  const { width, height } = page.viewportSize();
+  const picture = await stage(page).locator('.slides-companion-spotlight-picture svg').boundingBox();
+  const { width } = page.viewportSize();
 
-  await page.mouse.click(width * 0.6, height / 2);
-  await page.mouse.click(width * 0.8, 40);
-  await page.mouse.click(width * 0.8, height - 40);
+  // Anywhere on the picture, its sides too, and on the bar between its buttons.
+  const middle = picture.y + picture.height / 2;
+  for (const x of [picture.x + 5, picture.x + picture.width / 2, picture.x + picture.width - 5]) await page.mouse.click(x, middle);
+  const bar = await stage(page).locator('.slides-companion-spotlight-bar').boundingBox();
+  await page.mouse.click(bar.x + 2, bar.y + bar.height / 2);
+  await expect(stage(page)).toBeVisible();
   expect((await showing(page)).id).toBe(LEFT);
-  await page.mouse.click(width * 0.8, height / 2);
-  expect((await showing(page)).id).toBe(RIGHT);
-  await page.mouse.click(width * 0.8, height / 2);
-  expect((await showing(page)).id).toBe(RIGHT);
-  await page.mouse.click(width * 0.2, height / 2);
-  expect((await showing(page)).id).toBe(LEFT);
+
+  // Above it, the gallery closes, and the click stays out of Slides: the photo is still selected.
+  await page.mouse.click(width / 2, 30);
+  await expect(stage(page)).toHaveCount(0);
+  expect(await selected(page)).toEqual([LEFT]);
 });
 
-test('the controls show when the gallery opens, then only when the pointer is above or below the picture', async ({ context }) => {
+test('the bar shows when the gallery opens, then only when the pointer is above or below the picture', async ({ context }) => {
   const page = await openSlide(context);
   await clickCentre(page, `${object(LEFT)} image`);
   await page.keyboard.press('Space');
-  const closer = stage(page).locator('.slides-companion-spotlight-closer');
-  const navbar = stage(page).locator('.slides-companion-spotlight-navbar');
+  const bar = stage(page).locator('.slides-companion-spotlight-bar');
   const { width, height } = page.viewportSize();
 
-  await expect(closer).toHaveCSS('opacity', '1');
-  await expect(navbar).toHaveCSS('opacity', '1');
-  await expect(closer).toHaveCSS('opacity', '0', { timeout: 4000 });
-  await expect(navbar).toHaveCSS('opacity', '0');
+  await expect(bar).toHaveCSS('opacity', '1');
+  await expect(bar).toHaveCSS('opacity', '0', { timeout: 4000 });
 
   // Moving over the image, or changing image, shows nothing.
   await page.mouse.move(width / 2, height / 2);
   await page.mouse.move(width / 2 + 20, height / 2 + 20);
   await page.keyboard.press('ArrowRight');
   await page.waitForTimeout(500);
-  await expect(closer).toHaveCSS('opacity', '0');
-  await expect(navbar).toHaveCSS('opacity', '0');
+  await expect(bar).toHaveCSS('opacity', '0');
 
-  // Above or below the picture, both show.
+  // Above or below the picture, it shows.
   await page.mouse.move(width / 3, 40);
-  await expect(closer).toHaveCSS('opacity', '1');
-  await expect(navbar).toHaveCSS('opacity', '1');
+  await expect(bar).toHaveCSS('opacity', '1');
   await page.mouse.move(width / 2, height / 2);
-  await expect(closer).toHaveCSS('opacity', '0');
-  await expect(navbar).toHaveCSS('opacity', '0');
+  await expect(bar).toHaveCSS('opacity', '0');
   await page.mouse.move(width / 3, height - 40);
-  await expect(navbar).toHaveCSS('opacity', '1');
-  await expect(closer).toHaveCSS('opacity', '1');
+  await expect(bar).toHaveCSS('opacity', '1');
 });
 
-test('the pointer becomes an arrow pointing the way a click goes', async ({ context }) => {
+test('the bar, at the bottom, holds ‹ 2/5 ›, Download image and Close, split like Slides’ toolbar', async ({ context }) => {
   const page = await openSlide(context);
   await clickCentre(page, `${object(LEFT)} image`);
   await page.keyboard.press('Space');
-  const arrow = stage(page).locator('.slides-companion-spotlight-cursor');
-  const turned = () => arrow.locator('svg').evaluate((svg) => getComputedStyle(svg).transform !== 'none');
+  const bar = stage(page).locator('.slides-companion-spotlight-bar');
+  expect(await buttonsIn(bar)).toEqual(['Previous image', 'Next image', 'Download image', 'Close']);
+  // Centred, 20px up from the bottom, 40px tall.
   const { width, height } = page.viewportSize();
+  const box = await bar.boundingBox();
+  expect([box.x + box.width / 2, box.y + box.height, box.height]).toEqual([width / 2, height - 20, 40]);
 
-  // On the first image, the right third goes forward and the left third goes nowhere.
-  await page.mouse.move(width * 0.8, height / 2);
-  await expect(arrow).toHaveCSS('opacity', '1');
-  expect(await arrow.boundingBox()).toEqual({ x: width * 0.8 - 20, y: height / 2 - 20, width: 40, height: 40 });
-  await expect.poll(turned).toBe(false);
-  await page.mouse.move(width * 0.2, height / 2);
-  await expect(arrow).toHaveCSS('opacity', '0');
-  // The middle third and the safe areas keep the regular pointer.
-  await page.mouse.move(width * 0.6, height / 2);
-  await expect(arrow).toHaveCSS('opacity', '0');
-  await page.mouse.move(width * 0.8, 40);
-  await expect(arrow).toHaveCSS('opacity', '0');
-  await expect(stage(page)).toHaveCSS('cursor', 'default');
+  // A divider before each section after the first: a 1px line, 20px tall, 4px from the buttons beside
+  // it (their 2px margin and its own), in Material's dark outline variant.
+  const dividers = await bar.locator('.slides-companion-spotlight-group').evaluateAll((groups) =>
+    groups
+      .filter((group) => group.checkVisibility())
+      .map((group) => {
+        const line = getComputedStyle(group, '::before');
+        return line.content === 'none' ? null : [line.width, line.height, line.margin, line.backgroundColor];
+      }),
+  );
+  const divider = ['1px', '20px', '0px 2px', 'rgb(68, 71, 70)'];
+  expect(dividers).toEqual([null, divider, divider]);
+});
 
-  // On the last image, the other way round, with the arrow pointing back.
-  await page.keyboard.press('End');
-  await page.mouse.move(width * 0.2 + 10, height / 2);
-  await expect(arrow).toHaveCSS('opacity', '1');
-  await expect.poll(turned).toBe(true);
-  await page.mouse.move(width * 0.8, height / 2);
-  await expect(arrow).toHaveCSS('opacity', '0');
+test('the bar’s buttons show Slides’ tooltip: after a moment, above the button, gone on leaving or a press', async ({ context }) => {
+  const page = await openSlide(context);
+  await clickCentre(page, `${object(LEFT)} image`);
+  await page.keyboard.press('Space');
+  const tooltip = stage(page).locator('.slides-companion-spotlight-tooltip');
+  const next = stage(page).getByRole('button', { name: 'Next image' });
+  // The browser's own tooltips are gone.
+  await expect(stage(page).locator('[title]')).toHaveCount(0);
+
+  await pointTo(page, stage(page).getByRole('button', { name: 'Close' }));
+  await expect(tooltip).toBeHidden();
+  await expect(tooltip).toHaveText('Close (Esc)');
+  await expect(tooltip).toBeVisible();
+  // Slides' look, in the dark theme's colours: 24px tall, light, 12px text, rounded corners; centred
+  // 5px above the button, as there's no room below.
+  await expect(tooltip).toHaveCSS('background-color', 'rgb(227, 227, 227)');
+  await expect(tooltip).toHaveCSS('color', 'rgb(48, 48, 48)');
+  await expect(tooltip).toHaveCSS('font-size', '12px');
+  await expect(tooltip).toHaveCSS('border-radius', '4px');
+  const [tip, button] = await Promise.all([tooltip.boundingBox(), stage(page).getByRole('button', { name: 'Close' }).boundingBox()]);
+  expect(tip.height).toBe(24);
+  expect(tip.x + tip.width / 2).toBeCloseTo(button.x + button.width / 2, 0);
+  expect(button.y - (tip.y + tip.height)).toBeCloseTo(5, 0);
+
+  // Straight to another button, it moves at once.
+  await pointTo(page, next);
+  await expect(tooltip).toHaveText('Next (→)', { timeout: 150 });
+  // A press hides it, and it stays hidden while the pointer stays.
+  await page.mouse.down();
+  await page.mouse.up();
+  await expect(tooltip).toBeHidden();
+  await page.waitForTimeout(600);
+  await expect(tooltip).toBeHidden();
+  // Next is now disabled (the last image), and still says what it is.
+  await expect(next).toBeDisabled();
+  await pointTo(page, stage(page).locator('.slides-companion-spotlight-page'));
+  await expect(tooltip).toBeHidden();
+  await pointTo(page, next);
+  await expect(tooltip).toHaveText('Next (→)');
+  await expect(tooltip).toBeVisible();
+  // Off the bar, it goes.
+  const { width, height } = page.viewportSize();
+  await page.mouse.move(width / 2, height / 2);
+  await expect(tooltip).toBeHidden();
 });
 
 test('the bar steps through the images, and the X closes', async ({ context }) => {
@@ -161,14 +199,14 @@ test('the bar steps through the images, and the X closes', async ({ context }) =
 
   await expect(position).toHaveText('1/2');
   await expect(previous).toBeDisabled();
-  await next.click();
+  await press(page, next);
   expect((await showing(page)).id).toBe(RIGHT);
   await expect(position).toHaveText('2/2');
   await expect(next).toBeDisabled();
-  await previous.click();
+  await press(page, previous);
   expect((await showing(page)).id).toBe(LEFT);
 
-  await stage(page).getByRole('button', { name: 'Close' }).click();
+  await press(page, stage(page).getByRole('button', { name: 'Close' }));
   await expect(stage(page)).toHaveCount(0);
 });
 
@@ -246,43 +284,51 @@ test('the arrow keys reach Spotlight image in the right-click menu, and Enter sp
   const page = await openSlide(context);
   const menu = page.locator('.goog-menu[role="menu"]').filter({ visible: true });
   const item = menu.locator('.goog-menuitem', { hasText: 'Spotlight image' });
+  const download = menu.locator('.goog-menuitem', { hasText: 'Download image' });
   const stops = menu.locator('.goog-menuitem:not(.goog-menuitem-disabled)').filter({ visible: true });
   const highlighted = menu.locator('.goog-menuitem-highlight');
   const named = async (element) => expect(menu).toHaveAttribute('aria-activedescendant', await element.getAttribute('id'));
   await clickCentre(page, `${object(RIGHT)} image`, { button: 'right' });
   await expect(item).toBeVisible();
-  // It's the last, here: down from the first item.
+  // Ours are the last two, here: down from the first item.
   await page.mouse.move(5, 5);
   const count = await stops.count();
+  await expect(stops.nth(count - 2)).toHaveText(/Spotlight image/);
+  await expect(stops.last()).toHaveText(/Download image/);
   for (let i = 0; i < count; i++) await page.keyboard.press('ArrowDown');
   await expect(highlighted).toHaveCount(1);
-  await expect(item).toHaveClass(/goog-menuitem-highlight/);
-  await named(item);
-  // Round to the first, back, and on to the one before it.
+  await expect(download).toHaveClass(/goog-menuitem-highlight/);
+  await named(download);
+  // Round to the first, back, and on through ours to the one of Slides' before them.
   await page.keyboard.press('ArrowDown');
   await expect(stops.first()).toHaveClass(/goog-menuitem-highlight/);
   await named(stops.first());
   await page.keyboard.press('ArrowUp');
-  await expect(item).toHaveClass(/goog-menuitem-highlight/);
+  await expect(download).toHaveClass(/goog-menuitem-highlight/);
   await page.keyboard.press('ArrowUp');
-  await expect(stops.nth(count - 2)).toHaveClass(/goog-menuitem-highlight/);
-  await named(stops.nth(count - 2));
+  await expect(item).toHaveClass(/goog-menuitem-highlight/);
+  await named(item);
+  await expect(highlighted).toHaveCount(1);
+  await page.keyboard.press('ArrowUp');
+  await expect(stops.nth(count - 3)).toHaveClass(/goog-menuitem-highlight/);
+  await named(stops.nth(count - 3));
   await expect(highlighted).toHaveCount(1);
   await page.keyboard.press('End');
-  await expect(item).toHaveClass(/goog-menuitem-highlight/);
+  await expect(download).toHaveClass(/goog-menuitem-highlight/);
   await page.keyboard.press('Home');
   await expect(stops.first()).toHaveClass(/goog-menuitem-highlight/);
   // The pointer and the keys share one highlight.
   await item.hover();
   await expect(highlighted).toHaveCount(1);
   await page.keyboard.press('ArrowUp');
-  await expect(stops.nth(count - 2)).toHaveClass(/goog-menuitem-highlight/);
+  await expect(stops.nth(count - 3)).toHaveClass(/goog-menuitem-highlight/);
   await page.keyboard.press('ArrowDown');
   await expect(item).toHaveClass(/goog-menuitem-highlight/);
   await stops.first().hover();
   await expect(highlighted).toHaveCount(1);
   await expect(stops.first()).toHaveClass(/goog-menuitem-highlight/);
   await page.keyboard.press('End');
+  await page.keyboard.press('ArrowUp');
   await page.keyboard.press('Enter');
   await expect(stage(page)).toBeVisible();
   await expect(menu).toHaveCount(0);
@@ -295,10 +341,12 @@ test('the arrow keys reach Spotlight image in the right-click menu, and Enter sp
   await page.keyboard.press('Shift+F10');
   await expect(item).toBeVisible();
   await expect(item).not.toHaveClass(/goog-menuitem-highlight/);
-  // In its place, which Slides fills in after the menu opens.
-  await expect(stops.last()).toHaveText(/Spotlight image/);
+  // In their place, which Slides fills in after the menu opens.
+  await expect(stops.last()).toHaveText(/Download image/);
   await page.keyboard.press('Home');
   await expect(stops.first()).toHaveClass(/goog-menuitem-highlight/);
+  await page.keyboard.press('ArrowUp');
+  await expect(download).toHaveClass(/goog-menuitem-highlight/);
   await page.keyboard.press('ArrowUp');
   await expect(item).toHaveClass(/goog-menuitem-highlight/);
   await page.keyboard.press('Enter');

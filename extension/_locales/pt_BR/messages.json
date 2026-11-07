@@ -13,6 +13,7 @@
   "spotlightNextTip": { "message": "Próxima (→)" },
   "spotlightBack": { "message": "Voltar" },
   "spotlightForward": { "message": "Avançar" },
+  "downloadImage": { "message": "Fazer download da imagem" },
   "openInNewTab": { "message": "Abrir em uma nova guia" },
   "spotlightPosition": {
     "message": "Imagem $INDEX$ de $COUNT$",

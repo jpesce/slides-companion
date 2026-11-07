@@ -24,6 +24,9 @@
   const NEXT_ICON = icon('M10 6 8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z');
   const BACK_ICON = icon('M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z');
   const FORWARD_ICON = icon('m12 4-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z');
+  // Material Symbols' outlined download, as light as the chevrons beside it.
+  const DOWNLOAD_ICON =
+    '<svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-320 280-520l56-58 104 104v-326h80v326l104-104 56 58-200 200ZM240-160q-33 0-56.5-23.5T160-240v-120h80v120h480v-120h80v120q0 33-23.5 56.5T720-160H240Z"/></svg>';
   const NEW_TAB_ICON = icon('M19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2v-7h-2zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3z');
 
   let gallery = null;
@@ -67,8 +70,8 @@
 
   // A video shows its first frame with a play button over it: neither is an image to spotlight.
   const VIDEO_MARK = 'image[*|href*="/presentations/images/play-overlay"]';
-  const hasImage = (object) =>
-    [...object.querySelectorAll('image')].some((image) => !parentObject(image)?.querySelector(VIDEO_MARK));
+  const picturesIn = (object) => [...object.querySelectorAll('image')].filter((image) => !parentObject(image)?.querySelector(VIDEO_MARK));
+  const hasImage = (object) => picturesIn(object).length > 0;
   // In a slideshow, objects waiting for their animation are on the slide but not shown yet.
   const isShowing = (object) => object.checkVisibility({ opacityProperty: true, visibilityProperty: true });
 
@@ -260,28 +263,35 @@
     stage.setAttribute('aria-label', label);
     stage.innerHTML = `
       <div class="slides-companion-spotlight-picture"></div>
-      <div class="slides-companion-spotlight-bar slides-companion-spotlight-closer">
-        <button type="button" class="slides-companion-spotlight-close" aria-label="${html('spotlightClose')}" title="${html('spotlightCloseTip')}">${CLOSE_ICON}</button>
+      <div class="slides-companion-spotlight-bar">
+        <div class="slides-companion-spotlight-group slides-companion-spotlight-steps">
+          <button type="button" class="slides-companion-spotlight-previous" aria-label="${html('spotlightPrevious')}" aria-description="${html('spotlightPreviousTip')}" data-slides-companion-tip="${html('spotlightPreviousTip')}">${PREVIOUS_ICON}</button>
+          <div class="slides-companion-spotlight-page" aria-hidden="true"></div>
+          <button type="button" class="slides-companion-spotlight-next" aria-label="${html('spotlightNext')}" aria-description="${html('spotlightNextTip')}" data-slides-companion-tip="${html('spotlightNextTip')}">${NEXT_ICON}</button>
+        </div>
+        <div class="slides-companion-spotlight-group slides-companion-spotlight-sitebar" hidden>
+          <button type="button" class="slides-companion-spotlight-back" aria-label="${html('spotlightBack')}" data-slides-companion-tip="${html('spotlightBack')}" hidden>${BACK_ICON}</button>
+          <button type="button" class="slides-companion-spotlight-forward" aria-label="${html('spotlightForward')}" data-slides-companion-tip="${html('spotlightForward')}" hidden>${FORWARD_ICON}</button>
+          <div class="slides-companion-spotlight-site"></div>
+          <button type="button" class="slides-companion-spotlight-new-tab" aria-label="${html('openInNewTab')}" data-slides-companion-tip="${html('openInNewTab')}">${NEW_TAB_ICON}</button>
+        </div>
+        <div class="slides-companion-spotlight-group slides-companion-spotlight-saver">
+          <button type="button" class="slides-companion-spotlight-download" aria-label="${html('downloadImage')}" data-slides-companion-tip="${html('downloadImage')}">${DOWNLOAD_ICON}</button>
+        </div>
+        <div class="slides-companion-spotlight-group">
+          <button type="button" class="slides-companion-spotlight-close" aria-label="${html('spotlightClose')}" aria-description="${html('spotlightCloseTip')}" data-slides-companion-tip="${html('spotlightCloseTip')}">${CLOSE_ICON}</button>
+        </div>
       </div>
-      <div class="slides-companion-spotlight-bar slides-companion-spotlight-navbar">
-        <button type="button" class="slides-companion-spotlight-previous" aria-label="${html('spotlightPrevious')}" title="${html('spotlightPreviousTip')}">${PREVIOUS_ICON}</button>
-        <div class="slides-companion-spotlight-page" aria-hidden="true"></div>
-        <button type="button" class="slides-companion-spotlight-next" aria-label="${html('spotlightNext')}" title="${html('spotlightNextTip')}">${NEXT_ICON}</button>
-      </div>
-      <div class="slides-companion-spotlight-bar slides-companion-spotlight-sitebar" hidden>
-        <button type="button" class="slides-companion-spotlight-back" aria-label="${html('spotlightBack')}" title="${html('spotlightBack')}" hidden>${BACK_ICON}</button>
-        <button type="button" class="slides-companion-spotlight-forward" aria-label="${html('spotlightForward')}" title="${html('spotlightForward')}" hidden>${FORWARD_ICON}</button>
-        <div class="slides-companion-spotlight-site"></div>
-        <button type="button" class="slides-companion-spotlight-new-tab" aria-label="${html('openInNewTab')}" title="${html('openInNewTab')}">${NEW_TAB_ICON}</button>
-      </div>
-      <div class="slides-companion-spotlight-cursor" aria-hidden="true">${NEXT_ICON}</div>
-      <div class="slides-companion-spotlight-status" aria-live="polite"></div>`;
+      <div class="slides-companion-spotlight-status" aria-live="polite"></div>
+      <div class="slides-companion-spotlight-tooltip" aria-hidden="true" hidden></div>`;
 
     // pressed: whether a press has started on the stage. The second click of a double click that
     // opened it began before it (its press counts on from the first), so it does nothing.
     // returnFocusTo: where keys went before, for them to go there again once it closes.
     const returnFocusTo = document.activeElement;
-    gallery = { stage, items, index: -1, idleTimer: 0, flashTimer: 0, pointer: null, pressed: false, returnFocusTo };
+    // tip: the control the pointer is on, and whether its tooltip shows (see Tooltips).
+    const tip = { element: stage.querySelector('.slides-companion-spotlight-tooltip'), over: null, shown: false, timer: 0 };
+    gallery = { stage, items, index: -1, idleTimer: 0, flashTimer: 0, pointer: null, pressed: false, returnFocusTo, tip };
 
     // Keep the pointer to ourselves so Slides doesn't react to it behind the stage.
     for (const type of ['mousedown', 'mouseup', 'click', 'contextmenu']) {
@@ -300,13 +310,15 @@
     );
     stage.addEventListener('mousedown', (event) => {
       if (event.detail === 1) gallery.pressed = true;
+      hideTip();
     });
+    stage.addEventListener('mouseover', (event) => pointAt(event.target.closest('[data-slides-companion-tip]')));
     stage.addEventListener('click', onClick);
     stage.addEventListener('mousemove', onMouseMove);
     // Leaving the stage, or going over a page, where the stage no longer hears the pointer.
     const pointerGone = () => {
       gallery.pointer = null;
-      stage.classList.remove('slides-companion-spotlight-can-move');
+      pointAt(null);
       updateBars();
     };
     stage.addEventListener('mouseleave', pointerGone);
@@ -378,6 +390,7 @@
     gallery = null;
     clearTimeout(idleTimer);
     clearTimeout(flashTimer);
+    clearTimeout(closing.tip.timer);
     if (IN_SLIDESHOW) keepEscape(false);
     if (isPage(closing.items[0])) askBackground({ type: 'page-closed' });
     // A click on a button or into a page took the keys onto the stage.
@@ -388,8 +401,9 @@
 
   // ----- Controls -----
 
-  // The ‹ 2/5 › bar: the position out of the total, between previous and next. Hidden for one image.
-  // For a page, a bar naming its site, with a way to open it in a new tab instead.
+  // One bar, in sections split by dividers like Slides' toolbar: ‹ 2/5 › (the position out of the
+  // total, between previous and next, with more than one image), or for a page, its site with a way
+  // to open it in a new tab; then Download image for an image; then Close.
   function updateNavbar() {
     const { items, index, stage } = gallery;
     const count = items.length;
@@ -402,21 +416,23 @@
     back.hidden = forward.hidden = page?.frameId === undefined;
     back.disabled = !(page?.at > 0);
     forward.disabled = !(page?.at < page?.visited.length - 1);
-    stage.querySelector('.slides-companion-spotlight-navbar').hidden = count < 2;
-    stage.querySelector('.slides-companion-spotlight-page').textContent = `${index + 1}/${count}`;
-    stage.querySelector('.slides-companion-spotlight-previous').disabled = index === 0;
-    stage.querySelector('.slides-companion-spotlight-next').disabled = index === count - 1;
+    const previous = stage.querySelector('.slides-companion-spotlight-previous');
+    const position = stage.querySelector('.slides-companion-spotlight-page');
+    const next = stage.querySelector('.slides-companion-spotlight-next');
+    stage.querySelector('.slides-companion-spotlight-steps').hidden = count < 2;
+    stage.querySelector('.slides-companion-spotlight-saver').hidden = !imageFile(items[index]);
+    position.textContent = `${index + 1}/${count}`;
+    previous.disabled = index === 0;
+    next.disabled = index === count - 1;
   }
 
-  // The controls live in the safe areas above and below the picture, and show only while the
-  // pointer is in one of them, so moving the mouse over the picture shows nothing.
+  // The bar lives in the safe area below the picture, and shows only while the pointer is above or
+  // below the picture, so moving the mouse over the picture shows nothing.
   function updateBars() {
     const { stage, pointer, flashTimer } = gallery;
     const area = stage.querySelector('.slides-companion-spotlight-picture').getBoundingClientRect();
     const shown = Boolean(flashTimer) || Boolean(pointer && (pointer.y < area.top || pointer.y > area.bottom));
-    for (const bar of stage.querySelectorAll('.slides-companion-spotlight-bar')) {
-      bar.classList.toggle('slides-companion-spotlight-bar-shown', shown);
-    }
+    stage.querySelector('.slides-companion-spotlight-bar').classList.toggle('slides-companion-spotlight-bar-shown', shown);
   }
 
   // The pointer shows while it moves and hides when it rests, like in the slideshow.
@@ -426,28 +442,11 @@
     gallery.idleTimer = setTimeout(() => gallery?.stage.classList.remove('slides-companion-spotlight-pointer'), IDLE_MS);
   }
 
-  // A click on the left third goes back, on the right third forward. The middle third and the safe
-  // areas above and below the picture do nothing, and keep the regular pointer.
-  function clickDirection(event) {
-    const area = gallery.stage.querySelector('.slides-companion-spotlight-picture').getBoundingClientRect();
-    if (event.clientY < area.top || event.clientY > area.bottom) return 0;
-    if (event.clientX < innerWidth / 3) return -1;
-    if (event.clientX > (innerWidth * 2) / 3) return 1;
-    return 0;
-  }
-
-  // Where a click can move, the pointer becomes an arrow pointing the way it goes.
   function onMouseMove(event) {
     gallery.pointer = { x: event.clientX, y: event.clientY };
     wakePage(event);
     updateBars();
     revealPointer();
-    const direction = clickDirection(event);
-    const target = gallery.index + direction;
-    const canMove = direction !== 0 && target >= 0 && target < gallery.items.length;
-    gallery.stage.classList.toggle('slides-companion-spotlight-can-move', canMove);
-    gallery.stage.classList.toggle('slides-companion-spotlight-back', direction < 0);
-    gallery.stage.querySelector('.slides-companion-spotlight-cursor').style.translate = `${event.clientX}px ${event.clientY}px`;
   }
 
   function onClick(event) {
@@ -456,15 +455,56 @@
     if (bar) {
       if (event.target.closest('.slides-companion-spotlight-close')) closeStage();
       else if (event.target.closest('.slides-companion-spotlight-new-tab')) openInNewTab();
+      else if (event.target.closest('.slides-companion-spotlight-download')) downloadImage(gallery.items[gallery.index]);
       else if (event.target.closest('.slides-companion-spotlight-back')) goInPage(-1);
       else if (event.target.closest('.slides-companion-spotlight-forward')) goInPage(1);
       else if (event.target.closest('.slides-companion-spotlight-previous')) step(-1);
       else if (event.target.closest('.slides-companion-spotlight-next')) step(1);
       return;
     }
-    const direction = clickDirection(event);
-    if (direction) step(direction);
+    // Like Drive's preview: a click on the picture does nothing, and a click on the black around it
+    // closes.
+    if (!event.target.closest('.slides-companion-spotlight-picture > *')) return closeStage();
     onMouseMove(event);
+  }
+
+  // ----- Tooltips -----
+
+  // Like Slides' own in the editor (its jfk-tooltip, measured there): once the pointer has been on a
+  // control for a moment, its name, centred below it, or above where there's no room. Going straight
+  // to another control moves it at once; it goes a moment after the pointer leaves, and at once on a
+  // press, not to come back until the pointer has left the control.
+  const TIP_SHOW_MS = 350;
+  const TIP_HIDE_MS = 170;
+  const TIP_GAP = 5;
+
+  function pointAt(control) {
+    const { tip } = gallery;
+    if (control === tip.over) return;
+    tip.over = control;
+    clearTimeout(tip.timer);
+    if (!control) tip.timer = setTimeout(hideTip, TIP_HIDE_MS);
+    else if (tip.shown) showTip(control);
+    else tip.timer = setTimeout(() => showTip(control), TIP_SHOW_MS);
+  }
+
+  function showTip(control) {
+    const { tip } = gallery;
+    tip.element.textContent = control.dataset.slidesCompanionTip;
+    tip.element.hidden = false;
+    tip.shown = true;
+    const anchor = control.getBoundingClientRect();
+    const { width, height } = tip.element.getBoundingClientRect();
+    const below = anchor.bottom + TIP_GAP;
+    tip.element.style.top = `${below + height <= innerHeight ? below : anchor.top - TIP_GAP - height}px`;
+    tip.element.style.left = `${Math.min(Math.max(anchor.left + anchor.width / 2 - width / 2, 0), innerWidth - width)}px`;
+  }
+
+  function hideTip() {
+    const { tip } = gallery;
+    clearTimeout(tip.timer);
+    tip.element.hidden = true;
+    tip.shown = false;
   }
 
   // Its release, if it happens with the page gone, comes to this window (see onKeyUp).
@@ -614,13 +654,19 @@
     );
   }
 
-  // Keys reach Slides through a hidden iframe while editing, and the page itself otherwise.
+  // Keys reach Slides through a hidden iframe while editing, and the page itself otherwise; so does
+  // the right-click menu's opening.
   const listened = new WeakSet();
   function listen(target) {
     if (!target || listened.has(target)) return;
     listened.add(target);
     target.addEventListener('keydown', onKeydown, true);
     target.addEventListener('keyup', onKeyUp, true);
+    if (IN_SLIDESHOW) return;
+    const added = () => requestAnimationFrame(() => addToContextMenu());
+    target.addEventListener('contextmenu', added, true);
+    // Slides opens it on these keys itself, without the browser's contextmenu event.
+    target.addEventListener('keydown', (event) => (event.key === 'ContextMenu' || (event.key === 'F10' && event.shiftKey)) && added(), true);
   }
 
   // Registered at document_start in the slideshow, so it hears keys before Slides does.
@@ -638,32 +684,82 @@
     observer.observe(document.body, { childList: true, subtree: true });
   }
 
+  // ----- Download -----
+
+  // The picture file Slides holds for an image: as it was added (a crop is drawn over it), at up to
+  // 2048px, the most Slides keeps. Only for one picture: a group of them is no one file.
+  function imageFile(item) {
+    if (!item || isPage(item)) return null;
+    const pictures = picturesIn(item);
+    return pictures.length === 1 ? pictures[0].href.baseVal || null : null;
+  }
+
+  const EXTENSIONS = { 'image/jpeg': 'jpg', 'image/svg+xml': 'svg', 'image/tiff': 'tif' };
+
+  // Saved under the deck's name, with the file's own extension. Slides already has the file in the
+  // page, so it's saved from there.
+  async function downloadImage(item) {
+    const address = imageFile(item);
+    if (!address) return;
+    let file;
+    try {
+      file = await (await fetch(address)).blob();
+    } catch {
+      return;
+    }
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(file);
+    const type = file.type.startsWith('image/') ? file.type : 'image/png';
+    link.download = `${deckName()}.${EXTENSIONS[type] ?? type.slice('image/'.length)}`;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(link.href), 60_000);
+  }
+
+  // The page's title (the editor's, or the slideshow's: the same) less " - Google Slides", in
+  // Slides' language.
+  function deckName() {
+    return document.title.replace(/ [-–] [^-–]*$/, '').trim() || 'image';
+  }
+
   // ----- Right-click menu -----
 
-  function createMenuItem(selection) {
+  // One of our items, made like Slides' own: its icon from Slides' set, its label, and its key.
+  function createMenuItem({ icon, label, key, choose }) {
     const item = document.createElement('div');
     item.className = `goog-menuitem apps-menuitem ${MENU_ITEM_CLASS}`;
     item.setAttribute('role', 'menuitem');
     item.innerHTML = `
       <div class="goog-menuitem-content">
         <div class="docs-icon goog-inline-block goog-menuitem-icon" aria-hidden="true">
-          <div class="docs-icon-img-container docs-icon-img docs-icon-editors-ia-fullscreen"></div>
+          <div class="docs-icon-img-container docs-icon-img ${icon}"></div>
         </div>
-        <span class="goog-menuitem-label">${html('spotlightMenuItem')}</span>
-        <span class="goog-menuitem-accel" aria-label="${html('spaceKey')}">${html('spaceKey')}</span>
+        <span class="goog-menuitem-label">${label}</span>
+        ${key ? `<span class="goog-menuitem-accel" aria-label="${key}">${key}</span>` : ''}
       </div>`;
 
-    const choose = () => {
+    const chosen = () => {
       const menu = item.parentElement;
       // Escape closes the menu through Slides itself, which also returns focus to the slide.
       menu.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, which: 27, bubbles: true }));
-      openGallery(selection);
+      choose();
     };
     item.addEventListener('click', (event) => {
       event.stopPropagation();
-      choose();
+      chosen();
     });
-    return globalThis.slidesCompanion.menuItem(item, choose);
+    return globalThis.slidesCompanion.menuItem(item, chosen);
+  }
+
+  // Spotlight image, and Download image for one picture.
+  function menuItems(selection) {
+    const items = [
+      createMenuItem({ icon: 'docs-icon-editors-ia-fullscreen', label: html('spotlightMenuItem'), key: html('spaceKey'), choose: () => openGallery(selection) }),
+    ];
+    const objects = selectedObjects();
+    if (objects.length === 1 && imageFile(objects[0])) {
+      items.push(createMenuItem({ icon: 'docs-icon-download', label: html('downloadImage'), choose: () => downloadImage(objects[0]) }));
+    }
+    return items;
   }
 
   function addToContextMenu(framesLeft = 10) {
@@ -677,7 +773,8 @@
     const selection = spotlightableSelection();
     if (!selection) return;
 
-    const item = createMenuItem(selection);
+    const items = menuItems(selection);
+    const last = items.at(-1);
     let separator = null;
     // Lead the image group ("Crop image", "Replace image"…), or close the menu when it has none.
     function place() {
@@ -685,7 +782,7 @@
       if (crop) {
         separator?.remove();
         separator = null;
-        if (crop.previousElementSibling !== item) crop.before(item);
+        if (crop.previousElementSibling !== last) crop.before(...items);
         return;
       }
       const slidesSeparator = [...menu.querySelectorAll(`.goog-menuseparator:not(.${MENU_ITEM_CLASS})`)].find(isShown);
@@ -694,16 +791,15 @@
         separator.removeAttribute('id');
         separator.classList.add(MENU_ITEM_CLASS);
       }
-      if (menu.lastElementChild === item) return;
+      if (menu.lastElementChild === last) return;
       if (separator) menu.append(separator);
-      menu.append(item);
+      menu.append(...items);
     }
     place();
     // Opened with Shift+F10, Slides fills the menu after this, below what's there.
-    new MutationObserver((_, watching) => (item.isConnected ? place() : watching.disconnect())).observe(menu, { childList: true });
+    new MutationObserver((_, watching) => (last.isConnected ? place() : watching.disconnect())).observe(menu, { childList: true });
   }
 
-  if (!IN_SLIDESHOW) document.addEventListener('contextmenu', () => requestAnimationFrame(() => addToContextMenu()), true);
 
   // ----- Slideshow -----
 

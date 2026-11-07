@@ -28,44 +28,6 @@
   cursor: default;
 }
 
-.slides-companion-spotlight-pointer.slides-companion-spotlight-can-move {
-  cursor: none;
-}
-
-/* Where a click moves, the pointer is a dark round button like the controls, with an arrow pointing
-   the way the click goes. Its centre is the click point. */
-.slides-companion-spotlight-cursor {
-  position: absolute;
-  top: 0;
-  left: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  margin: -20px 0 0 -20px;
-  border-radius: 50%;
-  background: #1f1f1f;
-  color: #e3e3e3;
-  opacity: 0;
-  pointer-events: none;
-}
-
-/* No fade: it stands in for the pointer, which appears and changes at once. */
-.slides-companion-spotlight-pointer.slides-companion-spotlight-can-move .slides-companion-spotlight-cursor {
-  opacity: 1;
-}
-
-.slides-companion-spotlight-cursor svg {
-  width: 24px;
-  height: 24px;
-  fill: currentColor;
-}
-
-.slides-companion-spotlight-back .slides-companion-spotlight-cursor svg {
-  transform: rotate(180deg);
-}
-
 .slides-companion-spotlight-picture {
   position: absolute;
   inset: var(--slides-companion-safe-area) var(--slides-companion-margin);
@@ -81,10 +43,14 @@
   max-height: 100%;
 }
 
-/* The controls sit in the safe areas, on the black stage: light icons on a very dark grey surface
-   (Google's dark theme), quiet next to the picture. Hidden until the pointer comes near. */
+/* The controls sit in the safe area below the picture, on the black stage: light icons on a very dark
+   grey surface (Google's dark theme), quiet next to the picture. Hidden until the pointer comes near. */
 .slides-companion-spotlight-bar {
   position: absolute;
+  bottom: 20px;
+  left: 50%;
+  translate: -50%;
+  max-width: calc(100% - 2 * var(--slides-companion-margin));
   display: flex;
   align-items: center;
   padding: 4px;
@@ -96,25 +62,29 @@
   transition: opacity 0.25s linear;
 }
 
-.slides-companion-spotlight-bar[hidden] {
-  display: none;
-}
-
 .slides-companion-spotlight-open .slides-companion-spotlight-bar-shown {
   opacity: 1;
   pointer-events: auto;
 }
 
-.slides-companion-spotlight-navbar {
-  bottom: 20px;
-  left: 50%;
-  translate: -50%;
+.slides-companion-spotlight-group {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
 }
 
-.slides-companion-spotlight-closer {
-  top: 20px;
-  right: 20px;
-  padding: 0;
+.slides-companion-spotlight-group[hidden] {
+  display: none;
+}
+
+/* Sections are split like Slides' toolbar: a 1px line, 20px tall, 4px from the buttons beside it,
+   in Material's outline variant (#c4c7c5 there, #444746 in the dark theme). */
+.slides-companion-spotlight-group:not([hidden]) ~ .slides-companion-spotlight-group:not([hidden])::before {
+  content: '';
+  width: 1px;
+  height: 20px;
+  margin: 0 2px;
+  background: #444746;
 }
 
 .slides-companion-spotlight-bar button {
@@ -131,12 +101,6 @@
 /* Back and Forward, until the page says where it is. */
 .slides-companion-spotlight-bar button[hidden] {
   display: none;
-}
-
-/* A lone button fills its bar, so the whole 40px circle is one button. */
-.slides-companion-spotlight-bar.slides-companion-spotlight-closer button {
-  margin: 0;
-  padding: 8px;
 }
 
 .slides-companion-spotlight-bar button svg {
@@ -156,6 +120,27 @@
   cursor: default;
 }
 
+/* Slides' tooltip in the editor (jfk-tooltip, in its Material 3 look), measured there. Its colours are
+   Material's on-surface and inverse-on-surface, here in their dark theme values like the bar's. */
+.slides-companion-spotlight-tooltip {
+  position: absolute;
+  min-height: 16px;
+  padding: 3px 8px;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: #e3e3e3;
+  color: #303030;
+  font: 400 12px/16px 'Google Sans', Roboto, RobotoDraft, Helvetica, Arial, sans-serif;
+  letter-spacing: 0.1px;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  pointer-events: none;
+}
+
+.slides-companion-spotlight-tooltip[hidden] {
+  display: none;
+}
+
 /* A page a link goes to fills the picture's space. Pages that don't paint a background show white,
    as in a tab. */
 .slides-companion-spotlight-website {
@@ -166,11 +151,10 @@
   background: #fff;
 }
 
+/* A long site name shortens, the buttons stay. */
 .slides-companion-spotlight-sitebar {
-  bottom: 20px;
-  left: 50%;
-  translate: -50%;
-  max-width: calc(100% - 2 * var(--slides-companion-margin));
+  flex-shrink: 1;
+  min-width: 0;
 }
 
 /* Which image of how many, or the page's site. */

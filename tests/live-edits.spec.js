@@ -1,5 +1,8 @@
 import { test, expect, deckUrl, openSettings } from './fixtures.js';
 
+// The extension as it comes, live edits on.
+test.use({ settings: {} });
+
 // Slide 3 of the test deck: two photos and a caption ("Top kids playing…"); slide 2 is text.
 const SLIDE_2 = 'g35a1872bb6d_1_75';
 const SLIDE_3 = 'g35a1872bb6d_1_0';

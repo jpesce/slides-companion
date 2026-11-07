@@ -47,13 +47,22 @@ export const test = base.extend({
   // how Chromium loads: the floating notes window, which Playwright doesn't drive, then loads
   // nothing, not even its stylesheet.)
   slidesLanguage: [null, { option: true }],
-  context: async ({ headless, allSites, slidesLanguage }, use) => {
+  // Settings the extension starts with, to keep features out of each other's tests. Live edits
+  // loads a fresh copy of the slideshow's player when it sees the deck change, and on a busy machine
+  // Slides finishing its filmstrip can look like one, so other tests would find two players. Its own
+  // tests, and Settings', use the extension's defaults: `test.use({ settings: {} })`.
+  settings: [{ liveEdits: 'off' }, { option: true }],
+  context: async ({ headless, allSites, slidesLanguage, settings }, use) => {
     const extension = extensionCopy({ allSites, englishOnly: !slidesLanguage });
     const context = await chromium.launchPersistentContext('', {
       channel: 'chromium',
       headless,
       args: [`--disable-extensions-except=${extension}`, `--load-extension=${extension}`],
     });
+    if (Object.keys(settings).length) {
+      const worker = context.serviceWorkers()[0] ?? (await context.waitForEvent('serviceworker'));
+      await worker.evaluate((values) => chrome.storage.sync.set(values), settings);
+    }
     if (slidesLanguage) {
       await context.route(SLIDES_PAGE, (route) => {
         const url = new URL(route.request().url());
@@ -77,4 +86,18 @@ export const expect = test.expect;
 export async function openSettings(page, feature) {
   await page.locator('.slides-companion-button').click();
   await page.getByRole('dialog', { name: 'Slides Companion settings' }).getByRole('tab', { name: feature }).click();
+}
+
+// The Spotlight gallery's bar shows only as the pointer comes near, or for a moment as the gallery
+// opens. Playwright waits for a control to show before moving the pointer to it, so a test that comes
+// to the bar after that moment would wait for ever. These move the pointer there first, as a
+// presenter does.
+export async function pointTo(page, control) {
+  const box = await control.boundingBox();
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+}
+
+export async function press(page, control) {
+  const box = await control.boundingBox();
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
 }

@@ -74,10 +74,10 @@ test('in the gallery, clicks, keys and the scroll wheel stay out of the slidesho
   const { page, show } = await startSlideshow(context);
   await clickCentre(page, show.locator(`[id="${RIGHT}"] image`));
   await expect(stage(show)).toBeVisible();
-  const { width, height } = page.viewportSize();
+  const picture = await stage(show).locator('.slides-companion-spotlight-picture svg').boundingBox();
 
-  await page.mouse.click(width * 0.8, height / 2);
-  await page.mouse.click(width * 0.2, height / 2);
+  await page.mouse.click(picture.x + picture.width * 0.8, picture.y + picture.height / 2);
+  await page.mouse.click(picture.x + picture.width * 0.2, picture.y + picture.height / 2);
   await page.mouse.wheel(0, 400);
   await page.keyboard.press('PageDown');
   await page.keyboard.press('Space');
@@ -162,19 +162,18 @@ test('holding the key that closes the gallery doesn’t skip slides', async ({ c
   await expect.poll(() => slideNumber(show)).toBe(4);
 });
 
-// The ✕ shows when the gallery opens, over the top right corner of the photo.
+// A click on the black around the gallery's picture closes it, and the top of the photo is there.
 test('double clicking an image opens it, and the second click does nothing more', async ({ context }) => {
   const { page, show } = await startSlideshow(context);
-  // The ✕ is a 40px circle 20px in from the corner; this point is on it and on the photo.
+  // On the photo, and in the gallery's safe area above the picture.
   const photo = await show.locator(`[id="${RIGHT}"] image`).boundingBox();
-  const close = { x: photo.x + photo.width - 8, y: 50 };
-  expect(close.x).toBeGreaterThan(page.viewportSize().width - 60);
-  expect(close.y).toBeGreaterThan(photo.y);
-  await page.mouse.dblclick(close.x, close.y);
+  const point = { x: photo.x + photo.width / 2, y: 50 };
+  expect(point.y).toBeGreaterThan(photo.y);
+  await page.mouse.dblclick(point.x, point.y);
   await page.waitForTimeout(300);
   await expect(stage(show)).toBeVisible();
   // A fresh click works as usual.
-  await page.mouse.click(close.x, close.y);
+  await page.mouse.click(point.x, point.y);
   await expect(stage(show)).toHaveCount(0);
 });
 

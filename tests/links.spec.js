@@ -1,4 +1,4 @@
-import { test, expect, deckUrl, openSettings } from './fixtures.js';
+import { test, expect, deckUrl, openSettings, press } from './fixtures.js';
 
 // Slide 4 of the test deck: a photo linked to google.com, and a video. The photo flies in from
 // above as the slide starts.
@@ -86,7 +86,7 @@ test('the page can be browsed, and the ✕ brings the slide back', async ({ cont
   await expect(linked.getByRole('heading', { name: 'The second page' })).toBeVisible();
   expect(page.url()).toContain('/edit');
 
-  await stage(show).getByRole('button', { name: 'Close' }).click();
+  await press(page, stage(show).getByRole('button', { name: 'Close' }));
   await expect(stage(show)).toHaveCount(0);
   expect(await slideNumber(show)).toBe(4);
   // Back on the slide, keys go to the slideshow again.
@@ -100,7 +100,7 @@ test('Open in new tab opens the link in a tab of its own and closes the page ove
   const { height } = page.viewportSize();
   await page.mouse.move(200, height - 40);
   const opened = context.waitForEvent('page');
-  await stage(show).getByRole('button', { name: 'Open in new tab' }).click();
+  await press(page, stage(show).getByRole('button', { name: 'Open in new tab' }));
   expect((await opened).url()).toBe('https://www.google.com/');
   await expect(stage(show)).toHaveCount(0);
 });
@@ -145,7 +145,7 @@ test('a YouTube link plays in YouTube’s player, from where the link starts it'
   await clickLink(page, show);
   await page.mouse.move(200, page.viewportSize().height - 40);
   const opened = context.waitForEvent('page');
-  await stage(show).getByRole('button', { name: 'Open in new tab' }).click();
+  await press(page, stage(show).getByRole('button', { name: 'Open in new tab' }));
   expect((await opened).url()).toContain('https://www.youtube.com/watch?v=10QOOvxw0uA');
 });
 
@@ -200,7 +200,7 @@ test('an http link opens at its https address, and in a new tab as it was', asyn
   await expect(website(show)).toHaveAttribute('src', 'https://www.google.com/');
   await page.mouse.move(200, page.viewportSize().height - 40);
   const opened = context.waitForEvent('page');
-  await stage(show).getByRole('button', { name: 'Open in new tab' }).click();
+  await press(page, stage(show).getByRole('button', { name: 'Open in new tab' }));
   expect((await opened).url()).toBe('http://www.google.com/');
 });
 
@@ -235,7 +235,7 @@ test('a page can’t take the keys until the pointer goes over it, so Esc still 
   await input.click();
   await page.keyboard.type('jazz');
   await expect(input).toHaveValue('jazz');
-  await stage(show).getByRole('button', { name: 'Close' }).click();
+  await press(page, stage(show).getByRole('button', { name: 'Close' }));
   await expect(stage(show)).toHaveCount(0);
 
   // A page on Slides' own site closes with Esc even then.

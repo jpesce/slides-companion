@@ -21,9 +21,9 @@ test('with Slides in Portuguese, our menu items, Settings and presenter view spe
   // The image's right-click menu.
   const box = await page.locator(RIGHT_IMAGE).first().boundingBox();
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2, { button: 'right' });
-  const spotlight = page.locator('.slides-companion-spotlight-menuitem');
-  await expect(spotlight.locator('.goog-menuitem-label')).toHaveText('Destacar imagem');
-  await expect(spotlight.locator('.goog-menuitem-accel')).toHaveText('Espaço');
+  const ours = page.locator('.slides-companion-spotlight-menuitem');
+  await expect(ours.locator('.goog-menuitem-label')).toHaveText(['Destacar imagem', 'Fazer download da imagem']);
+  await expect(ours.locator('.goog-menuitem-accel')).toHaveText('Espaço');
   await page.keyboard.press('Escape');
 
   // Settings, and the framed checkbox in it.
