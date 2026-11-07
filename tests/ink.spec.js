@@ -57,28 +57,27 @@ const strokes = (show, selector = KEPT) =>
     });
   }, selector);
 
-// Keeping is off unless it's turned on in Settings.
-async function turnOnKeeping(context) {
+// Keeping is on unless it's turned off in Settings.
+async function turnOffKeeping(context) {
   const page = await context.newPage();
   await page.goto(slide);
   await openSettings(page, 'Pen');
-  await page.getByRole('checkbox', { name: /Keep what you draw/ }).check();
+  await page.getByRole('checkbox', { name: /Keep what you draw/ }).uncheck();
   await page.getByRole('button', { name: 'OK' }).click();
   await page.close();
 }
 
 const near = (a, b) => a.every((stroke, i) => stroke.box.every((value, j) => Math.abs(value - b[i].box[j]) < 0.004));
 
-test('at first, as in Slides, the pen’s ink goes when the slideshow ends', async ({ context }) => {
+test('with keeping turned off in Settings, as in Slides, the pen’s ink goes when the slideshow ends', async ({ context }) => {
+  await turnOffKeeping(context);
   await drawAndLeave(context, (page) => drawStroke(page, [400, 300], [600, 420]));
   const { page, show } = await startSlideshow(context);
   await page.waitForTimeout(500);
   await expect(ink(show)).toHaveCount(0);
 });
 
-test.describe('with keeping turned on in Settings', () => {
-  test.beforeEach(({ context }) => turnOnKeeping(context));
-
+test.describe('kept from the start', () => {
   test('what the pen draws shows again the next time the deck is presented, as it was drawn', async ({ context }) => {
     const drawn = await drawAndLeave(context, (page) => drawStroke(page, [400, 300], [600, 420]));
     expect(drawn).toHaveLength(1);

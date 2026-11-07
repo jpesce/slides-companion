@@ -40,7 +40,7 @@ test('the companion shows a tooltip and opens Settings', async ({ context }) => 
   await expect(dialog(page).getByRole('group', { name: 'When you scroll during a slideshow' }).getByRole('radio', { name: /Zoom into the slide/ })).toBeChecked();
   await expect(dialog(page).getByRole('group', { name: 'When you scroll while editing' }).getByRole('radio', { name: /next or previous slide/ })).toBeChecked();
   await feature(page, 'Pen').click();
-  await expect(dialog(page).getByRole('checkbox', { name: /Keep what you draw/ })).not.toBeChecked();
+  await expect(dialog(page).getByRole('checkbox', { name: /Keep what you draw/ })).toBeChecked();
   await feature(page, 'Timer').click();
   await expect(dialog(page).getByRole('radio', { name: /2 minutes before the end/ })).toBeChecked();
   await feature(page, 'Live edits').click();
@@ -72,7 +72,7 @@ test('each feature has a page of its own, saying what the feature does, and the 
   await expect(feature(page, 'Spotlight')).toHaveAttribute('aria-selected', 'false');
   await expect(dialog(page).getByRole('tabpanel', { name: 'Pen' })).toContainText('press Shift + L to draw on a slide, and Shift + A to Erase all');
   await expect(together(page)).toHaveCount(0);
-  await dialog(page).getByRole('checkbox', { name: /Keep what you draw/ }).check();
+  await dialog(page).getByRole('checkbox', { name: /Keep what you draw/ }).uncheck();
   await feature(page, 'Timer').click();
   await dialog(page).getByRole('radio', { name: /5 minutes before the end/ }).check();
   await feature(page, 'Spotlight').click();
@@ -84,7 +84,7 @@ test('each feature has a page of its own, saying what the feature does, and the 
   await companion(page).click();
   await expect(apart(page)).toBeChecked();
   await feature(page, 'Pen').click();
-  await expect(dialog(page).getByRole('checkbox', { name: /Keep what you draw/ })).toBeChecked();
+  await expect(dialog(page).getByRole('checkbox', { name: /Keep what you draw/ })).not.toBeChecked();
   await feature(page, 'Timer').click();
   await expect(dialog(page).getByRole('radio', { name: /5 minutes before the end/ })).toBeChecked();
 });

@@ -15,9 +15,9 @@ if (!globalThis.slidesCompanion?.settings) {
     // or 'nothing'.
     slideshowScroll: 'zoom',
     editorScroll: 'slides',
-    // What the pen draws in a slideshow shows again the next time the deck is presented. Off, as in
-    // Slides, the pen's ink goes when the slideshow ends.
-    keepInk: false,
+    // What the pen draws in a slideshow shows again the next time the deck is presented: it's what
+    // the extension adds to Slides' pen. Off, as in Slides, the pen's ink goes when the slideshow ends.
+    keepInk: true,
     // In presenter view, how many minutes before the end the countdown turns orange.
     countdownWarning: '2',
     // In presenter view, a bar under the countdown fills up as the time goes.
