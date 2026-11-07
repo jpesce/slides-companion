@@ -112,16 +112,14 @@
   min-width: 0;
 }
 
-/* Material 3's Body Small in on-surface-variant, in the row's colour when it's chosen. */
+/* Material 3's Body Small in on-surface-variant, in the row's colour when it's chosen. It wraps,
+   as Android's Settings summaries do, so a longer language keeps every word. */
 .slides-companion-settings-feature-summary {
-  overflow: hidden;
   color: #444746;
   font-size: 12px;
   font-weight: 400;
   line-height: 16px;
   letter-spacing: normal;
-  white-space: nowrap;
-  text-overflow: ellipsis;
 }
 
 .slides-companion-settings-feature[aria-selected="true"] .slides-companion-settings-feature-summary {

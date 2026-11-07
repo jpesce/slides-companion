@@ -204,7 +204,7 @@ test('the keyboard opens Settings from the companion', async ({ context }) => {
 // asks for access to every site only from there). Chrome's question can't be answered by a test,
 // so the frame's calls to it are played: they note what they were asked in the extension's storage.
 async function playChromesQuestion(page) {
-  const isAllSites = (frame) => frame.url().endsWith('/all-sites.html');
+  const isAllSites = (frame) => frame.url().includes('/all-sites.html');
   await expect.poll(() => page.frames().some(isAllSites)).toBe(true);
   const frame = page.frames().find(isAllSites);
   await frame.waitForFunction(() => document.readyState === 'complete');

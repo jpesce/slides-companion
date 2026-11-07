@@ -11,31 +11,57 @@ export const deckUrl =
   process.env.TEST_DECK_URL ??
   'https://docs.google.com/presentation/d/1XouicC310558IOk_VJ7uu55kxBO7TY-19suR998ONOo/edit';
 
-// Chrome asks the presenter before giving the extension every site (Settings), and a test can't
-// answer it. With `test.use({ allSites: true })`, the extension is loaded from a copy that has
-// every site from the start.
-let allSitesPath;
-function allSitesExtension() {
-  if (allSitesPath) return allSitesPath;
-  allSitesPath = fs.mkdtempSync(path.join(os.tmpdir(), 'slides-companion-all-sites-'));
-  fs.cpSync(extensionPath, allSitesPath, { recursive: true });
-  const manifestPath = path.join(allSitesPath, 'manifest.json');
-  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
-  manifest.host_permissions.push(...manifest.optional_host_permissions);
-  fs.writeFileSync(manifestPath, JSON.stringify(manifest));
-  return allSitesPath;
+// The extension as a test loads it: a copy, made once per run for each kind.
+// - Chrome asks the presenter before giving the extension every site (Settings), and a test can't
+//   answer it. With `test.use({ allSites: true })`, the copy has every site from the start.
+// - The extension speaks Slides' language, and signed out, Slides speaks the location's. So unless a
+//   test picks Slides' language (`test.use({ slidesLanguage: 'pt-BR' })`), the copy knows only
+//   English, and every test reads the same words wherever it runs.
+const copies = new Map();
+function extensionCopy({ allSites, englishOnly }) {
+  const kind = `${allSites ? 'all-sites' : 'own-sites'}-${englishOnly ? 'english' : 'every-language'}`;
+  if (copies.has(kind)) return copies.get(kind);
+  const copy = fs.mkdtempSync(path.join(os.tmpdir(), `slides-companion-${kind}-`));
+  fs.cpSync(extensionPath, copy, { recursive: true });
+  if (allSites) {
+    const manifestPath = path.join(copy, 'manifest.json');
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+    manifest.host_permissions.push(...manifest.optional_host_permissions);
+    fs.writeFileSync(manifestPath, JSON.stringify(manifest));
+  }
+  if (englishOnly) {
+    fs.appendFileSync(path.join(copy, 'messages.js'), '\nglobalThis.slidesCompanion.messages = { en: globalThis.slidesCompanion.messages.en };\n');
+  }
+  copies.set(kind, copy);
+  return copy;
 }
+
+// Slides' pages: the editor, and the slideshow, in its frame or a tab of its own.
+const SLIDES_PAGE = /^https:\/\/docs\.google\.com\/presentation\/d\/[^/]+\/(edit|present|localpresent)\b/;
 
 // Branded Chrome ignores --load-extension since v137, so this uses Playwright's Chromium.
 export const test = base.extend({
   allSites: [false, { option: true }],
-  context: async ({ headless, allSites }, use) => {
-    const extension = allSites ? allSitesExtension() : extensionPath;
+  // The language Slides speaks, and so the extension. `hl` in the deck's address reaches the editor
+  // but not the slideshow, so it goes on each of Slides' pages as they're asked for. (Asking changes
+  // how Chromium loads: the floating notes window, which Playwright doesn't drive, then loads
+  // nothing, not even its stylesheet.)
+  slidesLanguage: [null, { option: true }],
+  context: async ({ headless, allSites, slidesLanguage }, use) => {
+    const extension = extensionCopy({ allSites, englishOnly: !slidesLanguage });
     const context = await chromium.launchPersistentContext('', {
       channel: 'chromium',
       headless,
       args: [`--disable-extensions-except=${extension}`, `--load-extension=${extension}`],
     });
+    if (slidesLanguage) {
+      await context.route(SLIDES_PAGE, (route) => {
+        const url = new URL(route.request().url());
+        if (url.searchParams.get('hl') === slidesLanguage) return route.fallback();
+        url.searchParams.set('hl', slidesLanguage);
+        return route.continue({ url: url.href });
+      });
+    }
     await use(context);
     await context.close();
   },

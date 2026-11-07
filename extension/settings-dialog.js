@@ -7,16 +7,33 @@
   // Material's checkmark, drawn in by stroke (see settings-dialog.css).
   const CHECKMARK = '<svg viewBox="0 0 24 24"><path d="M1.73 12.91 8.1 19.28 22.79 4.59"/></svg>';
 
-  // An option in a group of choices.
+  // A message, made safe to write into the dialog's HTML.
+  const words = (key, ...values) => globalThis.slidesCompanion.html(key, ...values);
+
+  // An option in a group of choices, its label and hint named by message.
   const radio = (name, value, label, hint) => `
     <label class="slides-companion-dialog-option">
       <input type="radio" name="${name}" value="${value}">
       <span class="slides-companion-radio" aria-hidden="true"></span>
       <span class="slides-companion-dialog-label">
-        ${label}
-        <span class="slides-companion-dialog-hint">(${hint})</span>
+        ${words(label)}
+        <span class="slides-companion-dialog-hint">(${words(hint)})</span>
       </span>
     </label>`;
+
+  // A checkbox, its label and hint named by message.
+  const checkbox = (name, label, hint) => `
+    <label class="slides-companion-dialog-option">
+      <input type="checkbox" name="${name}">
+      <span class="slides-companion-checkbox" aria-hidden="true">${CHECKMARK}</span>
+      <span class="slides-companion-dialog-label">
+        ${words(label)}
+        <span class="slides-companion-dialog-hint">(${words(hint)})</span>
+      </span>
+    </label>`;
+
+  const about = (key, ...values) => `<p class="slides-companion-dialog-text">${words(key, ...values)}</p>`;
+  const legend = (key) => `<legend class="slides-companion-dialog-legend">${words(key)}</legend>`;
 
   // Material Symbols (Apache 2.0), the icons Meet's Settings uses.
   const icon = (path) => `<svg viewBox="0 -960 960 960" aria-hidden="true"><path d="${path}"/></svg>`;
@@ -25,127 +42,88 @@
   const FEATURES = [
     {
       id: 'spotlight',
-      name: 'Spotlight',
-      summary: 'See images full screen',
+      name: 'spotlightName',
+      summary: 'spotlightSummary',
       icon: icon('M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-560H200v560Zm40-80h480L570-480 450-320l-90-120-120 160Zm-40 80v-560 560Z'),
-      page: `
-        <p class="slides-companion-dialog-text">
-          Select an image and press Space to see it full screen, on black. Use ← and → to go through
-          the other images on the slide.
-        </p>
-        <label class="slides-companion-dialog-option">
-          <input type="checkbox" name="spotlightOnClick">
-          <span class="slides-companion-checkbox" aria-hidden="true">${CHECKMARK}</span>
-          <span class="slides-companion-dialog-label">
-            Spotlight an image when you click it in a full screen slideshow
-            <span class="slides-companion-dialog-hint">(clicking anywhere else goes to the next slide, unless you’ve zoomed in)</span>
-          </span>
-        </label>
+      page: () => `
+        ${about('spotlightAbout')}
+        ${checkbox('spotlightOnClick', 'spotlightOnClick', 'spotlightOnClickHint')}
         <fieldset class="slides-companion-dialog-group">
-          <legend class="slides-companion-dialog-legend">When images are grouped</legend>
-          ${radio('groupedImages', 'together', 'Show the group as one image', 'for example, a photo grouped with its caption')}
-          ${radio('groupedImages', 'apart', 'Show each image on its own', 'for example, photos grouped to keep a layout tidy')}
+          ${legend('groupedImages')}
+          ${radio('groupedImages', 'together', 'groupedTogether', 'groupedTogetherHint')}
+          ${radio('groupedImages', 'apart', 'groupedApart', 'groupedApartHint')}
         </fieldset>`,
     },
     {
       id: 'links',
-      name: 'Links',
-      summary: 'Open links over the slide',
+      name: 'linksName',
+      summary: 'linksSummary',
       icon: icon('M440-280H280q-83 0-141.5-58.5T80-480q0-83 58.5-141.5T280-680h160v80H280q-50 0-85 35t-35 85q0 50 35 85t85 35h160v80ZM320-440v-80h320v80H320Zm200 160v-80h160q50 0 85-35t35-85q0-50-35-85t-85-35H520v-80h160q83 0 141.5 58.5T880-480q0 83-58.5 141.5T680-280H520Z'),
-      page: `
-        <p class="slides-companion-dialog-text">
-          During a slideshow, click a link to open it over the slide, and press Esc to come back. Some
-          sites don’t allow being shown over a slide. For those, choose Open in new tab at the bottom
-          of the screen, or let them all be shown.
-        </p>
-        <iframe class="slides-companion-dialog-frame" src="${chrome.runtime.getURL('all-sites.html')}" title="Every site"></iframe>
+      // The framed checkbox speaks the dialog's language.
+      page: () => `
+        ${about('linksAbout', globalThis.slidesCompanion.text('openInNewTab'))}
+        <iframe class="slides-companion-dialog-frame" src="${chrome.runtime.getURL(`all-sites.html?hl=${globalThis.slidesCompanion.locale()}`)}" title="${words('allSitesFrame')}"></iframe>
         <fieldset class="slides-companion-dialog-group">
-          <legend class="slides-companion-dialog-legend">When you click a link during a slideshow</legend>
-          ${radio('slideshowLinks', 'here', 'Open it over the slide', 'press Esc to come back to your slide, right where you left it')}
-          ${radio('slideshowLinks', 'tab', 'Open it in a new tab', 'as Slides does on its own')}
+          ${legend('slideshowLinks')}
+          ${radio('slideshowLinks', 'here', 'linksHere', 'linksHereHint')}
+          ${radio('slideshowLinks', 'tab', 'linksTab', 'asSlidesDoes')}
         </fieldset>`,
     },
     {
       id: 'zoom',
-      name: 'Zoom & scroll',
-      summary: 'Mouse wheel and trackpad',
+      name: 'zoomName',
+      summary: 'zoomSummary',
       icon: icon('M784-120 532-372q-30 24-69 38t-83 14q-109 0-184.5-75.5T120-580q0-109 75.5-184.5T380-840q109 0 184.5 75.5T640-580q0 44-14 83t-38 69l252 252-56 56ZM380-400q75 0 127.5-52.5T560-580q0-75-52.5-127.5T380-760q-75 0-127.5 52.5T200-580q0 75 52.5 127.5T380-400Zm-40-60v-80h-80v-80h80v-80h80v80h80v80h-80v80h-80Z'),
-      page: `
-        <p class="slides-companion-dialog-text">
-          During a slideshow, scroll, pinch or press + and − to zoom, and drag to look around.
-          Changing slides zooms back out.
-        </p>
+      page: () => `
+        ${about('zoomAbout')}
         <fieldset class="slides-companion-dialog-group">
-          <legend class="slides-companion-dialog-legend">When you scroll during a slideshow</legend>
-          ${radio('slideshowScroll', 'zoom', 'Zoom into the slide', 'while zoomed in, clicking the slide doesn’t change slides')}
-          ${radio('slideshowScroll', 'nothing', 'Do nothing', 'so a brush of the trackpad never skips a slide')}
-          ${radio('slideshowScroll', 'slides', 'Go to the next or previous slide', 'as Slides does on its own')}
+          ${legend('slideshowScroll')}
+          ${radio('slideshowScroll', 'zoom', 'scrollZoom', 'scrollZoomHint')}
+          ${radio('slideshowScroll', 'nothing', 'scrollNothing', 'scrollNothingHint')}
+          ${radio('slideshowScroll', 'slides', 'scrollSlides', 'asSlidesDoes')}
         </fieldset>
         <fieldset class="slides-companion-dialog-group">
-          <legend class="slides-companion-dialog-legend">When you scroll while editing</legend>
-          ${radio('editorScroll', 'slides', 'Go to the next or previous slide', 'as Slides does on its own')}
-          ${radio('editorScroll', 'nothing', 'Do nothing', 'you can still scroll around a slide you’ve zoomed into')}
+          ${legend('editorScroll')}
+          ${radio('editorScroll', 'slides', 'scrollSlides', 'asSlidesDoes')}
+          ${radio('editorScroll', 'nothing', 'scrollNothing', 'editorScrollNothingHint')}
         </fieldset>`,
     },
     {
       id: 'pen',
-      name: 'Pen',
-      summary: 'Draw on slides',
+      name: 'penName',
+      summary: 'penSummary',
       icon: icon('m490-527 37 37 217-217-37-37-217 217ZM200-200h37l233-233-37-37-233 233v37Zm355-205L405-555l167-167-29-29-219 219-56-56 218-219q24-24 56.5-24t56.5 24l29 29 50-50q12-12 28.5-12t28.5 12l93 93q12 12 12 28.5T828-678L555-405ZM270-120H120v-150l285-285 150 150-285 285Z'),
-      page: `
-        <p class="slides-companion-dialog-text">
-          During a slideshow, press Shift + L to draw on a slide, and Shift + A to Erase all.
-        </p>
-        <label class="slides-companion-dialog-option">
-          <input type="checkbox" name="keepInk">
-          <span class="slides-companion-checkbox" aria-hidden="true">${CHECKMARK}</span>
-          <span class="slides-companion-dialog-label">
-            Keep what you draw after the slideshow ends
-            <span class="slides-companion-dialog-hint">(it’s back on the same slide the next time you present on this computer, until you choose Erase all)</span>
-          </span>
-        </label>`,
+      page: () => `
+        ${about('penAbout')}
+        ${checkbox('keepInk', 'keepInk', 'keepInkHint')}`,
     },
     {
       id: 'timer',
-      name: 'Timer',
-      summary: 'Count down in presenter view',
+      name: 'timerName',
+      summary: 'timerSummary',
       icon: icon('M360-840v-80h240v80H360Zm80 440h80v-240h-80v240Zm-99.5 291.5Q275-137 226-186t-77.5-114.5Q120-366 120-440t28.5-139.5Q177-645 226-694t114.5-77.5Q406-800 480-800q62 0 119 20t107 58l56-56 56 56-56 56q38 50 58 107t20 119q0 74-28.5 139.5T734-186q-49 49-114.5 77.5T480-80q-74 0-139.5-28.5ZM678-242q82-82 82-198t-82-198q-82-82-198-82t-198 82q-82 82-82 198t82 198q82 82 198 82t198-82ZM480-440Z'),
-      page: `
-        <p class="slides-companion-dialog-text">
-          In presenter view, press the timer button beside Pause and Reset, or the time itself, to count
-          down from how long you have. Past the end, it keeps counting in red. Each deck remembers its
-          time.
-        </p>
-        <label class="slides-companion-dialog-option">
-          <input type="checkbox" name="countdownBar">
-          <span class="slides-companion-checkbox" aria-hidden="true">${CHECKMARK}</span>
-          <span class="slides-companion-dialog-label">
-            Show a bar under the time that fills up as it goes
-            <span class="slides-companion-dialog-hint">(a glance tells you how far through your talk you are)</span>
-          </span>
-        </label>
+      page: () => `
+        ${about('timerAbout')}
+        ${checkbox('countdownBar', 'countdownBar', 'countdownBarHint')}
         <fieldset class="slides-companion-dialog-group">
-          <legend class="slides-companion-dialog-legend">Turn the timer orange</legend>
-          ${radio('countdownWarning', '1', '1 minute before the end', 'for short talks')}
-          ${radio('countdownWarning', '2', '2 minutes before the end', 'time to wrap up most talks')}
-          ${radio('countdownWarning', '5', '5 minutes before the end', 'for long talks and workshops')}
+          ${legend('countdownWarning')}
+          ${radio('countdownWarning', '1', 'warning1', 'warning1Hint')}
+          ${radio('countdownWarning', '2', 'warning2', 'warning2Hint')}
+          ${radio('countdownWarning', '5', 'warning5', 'warning5Hint')}
         </fieldset>`,
     },
     {
       id: 'live-edits',
-      name: 'Edits during a slideshow',
-      summary: 'Shown within seconds',
+      name: 'liveEditsName',
+      summary: 'liveEditsSummary',
       icon: icon('M160-160v-80h110l-16-14q-52-46-73-105t-21-119q0-111 66.5-197.5T400-790v84q-72 26-116 88.5T240-478q0 45 17 87.5t53 78.5l10 10v-98h80v240H160Zm400-10v-84q72-26 116-88.5T720-482q0-45-17-87.5T650-648l-10-10v98h-80v-240h240v80H690l16 14q49 49 71.5 106.5T800-482q0 111-66.5 197.5T560-170Z'),
-      page: `
-        <p class="slides-companion-dialog-text">
-          When the deck is edited while you present it, by you in another tab or by someone else, the
-          slideshow shows it within a few seconds. Other slides update without anyone noticing.
-        </p>
+      page: () => `
+        ${about('liveEditsAbout')}
         <fieldset class="slides-companion-dialog-group">
-          <legend class="slides-companion-dialog-legend">The slide on screen changes</legend>
-          ${radio('liveEdits', 'now', 'Right away', 'it fades into its new version once nothing on it is moving')}
-          ${radio('liveEdits', 'later', 'Once you’ve moved to another slide', 'so it never changes while you’re talking about it')}
-          ${radio('liveEdits', 'off', 'Not until the next slideshow', 'the whole slideshow stays as it was when you started, as Slides does on its own')}
+          ${legend('liveEdits')}
+          ${radio('liveEdits', 'now', 'liveEditsNow', 'liveEditsNowHint')}
+          ${radio('liveEdits', 'later', 'liveEditsLater', 'liveEditsLaterHint')}
+          ${radio('liveEdits', 'off', 'liveEditsOff', 'liveEditsOffHint')}
         </fieldset>`,
     },
   ];
@@ -156,12 +134,12 @@
   // Laid out like Google Meet's Settings: the features down the side, each with a line on what it's
   // about as in Android's Settings, the chosen one's page beside them, and the first one chosen.
   // Each page opens with an illustration of the feature, as Android's Settings pages do
-  // (illustrations.js).
-  const SETTINGS_HTML = `
+  // (illustrations.js). Written as it opens, in the language Slides is in then.
+  const settingsHtml = () => `
     <div class="slides-companion-dialog-scrim"></div>
-    <div class="slides-companion-dialog" role="dialog" aria-modal="true" aria-label="Slides Companion settings">
+    <div class="slides-companion-dialog" role="dialog" aria-modal="true" aria-label="${words('settingsLabel')}">
       <div class="slides-companion-settings-side">
-        <h2 class="slides-companion-dialog-title">Settings</h2>
+        <h2 class="slides-companion-dialog-title">${words('settingsTitle')}</h2>
         <div class="slides-companion-settings-features" role="tablist" aria-orientation="vertical">
           ${FEATURES.map((feature, index) => `
             <button type="button" class="slides-companion-settings-feature" role="tab" id="${tabId(feature)}"
@@ -169,8 +147,8 @@
               aria-labelledby="${tabId(feature)}-name" aria-describedby="${tabId(feature)}-summary">
               ${feature.icon}
               <span class="slides-companion-settings-feature-text">
-                <span id="${tabId(feature)}-name">${feature.name}</span>
-                <span class="slides-companion-settings-feature-summary" id="${tabId(feature)}-summary">${feature.summary}</span>
+                <span id="${tabId(feature)}-name">${words(feature.name)}</span>
+                <span class="slides-companion-settings-feature-summary" id="${tabId(feature)}-summary">${words(feature.summary)}</span>
               </span>
             </button>`).join('')}
         </div>
@@ -180,12 +158,12 @@
           ${FEATURES.map((feature, index) => `
             <div class="slides-companion-settings-page" role="tabpanel" id="${pageId(feature)}" aria-labelledby="${tabId(feature)}"${index === 0 ? '' : ' hidden'}>
               ${globalThis.slidesCompanion.illustrations[feature.id]}
-              ${feature.page}
+              ${feature.page()}
             </div>`).join('')}
         </div>
         <div class="slides-companion-dialog-actions">
-          <button type="button" class="slides-companion-button-text" data-action="cancel">Cancel</button>
-          <button type="button" class="slides-companion-button-filled" data-action="ok">OK</button>
+          <button type="button" class="slides-companion-button-text" data-action="cancel">${words('cancel')}</button>
+          <button type="button" class="slides-companion-button-filled" data-action="ok">${words('ok')}</button>
         </div>
       </div>
     </div>`;
@@ -205,7 +183,7 @@
 
     root = document.createElement('div');
     root.className = 'slides-companion-dialog-root';
-    root.innerHTML = SETTINGS_HTML;
+    root.innerHTML = settingsHtml();
     for (const input of root.querySelectorAll('input')) {
       input.checked = input.type === 'checkbox' ? settings.get(input.name) : settings.get(input.name) === input.value;
     }

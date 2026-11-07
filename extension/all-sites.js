@@ -4,6 +4,11 @@
 {
   const ALL_SITES = { origins: ['*://*/*'] };
   const DIALOG_ORIGIN = 'https://docs.google.com';
+  document.documentElement.lang = new URLSearchParams(location.search).get('hl') ?? 'en';
+  for (const element of document.querySelectorAll('[data-message]')) {
+    element.textContent = globalThis.slidesCompanion.text(element.dataset.message);
+  }
+
   const box = document.querySelector('input');
   let granted = false;
   let grantedHere = false;

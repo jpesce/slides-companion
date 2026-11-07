@@ -86,7 +86,7 @@ test('the menu ticks how the timer counts, and keeps the last time typed', async
   await countDownFrom(first.presenter, '1:30:00');
   await expect(countdown(first.presenter)).toHaveText(/^01:(30:00|29:5\d)$/);
   await button(first.presenter).click();
-  await expect(choice(first.presenter, 'Count down from 1 hour 30 minutes')).toHaveAttribute('aria-checked', 'true');
+  await expect(choice(first.presenter, 'Count down from 1 hour, 30 minutes')).toHaveAttribute('aria-checked', 'true');
   await expect(choice(first.presenter, 'Count up, as usual')).toHaveAttribute('aria-checked', 'false');
   await expect(choice(first.presenter, 'Add 1 minute')).toBeVisible();
   // A time the menu has is ticked, not added again.
@@ -96,7 +96,7 @@ test('the menu ticks how the timer counts, and keeps the last time typed', async
   await first.presenter.keyboard.press('Enter');
   await button(first.presenter).click();
   await expect(choice(first.presenter, 'Count down from 30 minutes')).toHaveAttribute('aria-checked', 'true');
-  await expect(choice(first.presenter, 'Count down from 1 hour 30 minutes')).toHaveAttribute('aria-checked', 'false');
+  await expect(choice(first.presenter, 'Count down from 1 hour, 30 minutes')).toHaveAttribute('aria-checked', 'false');
   await expect(menu(first.presenter).locator('.goog-menuitem')).toHaveCount(11);
   await first.presenter.close();
   await first.page.close();
@@ -119,7 +119,7 @@ test('each deck remembers its time, and whether it was counting down', async ({ 
   await expect(slidesTime(presenter)).toBeVisible();
   await expect(countdown(presenter)).toBeHidden();
   await button(presenter).click();
-  await expect(choice(presenter, 'Count down from 1 hour 30 minutes')).toHaveAttribute('aria-checked', 'false');
+  await expect(choice(presenter, 'Count down from 1 hour, 30 minutes')).toHaveAttribute('aria-checked', 'false');
 });
 
 test('changing the time while counting down keeps the time already spent', async ({ context }) => {

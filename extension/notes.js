@@ -16,7 +16,8 @@
   const OPEN_ATTRIBUTE = 'data-slides-companion-notes-open';
   const WINDOWED_ATTRIBUTE = 'data-slides-companion-windowed';
   const MENU_ITEM_CLASS = 'slides-companion-notes-menuitem';
-  const label = (open) => (open ? 'Close floating notes' : 'Open floating notes');
+  const { text, html } = globalThis.slidesCompanion;
+  const label = (open) => text(open ? 'closeFloatingNotes' : 'openFloatingNotes');
 
   const isToggleKey = (event) =>
     event.key?.toLowerCase() === 's' && event.shiftKey && !event.metaKey && !event.ctrlKey && !event.altKey;
@@ -61,12 +62,12 @@
         <div class="punch-viewer-speakernotes-text-header-container">
           <h3 class="punch-viewer-speakernotes-text-header"></h3>
           <div class="punch-viewer-speakernotes-zoom-container">
-            <div role="button" class="goog-inline-block jfk-button jfk-button-standard" tabindex="0" title="Put the slideshow back in full screen" data-full-screen style="display: none;">
-              <span class="jfk-button-label">Full screen</span>
+            <div role="button" class="goog-inline-block jfk-button jfk-button-standard" tabindex="0" title="${html('notesFullScreenTip')}" data-full-screen style="display: none;">
+              <span class="jfk-button-label">${html('notesFullScreen')}</span>
             </div>
-            <div role="button" class="goog-inline-block jfk-button jfk-button-standard jfk-button-narrow jfk-button-collapse-right" tabindex="0" title="Zoom out" data-zoom="-1">
+            <div role="button" class="goog-inline-block jfk-button jfk-button-standard jfk-button-narrow jfk-button-collapse-right" tabindex="0" title="${html('notesZoomOut')}" data-zoom="-1">
               <div class="punch-viewer-speakernotes-zoom-minus punch-viewer-speakernotes-zoom-button jfk-button-img punch-viewer-icon-large"></div>
-            </div><div role="button" class="goog-inline-block jfk-button jfk-button-standard jfk-button-narrow jfk-button-collapse-left" tabindex="0" title="Zoom in" data-zoom="1">
+            </div><div role="button" class="goog-inline-block jfk-button jfk-button-standard jfk-button-narrow jfk-button-collapse-left" tabindex="0" title="${html('notesZoomIn')}" data-zoom="1">
               <div class="punch-viewer-speakernotes-zoom-plus punch-viewer-speakernotes-zoom-button jfk-button-img punch-viewer-icon-large"></div>
             </div>
           </div>
@@ -87,14 +88,21 @@
     let zoom = 0;
     let size = { width: 420, height: 320 };
     // How Slides names a slide, in the deck's language, learnt from the last slideshow.
-    let slideLabel = 'Slide {n} of {total}';
+    let slideLabel = text('notesSlideName', '{n}', '{total}');
     // What an empty notes box says, learnt from the last one seen (see showsPlaceholder).
-    let placeholder = 'Click to add speaker notes';
-    chrome.storage.local.get(['notesZoom', 'notesWindow', 'slideLabel', 'notesPlaceholder']).then((stored) => {
+    let placeholder = text('notesPlaceholder');
+    // Each learnt in the language Slides speaks, and kept for it.
+    const language = document.documentElement.lang;
+    const learn = (key, value) =>
+      chrome.storage.local
+        .get(key)
+        .then((stored) => chrome.storage.local.set({ [key]: { ...stored[key], [language]: value } }))
+        .catch(() => {});
+    chrome.storage.local.get(['notesZoom', 'notesWindow', 'slideLabels', 'notesPlaceholders']).then((stored) => {
       zoom = stored.notesZoom ?? zoom;
       size = stored.notesWindow ?? size;
-      slideLabel = stored.slideLabel ?? slideLabel;
-      placeholder = stored.notesPlaceholder ?? placeholder;
+      slideLabel = stored.slideLabels?.[language] ?? slideLabel;
+      placeholder = stored.notesPlaceholders?.[language] ?? placeholder;
     });
 
     // The player on screen: a copy may have taken over from Slides' own (see live-edits.js).
@@ -108,7 +116,7 @@
         const learnt = name.replace(/\d+/, '{n}').replace(/\d+/, '{total}');
         if (learnt !== slideLabel && learnt.includes('{total}')) {
           slideLabel = learnt;
-          chrome.storage.local.set({ slideLabel }).catch(() => {});
+          learn('slideLabels', slideLabel);
         }
         return name;
       }
@@ -167,7 +175,7 @@
       const fresh = !workspace.querySelector('g[direction]')?.style.opacity;
       if (fresh && workspace.querySelectorAll('g[id*="-paragraph-"]').length === 1 && text !== placeholder) {
         placeholder = text;
-        chrome.storage.local.set({ notesPlaceholder: placeholder }).catch(() => {});
+        learn('notesPlaceholders', placeholder);
       }
       return text === placeholder;
     }
@@ -339,7 +347,7 @@
       }
       stopKeeping(true);
       const doc = floating.document;
-      doc.title = 'Speaker notes';
+      doc.title = text('notesTitle');
       for (const href of [viewerStylesheet(), ROBOTO]) {
         if (!href) continue;
         const sheet = doc.createElement('link');
@@ -417,7 +425,7 @@
     item.innerHTML = `
       <div class="goog-menuitem-content">
         <div class="goog-menuitem-checkbox"></div>
-        <span class="goog-menuitem-label">Show floating notes</span>
+        <span class="goog-menuitem-label">${html('showFloatingNotes')}</span>
       </div>`;
     // Slides closes this menu as the button goes down on anything it doesn't know, before a click.
     item.addEventListener('mousedown', (event) => {

@@ -1,0 +1,418 @@
+{
+  "extensionName": {
+    "message": "Slides Companion",
+    "description": "The extension's name, in Chrome and the Web Store. A name: keep it as it is unless it has an established translation."
+  },
+  "extensionDescription": {
+    "message": "Presenter tools for Google Slides.",
+    "description": "The extension's one-line description, in Chrome and the Web Store."
+  },
+  "settingsLabel": {
+    "message": "Slides Companion settings",
+    "description": "The tooltip of our logo at the top of Slides' side toolbar, which opens Settings, and the Settings dialog's name for screen readers."
+  },
+
+  "spotlightMenuItem": {
+    "message": "Spotlight image",
+    "description": "In the menu of a right-clicked image, beside Slides' own image items: shows the image full screen, on black."
+  },
+  "spaceKey": {
+    "message": "Space",
+    "description": "The space bar, as Slides names keys beside its menu items (its shortcut for Spotlight image)."
+  },
+  "spotlightClose": {
+    "message": "Close",
+    "description": "The button that closes the full screen image, for screen readers."
+  },
+  "spotlightCloseTip": {
+    "message": "Close (Esc)",
+    "description": "The tooltip of the button that closes the full screen image."
+  },
+  "spotlightPrevious": {
+    "message": "Previous image",
+    "description": "The button that shows the slide's previous image full screen, for screen readers."
+  },
+  "spotlightPreviousTip": {
+    "message": "Previous (←)",
+    "description": "Its tooltip, as Slides' slideshow names its own Previous button."
+  },
+  "spotlightNext": {
+    "message": "Next image",
+    "description": "The button that shows the slide's next image full screen, for screen readers."
+  },
+  "spotlightNextTip": {
+    "message": "Next (→)",
+    "description": "Its tooltip, as Slides' slideshow names its own Next button."
+  },
+  "spotlightBack": {
+    "message": "Back",
+    "description": "The button that goes back to the previous page, on a web page opened over the slide during a slideshow."
+  },
+  "spotlightForward": {
+    "message": "Forward",
+    "description": "The button that goes forward again, on a web page opened over the slide during a slideshow."
+  },
+  "openInNewTab": {
+    "message": "Open in new tab",
+    "description": "The button at the bottom of a web page opened over the slide during a slideshow: opens it in a browser tab instead."
+  },
+  "spotlightPosition": {
+    "message": "Image $INDEX$ of $COUNT$",
+    "description": "Which of the slide's images shows full screen, as Slides says \"Slide 3 of 11\".",
+    "placeholders": {
+      "index": { "content": "$1", "example": "2" },
+      "count": { "content": "$2", "example": "3" }
+    }
+  },
+
+  "showFloatingNotes": {
+    "message": "Show floating notes",
+    "description": "In Slides' View menu, below Slides' \"Show speaker notes\" and worded like it: a small window with the speaker notes that floats over the slideshow."
+  },
+  "openFloatingNotes": {
+    "message": "Open floating notes",
+    "description": "In the slideshow's ⋮ menu, below Slides' \"Open speaker notes\" and worded like it."
+  },
+  "closeFloatingNotes": {
+    "message": "Close floating notes",
+    "description": "The same item while the floating notes are open."
+  },
+  "notesFullScreen": {
+    "message": "Full screen",
+    "description": "A button in the floating notes, shown while the slideshow has left full screen."
+  },
+  "notesFullScreenTip": {
+    "message": "Put the slideshow back in full screen",
+    "description": "Its tooltip."
+  },
+  "notesZoomOut": {
+    "message": "Zoom out",
+    "description": "The tooltip of the button that makes the floating notes' text smaller, as Slides' presenter view names its own."
+  },
+  "notesZoomIn": {
+    "message": "Zoom in",
+    "description": "The tooltip of the button that makes the floating notes' text bigger, as Slides' presenter view names its own."
+  },
+  "notesTitle": {
+    "message": "Speaker notes",
+    "description": "The floating notes window's title."
+  },
+  "notesSlideName": {
+    "message": "Slide $NUMBER$ of $TOTAL$",
+    "description": "The floating notes' heading until Slides has named a slide itself, as Slides' presenter view does.",
+    "placeholders": {
+      "number": { "content": "$1", "example": "3" },
+      "total": { "content": "$2", "example": "11" }
+    }
+  },
+  "notesPlaceholder": {
+    "message": "Click to add speaker notes",
+    "description": "What an empty speaker notes box says, until Slides has shown its own."
+  },
+
+  "timer": {
+    "message": "Timer",
+    "description": "In Slides' presenter view, the name of our button beside the timer's Pause and Reset, and of the menu it opens, for screen readers."
+  },
+  "countdownTitle": {
+    "message": "Count down from a time you choose",
+    "description": "The tooltip of that button and of the time itself."
+  },
+  "countUp": {
+    "message": "Count up, as usual",
+    "description": "In the timer's menu: the timer counts the time gone, as Slides' timer does."
+  },
+  "countDownFrom": {
+    "message": "Count down from $DURATION$",
+    "description": "In the timer's menu, one for each time: the timer counts the time left.",
+    "placeholders": {
+      "duration": { "content": "$1", "example": "20 minutes" }
+    }
+  },
+  "otherTime": {
+    "message": "Other time…",
+    "description": "In the timer's menu: type a time the menu doesn't have."
+  },
+  "addMinute": {
+    "message": "Add 1 minute",
+    "description": "In the timer's menu while counting down: gives one more minute."
+  },
+  "countdownField": {
+    "message": "Count down from (minutes, or hours:minutes:seconds)",
+    "description": "The field where the time is typed, for screen readers."
+  },
+  "countdownFieldPlaceholder": {
+    "message": "Minutes",
+    "description": "What the empty field shows."
+  },
+  "countdownChangeHint": {
+    "message": "Press Enter to change the time",
+    "description": "The tip under the field while counting down."
+  },
+  "countdownStartHint": {
+    "message": "Press Enter to start the countdown",
+    "description": "The tip under the field while counting up."
+  },
+  "countdownTypeHint": {
+    "message": "Type minutes, like 20, or a time, like 1:20:00",
+    "description": "The tip under the field when what's typed isn't a time."
+  },
+
+  "settingsTitle": {
+    "message": "Settings",
+    "description": "The Settings dialog's title, above the list of features."
+  },
+  "cancel": {
+    "message": "Cancel",
+    "description": "The Settings dialog's button that closes it without saving, as in Slides' own dialogs."
+  },
+  "ok": {
+    "message": "OK",
+    "description": "The Settings dialog's button that saves and closes it, as in Slides' own dialogs."
+  },
+  "asSlidesDoes": {
+    "message": "as Slides does on its own",
+    "description": "The note after a choice that leaves Slides as it is without the extension."
+  },
+
+  "spotlightName": {
+    "message": "Spotlight",
+    "description": "A feature's name in the list down the side of Settings: an image shown full screen, on black."
+  },
+  "spotlightSummary": {
+    "message": "See images full screen",
+    "description": "The line under its name."
+  },
+  "spotlightAbout": {
+    "message": "Select an image and press Space to see it full screen, on black. Use ← and → to go through the other images on the slide.",
+    "description": "What the feature does, at the top of its page."
+  },
+  "spotlightOnClick": {
+    "message": "Spotlight an image when you click it in a full screen slideshow",
+    "description": "A checkbox."
+  },
+  "spotlightOnClickHint": {
+    "message": "clicking anywhere else goes to the next slide, unless you’ve zoomed in",
+    "description": "The note after it, shown in brackets."
+  },
+  "groupedImages": {
+    "message": "When images are grouped",
+    "description": "A group of choices."
+  },
+  "groupedTogether": {
+    "message": "Show the group as one image",
+    "description": "A choice."
+  },
+  "groupedTogetherHint": {
+    "message": "for example, a photo grouped with its caption",
+    "description": "The note after it, shown in brackets."
+  },
+  "groupedApart": {
+    "message": "Show each image on its own",
+    "description": "A choice."
+  },
+  "groupedApartHint": {
+    "message": "for example, photos grouped to keep a layout tidy",
+    "description": "The note after it, shown in brackets."
+  },
+
+  "linksName": {
+    "message": "Links",
+    "description": "A feature's name in the list down the side of Settings: links clicked during a slideshow open over the slide."
+  },
+  "linksSummary": {
+    "message": "Open links over the slide",
+    "description": "The line under its name."
+  },
+  "linksAbout": {
+    "message": "During a slideshow, click a link to open it over the slide, and press Esc to come back. Some sites don’t allow being shown over a slide. For those, choose $BUTTON$ at the bottom of the screen, or let them all be shown.",
+    "description": "What the feature does, at the top of its page.",
+    "placeholders": {
+      "button": { "content": "$1", "example": "Open in new tab" }
+    }
+  },
+  "allSitesFrame": {
+    "message": "Every site",
+    "description": "For screen readers, the frame that holds the checkbox to show every site over the slide."
+  },
+  "allSites": {
+    "message": "Show every site over the slide, even those that don’t allow it",
+    "description": "A checkbox."
+  },
+  "allSitesHint": {
+    "message": "Chrome will ask you once. Esc then always brings your slide back",
+    "description": "The note after it, shown in brackets."
+  },
+  "slideshowLinks": {
+    "message": "When you click a link during a slideshow",
+    "description": "A group of choices."
+  },
+  "linksHere": {
+    "message": "Open it over the slide",
+    "description": "A choice."
+  },
+  "linksHereHint": {
+    "message": "press Esc to come back to your slide, right where you left it",
+    "description": "The note after it, shown in brackets."
+  },
+  "linksTab": {
+    "message": "Open it in a new tab",
+    "description": "A choice."
+  },
+
+  "zoomName": {
+    "message": "Zoom & scroll",
+    "description": "A feature's name in the list down the side of Settings: zooming into a slide during a slideshow, and what scrolling does."
+  },
+  "zoomSummary": {
+    "message": "Mouse wheel and trackpad",
+    "description": "The line under its name."
+  },
+  "zoomAbout": {
+    "message": "During a slideshow, scroll, pinch or press + and − to zoom, and drag to look around. Changing slides zooms back out.",
+    "description": "What the feature does, at the top of its page."
+  },
+  "slideshowScroll": {
+    "message": "When you scroll during a slideshow",
+    "description": "A group of choices."
+  },
+  "scrollZoom": {
+    "message": "Zoom into the slide",
+    "description": "A choice."
+  },
+  "scrollZoomHint": {
+    "message": "while zoomed in, clicking the slide doesn’t change slides",
+    "description": "The note after it, shown in brackets."
+  },
+  "scrollNothing": {
+    "message": "Do nothing",
+    "description": "A choice: scrolling does nothing."
+  },
+  "scrollNothingHint": {
+    "message": "so a brush of the trackpad never skips a slide",
+    "description": "The note after it during a slideshow, shown in brackets."
+  },
+  "scrollSlides": {
+    "message": "Go to the next or previous slide",
+    "description": "A choice."
+  },
+  "editorScroll": {
+    "message": "When you scroll while editing",
+    "description": "A group of choices."
+  },
+  "editorScrollNothingHint": {
+    "message": "you can still scroll around a slide you’ve zoomed into",
+    "description": "The note after \"Do nothing\" while editing, shown in brackets."
+  },
+
+  "penName": {
+    "message": "Pen",
+    "description": "A feature's name in the list down the side of Settings: Slides' pen, during a slideshow."
+  },
+  "penSummary": {
+    "message": "Draw on slides",
+    "description": "The line under its name."
+  },
+  "penAbout": {
+    "message": "During a slideshow, press Shift + L to draw on a slide, and Shift + A to Erase all.",
+    "description": "What the feature does, at the top of its page. \"Erase all\" is the name of the item in Slides' own slideshow menu."
+  },
+  "keepInk": {
+    "message": "Keep what you draw after the slideshow ends",
+    "description": "A checkbox."
+  },
+  "keepInkHint": {
+    "message": "it’s back on the same slide the next time you present on this computer, until you choose Erase all",
+    "description": "The note after it, shown in brackets. \"Erase all\" is the name of the item in Slides' own slideshow menu."
+  },
+
+  "timerName": {
+    "message": "Timer",
+    "description": "A feature's name in the list down the side of Settings: a countdown in presenter view."
+  },
+  "timerSummary": {
+    "message": "Count down in presenter view",
+    "description": "The line under its name. \"Presenter view\" as Slides names it."
+  },
+  "timerAbout": {
+    "message": "In presenter view, press the timer button beside Pause and Reset, or the time itself, to count down from how long you have. Past the end, it keeps counting in red. Each deck remembers its time.",
+    "description": "What the feature does, at the top of its page. \"Pause\" and \"Reset\" are the names of the buttons of Slides' own timer."
+  },
+  "countdownBar": {
+    "message": "Show a bar under the time that fills up as it goes",
+    "description": "A checkbox."
+  },
+  "countdownBarHint": {
+    "message": "a glance tells you how far through your talk you are",
+    "description": "The note after it, shown in brackets."
+  },
+  "countdownWarning": {
+    "message": "Turn the timer orange",
+    "description": "A group of choices: how long before the end."
+  },
+  "warning1": {
+    "message": "1 minute before the end",
+    "description": "A choice."
+  },
+  "warning1Hint": {
+    "message": "for short talks",
+    "description": "The note after it, shown in brackets."
+  },
+  "warning2": {
+    "message": "2 minutes before the end",
+    "description": "A choice."
+  },
+  "warning2Hint": {
+    "message": "time to wrap up most talks",
+    "description": "The note after it, shown in brackets."
+  },
+  "warning5": {
+    "message": "5 minutes before the end",
+    "description": "A choice."
+  },
+  "warning5Hint": {
+    "message": "for long talks and workshops",
+    "description": "The note after it, shown in brackets."
+  },
+
+  "liveEditsName": {
+    "message": "Edits during a slideshow",
+    "description": "A feature's name in the list down the side of Settings: edits to the deck show in a slideshow already running."
+  },
+  "liveEditsSummary": {
+    "message": "Shown within seconds",
+    "description": "The line under its name."
+  },
+  "liveEditsAbout": {
+    "message": "When the deck is edited while you present it, by you in another tab or by someone else, the slideshow shows it within a few seconds. Other slides update without anyone noticing.",
+    "description": "What the feature does, at the top of its page."
+  },
+  "liveEdits": {
+    "message": "The slide on screen changes",
+    "description": "A group of choices: when an edit to the slide being shown appears."
+  },
+  "liveEditsNow": {
+    "message": "Right away",
+    "description": "A choice."
+  },
+  "liveEditsNowHint": {
+    "message": "it fades into its new version once nothing on it is moving",
+    "description": "The note after it, shown in brackets."
+  },
+  "liveEditsLater": {
+    "message": "Once you’ve moved to another slide",
+    "description": "A choice."
+  },
+  "liveEditsLaterHint": {
+    "message": "so it never changes while you’re talking about it",
+    "description": "The note after it, shown in brackets."
+  },
+  "liveEditsOff": {
+    "message": "Not until the next slideshow",
+    "description": "A choice."
+  },
+  "liveEditsOffHint": {
+    "message": "the whole slideshow stays as it was when you started, as Slides does on its own",
+    "description": "The note after it, shown in brackets."
+  }
+}

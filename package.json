@@ -6,6 +6,7 @@
     "dev": "node scripts/dev.mjs",
     "chromium": "node scripts/chromium.mjs",
     "illustrations": "node scripts/build-illustrations.mjs",
+    "messages": "node scripts/build-messages.mjs",
     "test": "playwright test",
     "test:headed": "playwright test --headed"
   },

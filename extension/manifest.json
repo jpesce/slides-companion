@@ -1,8 +1,9 @@
 {
   "manifest_version": 3,
-  "name": "Slides Companion",
+  "name": "__MSG_extensionName__",
   "version": "0.0.1",
-  "description": "Presenter tools for Google Slides.",
+  "description": "__MSG_extensionDescription__",
+  "default_locale": "en",
   "background": {
     "service_worker": "background.js"
   },
@@ -17,7 +18,7 @@
     {
       "matches": ["https://docs.google.com/presentation/*"],
       "exclude_matches": ["https://docs.google.com/presentation/*/present*", "https://docs.google.com/presentation/*/localpresent*"],
-      "js": ["settings.js", "content.js", "menus.js", "illustrations.js", "settings-dialog.js", "companion.js", "spotlight.js", "scroll.js", "live-edits.js", "notes.js"],
+      "js": ["settings.js", "messages.js", "i18n.js", "content.js", "menus.js", "illustrations.js", "settings-dialog.js", "companion.js", "spotlight.js", "scroll.js", "live-edits.js", "notes.js"],
       "css": ["companion.css", "settings-dialog.css", "spotlight.css"],
       "run_at": "document_idle"
     },
@@ -30,7 +31,7 @@
     },
     {
       "matches": ["https://docs.google.com/presentation/*/present*", "https://docs.google.com/presentation/*/localpresent*"],
-      "js": ["settings.js", "content.js", "menus.js", "zoom.js", "ink.js", "spotlight.js", "notes.js"],
+      "js": ["settings.js", "messages.js", "i18n.js", "content.js", "menus.js", "zoom.js", "ink.js", "spotlight.js", "notes.js"],
       "css": ["spotlight.css", "zoom.css"],
       "all_frames": true,
       "run_at": "document_start"
@@ -38,7 +39,7 @@
     {
       "matches": ["https://docs.google.com/presentation/*"],
       "match_about_blank": true,
-      "js": ["settings.js", "countdown.js"],
+      "js": ["settings.js", "messages.js", "i18n.js", "countdown.js"],
       "css": ["countdown.css"],
       "run_at": "document_idle"
     }

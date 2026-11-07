@@ -5,6 +5,7 @@
 // clicked opens its page on the same stage, so the presenter never leaves the slideshow. Rewritten
 // from Image Spotlight for Google Slides.
 {
+  const { text, html } = globalThis.slidesCompanion;
   const SVG_NS = 'http://www.w3.org/2000/svg';
   // The slideshow runs in its own page: an iframe in the editor, or a window of its own.
   const IN_SLIDESHOW = /\/(local)?present$/.test(location.pathname);
@@ -239,7 +240,7 @@
   function openGallery(selection) {
     if (gallery) return;
     const { items, start } = galleryItems(selection);
-    if (start !== -1) openStage(items, start, 'Spotlight');
+    if (start !== -1) openStage(items, start, text('spotlightName'));
   }
 
   // Items are objects on the slide, or a page a link goes to: { address, shown }. With every site
@@ -260,18 +261,18 @@
     stage.innerHTML = `
       <div class="slides-companion-spotlight-picture"></div>
       <div class="slides-companion-spotlight-bar slides-companion-spotlight-closer">
-        <button type="button" class="slides-companion-spotlight-close" aria-label="Close" title="Close (Esc)">${CLOSE_ICON}</button>
+        <button type="button" class="slides-companion-spotlight-close" aria-label="${html('spotlightClose')}" title="${html('spotlightCloseTip')}">${CLOSE_ICON}</button>
       </div>
       <div class="slides-companion-spotlight-bar slides-companion-spotlight-navbar">
-        <button type="button" class="slides-companion-spotlight-previous" aria-label="Previous image" title="Previous (←)">${PREVIOUS_ICON}</button>
+        <button type="button" class="slides-companion-spotlight-previous" aria-label="${html('spotlightPrevious')}" title="${html('spotlightPreviousTip')}">${PREVIOUS_ICON}</button>
         <div class="slides-companion-spotlight-page" aria-hidden="true"></div>
-        <button type="button" class="slides-companion-spotlight-next" aria-label="Next image" title="Next (→)">${NEXT_ICON}</button>
+        <button type="button" class="slides-companion-spotlight-next" aria-label="${html('spotlightNext')}" title="${html('spotlightNextTip')}">${NEXT_ICON}</button>
       </div>
       <div class="slides-companion-spotlight-bar slides-companion-spotlight-sitebar" hidden>
-        <button type="button" class="slides-companion-spotlight-back" aria-label="Back" title="Back" hidden>${BACK_ICON}</button>
-        <button type="button" class="slides-companion-spotlight-forward" aria-label="Forward" title="Forward" hidden>${FORWARD_ICON}</button>
+        <button type="button" class="slides-companion-spotlight-back" aria-label="${html('spotlightBack')}" title="${html('spotlightBack')}" hidden>${BACK_ICON}</button>
+        <button type="button" class="slides-companion-spotlight-forward" aria-label="${html('spotlightForward')}" title="${html('spotlightForward')}" hidden>${FORWARD_ICON}</button>
         <div class="slides-companion-spotlight-site"></div>
-        <button type="button" class="slides-companion-spotlight-new-tab" aria-label="Open in new tab" title="Open in new tab">${NEW_TAB_ICON}</button>
+        <button type="button" class="slides-companion-spotlight-new-tab" aria-label="${html('openInNewTab')}" title="${html('openInNewTab')}">${NEW_TAB_ICON}</button>
       </div>
       <div class="slides-companion-spotlight-cursor" aria-hidden="true">${NEXT_ICON}</div>
       <div class="slides-companion-spotlight-status" aria-live="polite"></div>`;
@@ -339,7 +340,7 @@
     updateNavbar();
     const count = gallery.items.length;
     gallery.stage.querySelector('.slides-companion-spotlight-status').textContent =
-      count > 1 ? `Image ${index + 1} of ${count}` : '';
+      count > 1 ? text('spotlightPosition', index + 1, count) : '';
     return true;
   }
 
@@ -648,8 +649,8 @@
         <div class="docs-icon goog-inline-block goog-menuitem-icon" aria-hidden="true">
           <div class="docs-icon-img-container docs-icon-img docs-icon-editors-ia-fullscreen"></div>
         </div>
-        <span class="goog-menuitem-label">Spotlight image</span>
-        <span class="goog-menuitem-accel" aria-label="Space">Space</span>
+        <span class="goog-menuitem-label">${html('spotlightMenuItem')}</span>
+        <span class="goog-menuitem-accel" aria-label="${html('spaceKey')}">${html('spaceKey')}</span>
       </div>`;
 
     const choose = () => {

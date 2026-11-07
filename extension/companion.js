@@ -17,7 +17,6 @@
   const EYE_CY = 673.855;
   const IRIS_TRAVEL = 330.355 - 269.53;
 
-  const LABEL = 'Slides Companion settings';
   // Slides shows its toolbar tooltips after about this long.
   const TOOLTIP_DELAY_MS = 300;
 
@@ -26,7 +25,7 @@
     button.className = 'slides-companion-button';
     button.setAttribute('role', 'button');
     button.setAttribute('tabindex', '0');
-    button.setAttribute('aria-label', LABEL);
+    button.setAttribute('aria-label', globalThis.slidesCompanion.text('settingsLabel'));
     button.innerHTML = LOGO_SVG;
 
     const openSettings = () => {
@@ -65,7 +64,7 @@
     tooltip.setAttribute('aria-hidden', 'true');
     const content = document.createElement('div');
     content.className = 'jfk-tooltip-contentId';
-    content.textContent = LABEL;
+    content.textContent = globalThis.slidesCompanion.text('settingsLabel');
     tooltip.append(content);
     document.body.append(tooltip);
 

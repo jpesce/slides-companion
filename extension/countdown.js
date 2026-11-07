@@ -7,6 +7,7 @@
 {
   // Presenter view is a window Slides opens under this name: a blank page it writes itself, which
   // signed in takes on the slideshow's address. (So the slideshow's own scripts never run there.)
+  const { text } = globalThis.slidesCompanion;
   const IN_PRESENTER_VIEW = /^punch_speaker_notes_/.test(window.name);
   const ELAPSED = '.punch-viewer-speakernotes-timer-time:not(.slides-companion-countdown)';
 
@@ -53,12 +54,17 @@
   // As it's typed: 20:00, or 1:20:00.
   const formatTyped = (seconds) => format(seconds).replace(/^00:/, '').replace(/^0(?=\d)/, '');
 
-  // As it's said: 20 minutes, 1 hour 30 minutes.
-  const spoken = (seconds) =>
-    [[Math.floor(seconds / 3600), 'hour'], [Math.floor(seconds / 60) % 60, 'minute'], [seconds % 60, 'second']]
-      .filter(([count]) => count)
-      .map(([count, unit]) => `${count} ${unit}${count === 1 ? '' : 's'}`)
-      .join(' ');
+  // As it's said, in the words' language: 20 minutes, 1 hour, 30 minutes. (As Intl.DurationFormat
+  // says it, which needs Chrome 129.)
+  function spoken(seconds) {
+    const locale = globalThis.slidesCompanion.locale();
+    const parts = [[Math.floor(seconds / 3600), 'hour'], [Math.floor(seconds / 60) % 60, 'minute'], [seconds % 60, 'second']];
+    return new Intl.ListFormat(locale, { type: 'unit', style: 'long' }).format(
+      parts
+        .filter(([count]) => count)
+        .map(([count, unit]) => new Intl.NumberFormat(locale, { style: 'unit', unit, unitDisplay: 'long' }).format(count)),
+    );
+  }
 
   // The times in the menu.
   const PRESETS = [5, 10, 15, 20, 30, 45, 60].map((minutes) => minutes * 60);
@@ -196,13 +202,13 @@
     if (editor) return editor.focus();
     editor = document.createElement('input');
     editor.className = 'slides-companion-countdown-input';
-    editor.setAttribute('aria-label', 'Count down from (minutes, or hours:minutes:seconds)');
-    editor.placeholder = 'Minutes';
+    editor.setAttribute('aria-label', text('countdownField'));
+    editor.placeholder = text('countdownFieldPlaceholder');
     // As wide as the time it replaces.
     editor.style.width = `${(counting.down ? countdown : elapsed).offsetWidth}px`;
     editor.value = counting.typed ? formatTyped(counting.typed) : '';
     let hint = null;
-    const howTo = counting.down ? 'Press Enter to change the time' : 'Press Enter to start the countdown';
+    const howTo = text(counting.down ? 'countdownChangeHint' : 'countdownStartHint');
     // Removing the field blurs it, which would close it again.
     const close = () => {
       const closing = editor;
@@ -215,7 +221,7 @@
       const chosen = parse(editor.value);
       if (chosen === null) {
         editor.setAttribute('aria-invalid', 'true');
-        hint.say('Type minutes, like 20, or a time, like 1:20:00');
+        hint.say(text('countdownTypeHint'));
         editor.select();
         return;
       }
@@ -250,15 +256,15 @@
   function choices() {
     const times = counting.typed && !PRESETS.includes(counting.typed) ? [...PRESETS, counting.typed] : PRESETS;
     return [
-      { label: 'Count up, as usual', checked: !counting.down, act: countUp },
+      { label: text('countUp'), checked: !counting.down, act: countUp },
       null,
       ...times.map((seconds) => ({
-        label: `Count down from ${spoken(seconds)}`,
+        label: text('countDownFrom', spoken(seconds)),
         checked: counting.down && counting.from === seconds,
         act: () => countDownFrom(seconds),
       })),
-      { label: 'Other time…', act: edit },
-      ...(counting.down ? [null, { label: 'Add 1 minute', act: addMinute }] : []),
+      { label: text('otherTime'), act: edit },
+      ...(counting.down ? [null, { label: text('addMinute'), act: addMinute }] : []),
     ];
   }
 
@@ -272,7 +278,7 @@
     menu = document.createElement('div');
     menu.className = 'goog-menu goog-menu-vertical slides-companion-countdown-menu';
     menu.setAttribute('role', 'menu');
-    menu.setAttribute('aria-label', 'Timer');
+    menu.setAttribute('aria-label', text('timer'));
     menu.tabIndex = -1;
     choices().forEach((choice, index) => {
       const element = document.createElement('div');
@@ -378,8 +384,6 @@
     return element;
   }
 
-  const TITLE = 'Count down from a time you choose';
-
   // Material's timer icon.
   const TIMER_ICON =
     '<svg class="jfk-button-img" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M15 1H9v2h6V1zm-4 13h2V8h-2v6zm8.03-6.61 1.42-1.42c-.43-.51-.9-.99-1.41-1.41l-1.42 1.42A8.96 8.96 0 0 0 12 4c-4.97 0-9 4.03-9 9s4.02 9 9 9 9-4.03 9-9c0-2.12-.74-4.07-1.97-5.61zM12 20c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"/></svg>';
@@ -390,10 +394,10 @@
   function button() {
     const element = document.createElement('div');
     element.setAttribute('role', 'button');
-    element.setAttribute('aria-label', 'Timer');
+    element.setAttribute('aria-label', text('timer'));
     element.setAttribute('aria-haspopup', 'menu');
     element.setAttribute('aria-expanded', 'false');
-    element.title = TITLE;
+    element.title = text('countdownTitle');
     element.tabIndex = 0;
     element.className = 'jfk-button jfk-button-standard jfk-button-narrow punch-viewer-speakernotes-timer-button slides-companion-countdown-button';
     element.innerHTML = TIMER_ICON;
@@ -432,7 +436,7 @@
     elapsed.after(countdown);
     const container = elapsed.parentElement;
     container.classList.add('slides-companion-countdown-container');
-    container.title = TITLE;
+    container.title = text('countdownTitle');
     container.addEventListener('mousedown', (event) => event.target !== editor && event.preventDefault());
     container.addEventListener('click', () => editor || toggleMenu(container));
     timerButton = button();
