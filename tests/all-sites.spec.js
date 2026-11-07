@@ -48,6 +48,8 @@ test('a site that refuses to be shown in another page opens over the slide', asy
   // Google's own page, not Chrome's "refused to connect".
   expect(await google.title()).toBe('Google');
   expect(await sessionRules(serviceWorker)).toHaveLength(1);
+  // With every site allowed, Spotlight doesn't check whether it refuses, nor say so (card 130).
+  await expect(stage(show).locator('.slides-companion-spotlight-probe, .slides-companion-spotlight-refused')).toHaveCount(0);
 
   await page.keyboard.press('Escape');
   await expect(stage(show)).toHaveCount(0);

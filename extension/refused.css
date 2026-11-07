@@ -1,0 +1,99 @@
+/* On the black stage where the page would be, centred: the parts of Slides' dialogs (Settings: its
+   title, text and buttons, measured there) in the colours of Google's dark theme, as the stage's bar
+   and tooltip are. */
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  background: transparent;
+  font-family: "Google Sans", Roboto, Arial, sans-serif;
+}
+
+.slides-companion-refused {
+  max-width: 560px;
+  padding: 24px;
+  color: #c4c7c5;
+  text-align: center;
+}
+
+.slides-companion-refused-icon {
+  display: block;
+  width: 48px;
+  height: 48px;
+  margin: 0 auto;
+  fill: currentColor;
+}
+
+/* The dialog's title (Material's headline small) and text (body medium). */
+.slides-companion-refused-title {
+  margin: 16px 0 0;
+  color: #e3e3e3;
+  font: 400 24px/32px "Google Sans", Roboto, Arial, sans-serif;
+}
+
+.slides-companion-refused-text {
+  margin: 16px 0 0;
+  font: 400 14px/20px "Google Sans", Roboto, Arial, sans-serif;
+}
+
+/* As the dialog's Cancel and OK: a text button, then the filled one. */
+.slides-companion-refused-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.slides-companion-refused-button {
+  height: 40px;
+  min-width: 64px;
+  margin: 0;
+  border: 0;
+  border-radius: 20px;
+  font: 500 14px "Google Sans", Roboto, Arial, sans-serif;
+  cursor: pointer;
+}
+
+/* Material's primary (#a8c7fa) and on-primary (#062e6f), dark theme; hover and press layers at 8%
+   and 12%. */
+.slides-companion-refused-open {
+  padding: 0 12px;
+  background: transparent;
+  color: #a8c7fa;
+}
+
+.slides-companion-refused-open:hover {
+  background: rgba(168, 199, 250, 0.08);
+}
+
+.slides-companion-refused-open:active {
+  background: rgba(168, 199, 250, 0.12);
+}
+
+.slides-companion-refused-allow {
+  padding: 0 24px;
+  background: #a8c7fa;
+  color: #062e6f;
+}
+
+.slides-companion-refused-allow:hover {
+  background: linear-gradient(rgba(6, 46, 111, 0.08), rgba(6, 46, 111, 0.08)), #a8c7fa;
+}
+
+.slides-companion-refused-allow:active {
+  background: linear-gradient(rgba(6, 46, 111, 0.12), rgba(6, 46, 111, 0.12)), #a8c7fa;
+}
+
+/* Tabbed into from the stage, focus shows as on the dialog's buttons. */
+.slides-companion-refused-button:focus-visible,
+.slides-companion-tabbed .slides-companion-refused-button:focus {
+  outline: 3px solid #a8c7fa;
+  outline-offset: 2px;
+}

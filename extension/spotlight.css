@@ -151,6 +151,31 @@
   background: #fff;
 }
 
+/* A site's page waits out of sight while it's checked for a refusal (card 130), so one never flashes. */
+.slides-companion-spotlight-checking {
+  visibility: hidden;
+}
+
+/* Where it's checked. */
+.slides-companion-spotlight-probe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 1px;
+  height: 1px;
+  border: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* Instead of a site that refuses, our message, on the black stage, where the page would be. */
+.slides-companion-spotlight-refused {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
 /* A long site name shortens, the buttons stay. */
 .slides-companion-spotlight-sitebar {
   flex-shrink: 1;

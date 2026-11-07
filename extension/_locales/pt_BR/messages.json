@@ -71,6 +71,8 @@
   "allSitesFrame": { "message": "Todos os sites" },
   "allSitesLine": { "message": "Alguns sites não abrem sobre o seu slide até você permitir." },
   "allSitesAllow": { "message": "Permitir todos os sites" },
+  "refusedTitle": { "message": "$SITE$ não abre sobre o seu slide", "placeholders": { "site": { "content": "$1" } } },
+  "refusedLine": { "message": "Permita todos os sites para mostrá-lo aqui ou abra-o em uma nova guia." },
   "slideshowLinks": { "message": "Quando você clica em um link durante uma apresentação de slides" },
   "linksHere": { "message": "Abrir sobre o slide" },
   "linksHereHint": { "message": "pressione Esc para voltar ao seu slide, exatamente onde você parou" },

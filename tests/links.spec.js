@@ -250,6 +250,133 @@ test('a page can’t take the keys until the pointer goes over it, so Esc still 
 });
 
 // Slide 5 has a photo, flying in on the first click, linked to the next slide.
+// Card 130: without every site allowed, a site that refuses to be shown inside another page.
+const REFUSALS = [
+  ['X-Frame-Options', { 'x-frame-options': 'DENY' }],
+  ['Content-Security-Policy', { 'content-security-policy': "frame-ancestors 'none'" }],
+];
+const serveGoogle = async (context, headers = {}) => {
+  await context.unroute('https://www.google.com/');
+  await context.route('https://www.google.com/', (route) => route.fulfill({ contentType: 'text/html', headers, body: PAGE }));
+};
+const refusal = (show) => stage(show).locator('iframe.slides-companion-spotlight-refused');
+const inRefusal = (show) => show.frameLocator('iframe.slides-companion-spotlight-refused');
+// The frame of our message, to act in it as Chrome would.
+const refusalFrame = (page) => page.frames().find((frame) => frame.url().includes('/refused.html'));
+
+test('a site that refuses to be shown says so over the slide, instead of Chrome’s empty error page', async ({ context }) => {
+  const { page, show } = await startSlideshow(context);
+  for (const [, headers] of REFUSALS) {
+    await serveGoogle(context, headers);
+    await clickLink(page, show);
+    await expect(refusal(show)).toBeVisible();
+    // In place of the page, filling its space.
+    await expect(website(show)).toHaveCount(0);
+    const viewport = page.viewportSize();
+    expect(await refusal(show).boundingBox()).toEqual({ x: 48, y: 80, width: viewport.width - 96, height: viewport.height - 160 });
+    const message = inRefusal(show);
+    await expect(message.getByRole('heading')).toHaveText('google.com won’t open over your slide');
+    await expect(message.getByText('Allow all sites to show it here, or open it in a new tab.')).toBeVisible();
+    await expect(message.getByRole('button')).toHaveText(['Open in new tab', 'Allow all sites']);
+    // Screen readers hear it too.
+    await expect(stage(show).locator('.slides-companion-spotlight-status')).toHaveText('google.com won’t open over your slide');
+    // The bar still names the site, with Open in new tab.
+    await expect(stage(show).locator('.slides-companion-spotlight-site')).toHaveText('google.com');
+    await page.keyboard.press('Escape');
+    await expect(stage(show)).toHaveCount(0);
+  }
+
+  // A click on the black around the message closes it, as around a picture.
+  await clickLink(page, show);
+  await expect(refusal(show)).toBeVisible();
+  const box = await refusal(show).boundingBox();
+  await page.mouse.click(box.x + 20, box.y + 20);
+  await expect(stage(show)).toHaveCount(0);
+  expect(await slideNumber(show)).toBe(4);
+});
+
+test('the message looks like Slides’ dialogs in Google’s dark theme', async ({ context }) => {
+  const { page, show } = await startSlideshow(context);
+  await serveGoogle(context, REFUSALS[0][1]);
+  await clickLink(page, show);
+  const message = inRefusal(show);
+  const title = message.getByRole('heading');
+  await expect(title).toHaveCSS('font-size', '24px');
+  await expect(title).toHaveCSS('line-height', '32px');
+  await expect(title).toHaveCSS('color', 'rgb(227, 227, 227)');
+  await expect(message.locator('p')).toHaveCSS('font-size', '14px');
+  await expect(message.locator('p')).toHaveCSS('color', 'rgb(196, 199, 197)');
+  const [open, allow] = [message.getByRole('button', { name: 'Open in new tab' }), message.getByRole('button', { name: 'Allow all sites' })];
+  for (const button of [open, allow]) {
+    await expect(button).toHaveCSS('height', '40px');
+    await expect(button).toHaveCSS('border-radius', '20px');
+    await expect(button).toHaveCSS('font-weight', '500');
+  }
+  await expect(open).toHaveCSS('color', 'rgb(168, 199, 250)');
+  await expect(allow).toHaveCSS('background-color', 'rgb(168, 199, 250)');
+  await expect(allow).toHaveCSS('color', 'rgb(6, 46, 111)');
+  // The stage shows through: the frame draws nothing behind the message.
+  await expect(message.locator('body')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+  await page.screenshot({ path: test.info().outputPath('refused.png') });
+});
+
+test('from the message, Open in new tab opens the site, by pointer or keyboard', async ({ context }) => {
+  const { page, show } = await startSlideshow(context);
+  await serveGoogle(context, REFUSALS[0][1]);
+  await clickLink(page, show);
+  let opened = context.waitForEvent('page');
+  await inRefusal(show).getByRole('button', { name: 'Open in new tab' }).click();
+  expect((await opened).url()).toBe('https://www.google.com/');
+  await expect(stage(show)).toHaveCount(0);
+
+  // The keyboard: Tab goes into the message, on to its other button and back, and Enter presses.
+  await page.bringToFront();
+  await clickLink(page, show);
+  await expect(refusal(show)).toBeVisible();
+  await expect.poll(() => refusalFrame(page)?.evaluate(() => document.readyState)).toBe('complete');
+  const focused = () => refusalFrame(page).evaluate(() => document.activeElement?.textContent);
+  await page.keyboard.press('Tab');
+  await expect.poll(focused).toBe('Open in new tab');
+  await page.keyboard.press('Tab');
+  await expect.poll(focused).toBe('Allow all sites');
+  await page.keyboard.press('Shift+Tab');
+  await expect.poll(focused).toBe('Open in new tab');
+  opened = context.waitForEvent('page');
+  await page.keyboard.press('Enter');
+  expect((await opened).url()).toBe('https://www.google.com/');
+  await expect(stage(show)).toHaveCount(0);
+});
+
+test('Allow all sites asks Chrome from the message, and once allowed the page shows', async ({ context, serviceWorker }) => {
+  const { page, show } = await startSlideshow(context);
+  await serveGoogle(context, REFUSALS[0][1]);
+  await clickLink(page, show);
+  await expect(refusal(show)).toBeVisible();
+  await expect.poll(() => refusalFrame(page)?.evaluate(() => document.readyState)).toBe('complete');
+  // Chrome's question can't be answered in a test: the presenter says yes (noted in the extension's
+  // storage, as the message goes once it's answered), and the site lets itself be shown, as every
+  // site does once allowed (card 56).
+  await refusalFrame(page).evaluate(() => {
+    chrome.permissions.request = async (asked) => (await chrome.storage.local.set({ asked }), true);
+  });
+  await serveGoogle(context);
+  await inRefusal(show).getByRole('button', { name: 'Allow all sites' }).click();
+  await expect(show.frameLocator('iframe.slides-companion-spotlight-website').getByRole('heading', { name: 'Hello from the link' })).toBeVisible();
+  expect(await serviceWorker.evaluate(() => chrome.storage.local.get('asked'))).toEqual({ asked: { origins: ['*://*/*'] } });
+  await expect(refusal(show)).toHaveCount(0);
+  await expect(stage(show).locator('.slides-companion-spotlight-status')).toHaveText('');
+});
+
+test('a site that lets itself be shown never shows the message', async ({ context }) => {
+  const { page, show } = await startSlideshow(context);
+  await clickLink(page, show);
+  await expect(show.frameLocator('iframe.slides-companion-spotlight-website').getByRole('heading', { name: 'Hello from the link' })).toBeVisible();
+  await page.waitForTimeout(1500);
+  await expect(refusal(show)).toHaveCount(0);
+  // Checked and done: nothing's left loading out of sight.
+  await expect(stage(show).locator('.slides-companion-spotlight-probe')).toHaveCount(0);
+});
+
 test('a link to another slide of the deck is Slides’ own to follow', async ({ context }) => {
   const page = await context.newPage();
   await page.goto(`${deckUrl}#slide=id.h32d70ce72e2f224_8_0`);

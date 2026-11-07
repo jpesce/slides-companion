@@ -316,7 +316,9 @@
     stage.addEventListener('click', onClick);
     stage.addEventListener('mousemove', onMouseMove);
     // Leaving the stage, or going over a page, where the stage no longer hears the pointer.
+    // The stage stays a moment as it fades out, after the gallery has gone.
     const pointerGone = () => {
+      if (!gallery) return;
       gallery.pointer = null;
       pointAt(null);
       updateBars();
@@ -349,6 +351,7 @@
     if (!picture) return false;
     gallery.index = index;
     gallery.stage.querySelector('.slides-companion-spotlight-picture').replaceChildren(picture);
+    if (isPage(item) && !item.allSites) checkRefusal(item);
     updateNavbar();
     const count = gallery.items.length;
     gallery.stage.querySelector('.slides-companion-spotlight-status').textContent =
@@ -443,6 +446,7 @@
   }
 
   function onMouseMove(event) {
+    if (!gallery) return;
     gallery.pointer = { x: event.clientX, y: event.clientY };
     wakePage(event);
     updateBars();
@@ -597,6 +601,112 @@
     window.open(address.href, '_blank', 'noopener');
   }
 
+  // ----- Sites that refuse to be shown (card 130) -----
+
+  // Without every site allowed, a site that refuses to be shown inside another page shows as Chrome's
+  // grey error page, and nothing the slideshow can see of a frame tells the two apart (Chrome hides
+  // it). An <object> can: where a frame shows that page, it fails to load (its `error` event), as it
+  // does for a missing page or site. Slides' pages let objects load only from Slides itself, so it
+  // goes in a page of Slides' site that a rule of ours lets them load from anywhere (background.js,
+  // CHECK_PAGE_RULE: a "not found" page, at an address only we ask for). Above the site, every page is then Slides', as
+  // above the page's own frame, so the site decides alike. The frame is sandboxed without scripts,
+  // and so is the site in it: it can't play, count a visit or take the slideshow's window.
+  // Meanwhile the page waits out of sight, for a moment at most, so that a refusal doesn't flash.
+  const CHECK_PAGE = 'https://docs.google.com/presentation/slides-companion-check';
+  const CHECK_HIDES_MS = 1000;
+  const EXTENSION_ORIGIN = new URL(chrome.runtime.getURL('')).origin;
+
+  function checkRefusal(item) {
+    const page = gallery.stage.querySelector('.slides-companion-spotlight-website');
+    const probe = document.createElement('iframe');
+    probe.className = 'slides-companion-spotlight-probe';
+    probe.setAttribute('sandbox', 'allow-same-origin');
+    probe.setAttribute('aria-hidden', 'true');
+    probe.tabIndex = -1;
+    page.classList.add('slides-companion-spotlight-checking');
+    const timer = setTimeout(() => page.classList.remove('slides-companion-spotlight-checking'), CHECK_HIDES_MS);
+    const decided = (refused) => {
+      clearTimeout(timer);
+      probe.remove();
+      page.classList.remove('slides-companion-spotlight-checking');
+      if (refused && gallery?.items[gallery.index] === item) showRefusal(item);
+    };
+    probe.addEventListener(
+      'load',
+      () => {
+        // Unreachable (offline), there's nothing to tell: the page shows as it comes.
+        const doc = probe.contentDocument;
+        if (!doc?.body) return decided(false);
+        const load = (data, loaded, failed) => {
+          const object = doc.createElement('object');
+          object.type = 'text/html';
+          object.data = data;
+          object.addEventListener('load', loaded);
+          object.addEventListener('error', failed);
+          doc.body.append(object);
+        };
+        // First a page of nothing, which loads only once our rule has lifted Slides' (if it hasn't,
+        // every site would seem to refuse, so it's better to say nothing).
+        load(
+          'data:text/html,',
+          () => load(item.shown, () => decided(false), () => decided(true)),
+          () => decided(false),
+        );
+      },
+      { once: true },
+    );
+    probe.src = CHECK_PAGE;
+    gallery.stage.append(probe);
+  }
+
+  // Our message in its place (refused.html), naming the site, with Open in new tab and Allow all sites.
+  function showRefusal(item) {
+    item.refused = true;
+    const site = siteName(item);
+    const message = document.createElement('iframe');
+    message.className = 'slides-companion-spotlight-refused';
+    message.title = text('refusedTitle', site);
+    message.src = chrome.runtime.getURL(`refused.html?${new URLSearchParams({ hl: globalThis.slidesCompanion.locale(), site })}`);
+    gallery.stage.querySelector('.slides-companion-spotlight-picture').replaceChildren(message);
+    gallery.stage.querySelector('.slides-companion-spotlight-status').textContent = text('refusedTitle', site);
+  }
+
+  // Every site allowed from the message: the page shows, now that it can.
+  async function showAllowed(item) {
+    if (!item.refused) return;
+    item.refused = false;
+    item.allSites = Boolean((await askBackground({ type: 'page-open' }))?.allSites);
+    if (gallery?.items[gallery.index] !== item) return;
+    gallery.stage.querySelector('.slides-companion-spotlight-status').textContent = '';
+    gallery.stage.querySelector('.slides-companion-spotlight-picture').replaceChildren(pageFrame(item));
+    if (!item.allSites) checkRefusal(item);
+  }
+
+  // The gallery takes every key, so Tab goes nowhere else: into the message, at its first button, or
+  // its last going back. Out of it, Tab comes back to the slideshow by itself.
+  function focusRefusal(last) {
+    const message = gallery.stage.querySelector('.slides-companion-spotlight-refused');
+    if (!message) return;
+    message.focus();
+    message.contentWindow.postMessage({ type: 'focus', last }, EXTENSION_ORIGIN);
+  }
+
+  // What the message asks the stage to do.
+  window.addEventListener('message', (event) => {
+    const message = gallery?.stage.querySelector('.slides-companion-spotlight-refused');
+    if (!message || event.source !== message.contentWindow || event.origin !== EXTENSION_ORIGIN) return;
+    if (event.data?.source !== 'slides-companion-refused') return;
+    const item = gallery.items[gallery.index];
+    if (event.data.type === 'open') openInNewTab();
+    else if (event.data.type === 'close') closeStage();
+    else if (event.data.type === 'allowed') showAllowed(item);
+    else if (event.data.type === 'key' && event.data.key === 'Escape') {
+      // Its release comes to this window (see onKeyUp).
+      heldKey = event.data.key;
+      closeStage();
+    }
+  });
+
   // ----- Keyboard -----
 
   const NAVIGATION = {
@@ -619,6 +729,7 @@
       // Slides must not act on keys while the stage covers it (Delete would delete the selection).
       event.stopImmediatePropagation();
       if (!event.metaKey && !event.ctrlKey) event.preventDefault();
+      if (event.key === 'Tab') return focusRefusal(event.shiftKey);
       // The Space that opened the gallery, held down, doesn't close it again.
       if (event.repeat && CLOSING_KEYS.includes(event.key)) return;
       heldKey = event.key;
@@ -879,9 +990,10 @@
   }
 
   // With every site allowed (card 56), the rule letting sites be shown goes in first. If an image
-  // opened on the stage meanwhile, the rule comes out again.
+  // opened on the stage meanwhile, the rule comes out again. Without, the page is checked for a
+  // refusal (card 130).
   async function openPage(page) {
-    await askBackground({ type: 'page-open' });
+    page.allSites = Boolean((await askBackground({ type: 'page-open' }))?.allSites);
     if (!gallery) openStage([page], 0, siteName(page));
     else if (!isPage(gallery.items[0])) askBackground({ type: 'page-closed' });
   }

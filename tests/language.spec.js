@@ -79,3 +79,23 @@ test('with Slides in Portuguese, the slideshow’s ⋮ menu and the floating not
   await expect(notes.locator('[data-zoom="1"]')).toHaveAttribute('title', 'Mais zoom');
   await expect(notes.locator('[data-zoom="-1"]')).toHaveAttribute('title', 'Menos zoom');
 });
+
+test('with Slides in Portuguese, the message for a site that won’t open over the slide speaks Portuguese', async ({ context }) => {
+  // Slide 4: a photo linked to google.com, here refusing to be shown inside another page.
+  await context.route('https://www.google.com/', (route) =>
+    route.fulfill({ contentType: 'text/html', headers: { 'x-frame-options': 'DENY' }, body: '<h1>Hello from the link</h1>' }),
+  );
+  const page = await context.newPage();
+  await page.goto(`${deckUrl}#slide=id.h2c87d6044fe40693_46_0`);
+  await page.locator('#punch-start-presentation-left').click();
+  const show = page.frameLocator('iframe.punch-present-iframe');
+  const link = show.locator('[id="h2c87d6044fe40693_46_2"] a').first();
+  await expect.poll(async () => (await link.boundingBox())?.y).toBeGreaterThan(0);
+  const box = await link.boundingBox();
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+  const message = show.frameLocator('iframe.slides-companion-spotlight-refused');
+  await expect(message.getByRole('heading')).toHaveText('google.com não abre sobre o seu slide');
+  await expect(message.getByText('Permita todos os sites para mostrá-lo aqui ou abra-o em uma nova guia.')).toBeVisible();
+  await expect(message.getByRole('button')).toHaveText(['Abrir em uma nova guia', 'Permitir todos os sites']);
+  expect(await message.locator('html').getAttribute('lang')).toBe('pt-BR');
+});

@@ -244,6 +244,17 @@
     "message": "Allow all sites",
     "description": "The notice's button: Chrome asks the presenter to let the extension work on every site."
   },
+  "refusedTitle": {
+    "message": "$SITE$ won’t open over your slide",
+    "description": "Shown over the slide during a slideshow instead of a site that refuses to be shown inside another page, while Chrome hasn't given the extension every site.",
+    "placeholders": {
+      "site": { "content": "$1", "example": "google.com" }
+    }
+  },
+  "refusedLine": {
+    "message": "Allow all sites to show it here, or open it in a new tab.",
+    "description": "Under that title, above the buttons Open in new tab and Allow all sites."
+  },
   "slideshowLinks": {
     "message": "When you click a link during a slideshow",
     "description": "A group of choices."

@@ -57,6 +57,24 @@ syncPageScript();
 chrome.permissions.onAdded.addListener(syncPageScript);
 chrome.permissions.onRemoved.addListener(syncPageScript);
 
+// Spotlight checks whether a site refuses to be shown inside another page (card 130) from a "not
+// found" page of Slides' site, at an address only it asks for; Slides' pages let objects load only
+// from Slides itself, and this one, without its rules, lets the check load the site. Dynamic rules
+// have their own ids, apart from the tabs' session rules below.
+const CHECK_PAGE_RULE = {
+  id: 1,
+  action: { type: 'modifyHeaders', responseHeaders: [{ header: 'content-security-policy', operation: 'remove' }] },
+  // Only that address (nothing in it can be chosen by a page), and only in Slides' own pages.
+  condition: {
+    urlFilter: '|https://docs.google.com/presentation/slides-companion-check|',
+    resourceTypes: ['sub_frame'],
+    initiatorDomains: ['docs.google.com'],
+  },
+};
+const checkPageRule = chrome.declarativeNetRequest
+  .updateDynamicRules({ removeRuleIds: [CHECK_PAGE_RULE.id], addRules: [CHECK_PAGE_RULE] })
+  .catch(() => {});
+
 // A session rule per tab, its id the tab's.
 const frameHeadersRule = (tabId) => ({
   id: tabId,
@@ -78,9 +96,10 @@ chrome.runtime.onMessage.addListener((message, sender, respond) => {
   if (tabId === undefined) return;
   switch (message?.type) {
     // spotlight.js is about to show a page: it waits for the answer (whether every site can be
-    // shown) so the page loads with the rule in place.
+    // shown) so the page loads with the rules in place (this tab's, or the check's), and page.js in
+    // it, if every site was only just allowed (card 130).
     case 'page-open':
-      chrome.permissions.contains(ALL_SITES).then(async (allSites) => {
+      Promise.all([syncPageScript(), checkPageRule]).then(() => chrome.permissions.contains(ALL_SITES)).then(async (allSites) => {
         if (allSites) {
           await chrome.declarativeNetRequest
             .updateSessionRules({ removeRuleIds: [tabId], addRules: [frameHeadersRule(tabId)] })

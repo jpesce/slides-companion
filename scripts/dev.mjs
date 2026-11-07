@@ -20,6 +20,8 @@ function touch(reason) {
 touch('watcher started');
 watch(extensionDir, { recursive: true }, (_event, file) => {
   if (!file || path.basename(file) === 'dev-stamp.txt') return;
+  // Chrome's own files, written when it loads the extension: reloading for them would loop.
+  if (file.startsWith('_metadata')) return;
   if (file.startsWith(`_locales${path.sep}`)) {
     try {
       buildMessages();

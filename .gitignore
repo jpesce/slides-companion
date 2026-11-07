@@ -3,6 +3,7 @@ test-results/
 playwright-report/
 .chromium-profile/
 extension/dev-stamp.txt
+extension/_metadata/
 
 # Third-party code for reference only (mostly unlicensed); keep just the index.
 benchmark/*

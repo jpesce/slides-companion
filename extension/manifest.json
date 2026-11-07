@@ -49,7 +49,7 @@
   "permissions": ["storage", "alarms", "scripting", "declarativeNetRequestWithHostAccess"],
   "web_accessible_resources": [
     {
-      "resources": ["all-sites.html"],
+      "resources": ["all-sites.html", "refused.html"],
       "matches": ["https://docs.google.com/*"]
     }
   ]
