@@ -221,8 +221,8 @@
     "description": "A feature's name in the list down the side of Settings: links clicked during a slideshow open over the slide."
   },
   "linksSummary": {
-    "message": "Open links over the slide",
-    "description": "The line under its name."
+    "message": "Open sites while presenting",
+    "description": "The line under its name: the page shows where the audience can see it, rather than in a tab of its own."
   },
   "linksAbout": {
     "message": "During a slideshow, click a link to open it over the slide, and press Esc to come back. Some sites don’t allow being shown over a slide. For those, choose $BUTTON$ at the bottom of the screen, or let them all be shown.",
@@ -265,8 +265,8 @@
     "description": "A feature's name in the list down the side of Settings: zooming into a slide during a slideshow, and what scrolling does."
   },
   "zoomSummary": {
-    "message": "Mouse wheel and trackpad",
-    "description": "The line under its name."
+    "message": "Zoom in on any detail",
+    "description": "The line under its name: zoom into the slide during a slideshow."
   },
   "zoomAbout": {
     "message": "During a slideshow, scroll, pinch or press + and − to zoom, and drag to look around. Changing slides zooms back out.",
@@ -310,8 +310,8 @@
     "description": "A feature's name in the list down the side of Settings: Slides' pen, during a slideshow."
   },
   "penSummary": {
-    "message": "Draw on slides",
-    "description": "The line under its name."
+    "message": "Keep what you draw",
+    "description": "The line under its name: what the pen draws comes back the next time the deck is presented, where Slides wipes it."
   },
   "penAbout": {
     "message": "During a slideshow, press Shift + L to draw on a slide, and Shift + A to Erase all.",
@@ -331,8 +331,8 @@
     "description": "A feature's name in the list down the side of Settings: a countdown in presenter view."
   },
   "timerSummary": {
-    "message": "Count down in presenter view",
-    "description": "The line under its name. \"Presenter view\" as Slides names it."
+    "message": "Count down to finish on time",
+    "description": "The line under its name."
   },
   "timerAbout": {
     "message": "In presenter view, press the timer button beside Pause and Reset, or the time itself, to count down from how long you have. Past the end, it keeps counting in red. Each deck remembers its time.",
@@ -376,12 +376,12 @@
   },
 
   "liveEditsName": {
-    "message": "Edits during a slideshow",
+    "message": "Live edits",
     "description": "A feature's name in the list down the side of Settings: edits to the deck show in a slideshow already running."
   },
   "liveEditsSummary": {
-    "message": "Shown within seconds",
-    "description": "The line under its name."
+    "message": "Shown while you present",
+    "description": "The line under its name: edits to the deck show in the slideshow already running."
   },
   "liveEditsAbout": {
     "message": "When the deck is edited while you present it, by you in another tab or by someone else, the slideshow shows it within a few seconds. Other slides update without anyone noticing.",

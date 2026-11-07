@@ -65,7 +65,7 @@
   "groupedApartHint": { "message": "por exemplo, fotos agrupadas para manter o layout organizado" },
 
   "linksName": { "message": "Links" },
-  "linksSummary": { "message": "Abra links sobre o slide" },
+  "linksSummary": { "message": "Abra sites enquanto apresenta" },
   "linksAbout": {
     "message": "Durante uma apresentação de slides, clique em um link para abri-lo sobre o slide e pressione Esc para voltar. Alguns sites não permitem ser mostrados sobre um slide. Para eles, escolha $BUTTON$ na parte de baixo da tela, ou deixe que todos sejam mostrados.",
     "placeholders": { "button": { "content": "$1" } }
@@ -79,7 +79,7 @@
   "linksTab": { "message": "Abrir em uma nova guia" },
 
   "zoomName": { "message": "Zoom e rolagem" },
-  "zoomSummary": { "message": "Roda do mouse e trackpad" },
+  "zoomSummary": { "message": "Amplie qualquer detalhe" },
   "zoomAbout": { "message": "Durante uma apresentação de slides, role, faça o movimento de pinça ou pressione + e − para aplicar zoom, e arraste para olhar em volta. Ao mudar de slide, o zoom volta ao normal." },
   "slideshowScroll": { "message": "Quando você rola durante uma apresentação de slides" },
   "scrollZoom": { "message": "Aumentar o zoom no slide" },
@@ -91,13 +91,13 @@
   "editorScrollNothingHint": { "message": "você ainda pode rolar por um slide em que aumentou o zoom" },
 
   "penName": { "message": "Caneta" },
-  "penSummary": { "message": "Desenhe nos slides" },
+  "penSummary": { "message": "Mantenha o que você desenhou" },
   "penAbout": { "message": "Durante uma apresentação de slides, pressione Shift + L para desenhar em um slide e Shift + A para Apagar tudo." },
   "keepInk": { "message": "Manter o que você desenhou depois que a apresentação de slides terminar" },
   "keepInkHint": { "message": "o desenho volta no mesmo slide na próxima vez que você apresentar neste computador, até você escolher Apagar tudo" },
 
   "timerName": { "message": "Contador" },
-  "timerSummary": { "message": "Tempo restante ao apresentar" },
+  "timerSummary": { "message": "Para terminar no horário" },
   "timerAbout": { "message": "Na visualização de apresentador, pressione o botão do contador ao lado de Pausar e Redefinir, ou o próprio tempo, para fazer uma contagem regressiva do tempo que você tem. Depois do fim, ele continua contando em vermelho. Cada apresentação lembra o próprio tempo." },
   "countdownBar": { "message": "Mostrar uma barra sob o tempo, que vai se enchendo" },
   "countdownBarHint": { "message": "basta uma olhada para saber em que ponto da palestra você está" },
@@ -110,7 +110,7 @@
   "warning5Hint": { "message": "para palestras longas e workshops" },
 
   "liveEditsName": { "message": "Edições ao vivo" },
-  "liveEditsSummary": { "message": "Aparecem em segundos" },
+  "liveEditsSummary": { "message": "Aparecem enquanto apresenta" },
   "liveEditsAbout": { "message": "Quando a apresentação é editada enquanto você apresenta, por você em outra guia ou por outra pessoa, a apresentação de slides mostra a mudança em poucos segundos. Os outros slides se atualizam sem ninguém perceber." },
   "liveEdits": { "message": "O slide na tela muda" },
   "liveEditsNow": { "message": "Na hora" },

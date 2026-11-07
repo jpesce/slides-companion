@@ -77,7 +77,7 @@ const replaced = (page) => expect(slidesOwn(page)).toHaveAttribute('data-slides-
 async function choose(context, option) {
   const page = await context.newPage();
   await page.goto(slide);
-  await openSettings(page, 'Edits during a slideshow');
+  await openSettings(page, 'Live edits');
   await page.getByRole('radio', { name: option }).check();
   await page.getByRole('button', { name: 'OK', exact: true }).click();
   await page.close();

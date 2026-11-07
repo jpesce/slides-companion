@@ -9,11 +9,11 @@ const feature = (page, name) => dialog(page).getByRole('tab', { name });
 // Each feature's name, and the line below it on what it's about.
 const FEATURES = [
   ['Spotlight', 'See images full screen'],
-  ['Links', 'Open links over the slide'],
-  ['Zoom & scroll', 'Mouse wheel and trackpad'],
-  ['Pen', 'Draw on slides'],
-  ['Timer', 'Count down in presenter view'],
-  ['Edits during a slideshow', 'Shown within seconds'],
+  ['Links', 'Open sites while presenting'],
+  ['Zoom & scroll', 'Zoom in on any detail'],
+  ['Pen', 'Keep what you draw'],
+  ['Timer', 'Count down to finish on time'],
+  ['Live edits', 'Shown while you present'],
 ];
 
 async function openDeck(context) {
@@ -43,7 +43,7 @@ test('the companion shows a tooltip and opens Settings', async ({ context }) => 
   await expect(dialog(page).getByRole('checkbox', { name: /Keep what you draw/ })).not.toBeChecked();
   await feature(page, 'Timer').click();
   await expect(dialog(page).getByRole('radio', { name: /2 minutes before the end/ })).toBeChecked();
-  await feature(page, 'Edits during a slideshow').click();
+  await feature(page, 'Live edits').click();
   await expect(dialog(page).getByRole('radio', { name: /Right away/ })).toBeChecked();
 });
 
@@ -123,11 +123,11 @@ test('↑ and ↓ go through the features, Home and End to the first and last, a
   await expect(feature(page, 'Links')).toHaveAttribute('aria-selected', 'true');
   await expect(dialog(page).getByRole('tabpanel', { name: 'Links' })).toBeVisible();
   await page.keyboard.press('End');
-  await expect(feature(page, 'Edits during a slideshow')).toBeFocused();
+  await expect(feature(page, 'Live edits')).toBeFocused();
   await page.keyboard.press('ArrowDown');
   await expect(feature(page, 'Spotlight')).toBeFocused();
   await page.keyboard.press('ArrowUp');
-  await expect(feature(page, 'Edits during a slideshow')).toBeFocused();
+  await expect(feature(page, 'Live edits')).toBeFocused();
   await page.keyboard.press('Home');
   await expect(feature(page, 'Spotlight')).toBeFocused();
   await page.keyboard.press('ArrowDown');
