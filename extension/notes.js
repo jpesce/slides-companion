@@ -24,20 +24,6 @@
   const isFullScreenKey = (event) =>
     event.key?.toLowerCase() === 'f' && event.shiftKey && (event.metaKey || event.ctrlKey) && !event.altKey;
 
-  // Slides' menus don't know our items, so mirror their hover highlight by hand.
-  function highlightOnHover(item) {
-    item.addEventListener('mouseenter', () => {
-      for (const highlighted of item.parentElement.querySelectorAll('.goog-menuitem-highlight')) {
-        if (highlighted === item) continue;
-        highlighted.dispatchEvent(new MouseEvent('mouseout', { bubbles: true, relatedTarget: item }));
-        highlighted.classList.remove('goog-menuitem-highlight');
-      }
-      item.classList.add('goog-menuitem-highlight');
-    });
-    item.addEventListener('mouseleave', () => item.classList.remove('goog-menuitem-highlight'));
-    item.addEventListener('mousedown', (event) => event.stopPropagation());
-  }
-
   // Slides builds its menus once and keeps them, but may move its items: ours goes back after
   // `after()` whenever they change.
   function keepInMenu(item, after) {
@@ -433,11 +419,19 @@
         <div class="goog-menuitem-checkbox"></div>
         <span class="goog-menuitem-label">Show floating notes</span>
       </div>`;
-    highlightOnHover(item);
     // Slides closes this menu as the button goes down on anything it doesn't know, before a click.
     item.addEventListener('mousedown', (event) => {
       if (event.button !== 0) return;
       item.classList.remove('goog-menuitem-highlight');
+      toggle();
+    });
+    // From the keyboard, Escape (pressed and let go) closes it, and focus goes back to the slide, as
+    // after Slides' own items.
+    globalThis.slidesCompanion.menuItem(item, () => {
+      const focused = document.activeElement;
+      for (const type of ['keydown', 'keyup']) {
+        focused.dispatchEvent(new KeyboardEvent(type, { key: 'Escape', code: 'Escape', keyCode: 27, which: 27, bubbles: true }));
+      }
       toggle();
     });
     showState();
@@ -509,13 +503,16 @@
         <span class="goog-menuitem-label"></span>
         <span class="goog-menuitem-accel" aria-label="Shift+S">Shift+S</span>
       </div>`;
-    highlightOnHover(item);
+    const chooseNotes = () => {
+      closeMenu();
+      tell(TOGGLE_EVENT);
+    };
     item.addEventListener('click', (event) => {
       event.stopPropagation();
       item.classList.remove('goog-menuitem-highlight');
-      closeMenu();
-      tell(TOGGLE_EVENT);
+      chooseNotes();
     });
+    globalThis.slidesCompanion.menuItem(item, chooseNotes);
     const showState = () => {
       item.querySelector('.goog-menuitem-label').textContent = label(editor.documentElement.hasAttribute(OPEN_ATTRIBUTE));
     };
@@ -531,7 +528,7 @@
       const slidesEnter = document.querySelector('.punch-viewer-navbar-menu .docs-icon-fullscreen')?.closest('.goog-menuitem');
       if (!exit || !slidesEnter) return;
       const windowed = isWindowed();
-      exit.style.display = windowed ? 'none' : '';
+      globalThis.slidesCompanion.hideMenuItem(exit, windowed);
       if (!windowed) {
         enter?.remove();
         enter = null;
@@ -543,23 +540,28 @@
       enter.classList.remove('goog-menuitem-disabled');
       enter.removeAttribute('aria-disabled');
       enter.style.display = '';
-      highlightOnHover(enter);
+      const chooseFullScreen = () => {
+        closeMenu();
+        tell(FULL_SCREEN_EVENT);
+      };
       enter.addEventListener('click', (event) => {
         event.stopPropagation();
         enter.classList.remove('goog-menuitem-highlight');
-        closeMenu();
-        tell(FULL_SCREEN_EVENT);
+        chooseFullScreen();
       });
+      globalThis.slidesCompanion.menuItem(enter, chooseFullScreen);
       exit.after(enter);
     }
     showFullScreenItem();
     new MutationObserver(showFullScreenItem).observe(editor.documentElement, { attributes: true, attributeFilter: [WINDOWED_ATTRIBUTE] });
 
-    // Pressing ⋮ again closes the menu, as Slides does. (Esc would end the slideshow.)
+    // Pressing ⋮ again closes the menu, as Slides does. (Esc would end the slideshow.) Focus goes
+    // back to the slideshow, as after Slides' own items, so Space goes on to the next slide.
     function closeMenu() {
       const more = document.querySelector('.punch-viewer-navbar-more');
       if (more?.getAttribute('aria-expanded') !== 'true') return;
       for (const type of ['mousedown', 'mouseup']) more.dispatchEvent(new MouseEvent(type, { bubbles: true, button: 0 }));
+      more.blur();
     }
   }
 }

@@ -233,6 +233,81 @@ test('opening the floating notes keeps the slideshow going in a window, and thei
   expect(notes.isClosed()).toBe(false);
 });
 
+// The slideshow's ⋮ menu takes the keyboard when ⋮ is reached with Tab and opened with Space or
+// Enter (opened with the pointer, the keys stay with the slideshow). The pointer shows the bar ⋮ is
+// on, and stays there, off the menu.
+async function openSlideshowMenuWithKeys(page, show) {
+  await page.mouse.move(300, 500);
+  const previous = await show.locator('.punch-viewer-navbar-prev').boundingBox();
+  await page.mouse.move(previous.x + previous.width / 2, previous.y + previous.height / 2);
+  const more = show.locator('.punch-viewer-navbar-more');
+  for (let i = 0; i < 10 && !(await more.evaluate((node) => node === document.activeElement)); i++) await page.keyboard.press('Tab');
+  await expect(more).toBeFocused();
+  await page.keyboard.press('Space');
+  await expect(show.locator('.punch-viewer-navbar-menu .goog-menuitem:has(.docs-icon-notes)')).toBeVisible();
+  await expect(more).toBeFocused();
+  await expect(more).toHaveAttribute('aria-expanded', 'true');
+}
+
+test('the arrow keys reach the floating notes and Enter full screen in the slideshow’s ⋮ menu', async ({ context }) => {
+  const { page, show } = await startSlideshow(context);
+  const more = show.locator('.punch-viewer-navbar-more');
+  const item = show.locator('.slides-companion-notes-menuitem');
+  const presenterView = show.locator('.punch-viewer-navbar-menu .goog-menuitem:has(.docs-icon-notes)');
+  const laser = show.locator('.slides-companion-notes-menuitem + .goog-menuitem');
+  const highlighted = show.locator('.punch-viewer-navbar-menu:has(.slides-companion-notes-menuitem) .goog-menuitem-highlight');
+  await openSlideshowMenuWithKeys(page, show);
+  await page.keyboard.press('Home');
+  await expect(presenterView).toHaveClass(/goog-menuitem-highlight/);
+  await page.keyboard.press('ArrowDown');
+  await expect(item).toHaveClass(/goog-menuitem-highlight/);
+  await expect(highlighted).toHaveCount(1);
+  await expect(more).toHaveAttribute('aria-activedescendant', await item.getAttribute('id'));
+  await page.keyboard.press('ArrowDown');
+  await expect(laser).toHaveClass(/goog-menuitem-highlight/);
+  await page.keyboard.press('ArrowUp');
+  await expect(item).toHaveClass(/goog-menuitem-highlight/);
+  // The keys go on driving the menu, not the slideshow.
+  expect(await slideNumber(show)).toBe(3);
+  const opened = context.waitForEvent('page');
+  await page.keyboard.press('Enter');
+  const notes = await opened;
+  await expect(header(notes)).toHaveText(/3/);
+  await expect(item).toBeHidden();
+  await expect(page.locator('iframe.punch-present-iframe')).toBeVisible();
+  // Focus goes back to the slideshow, as after Slides' own items.
+  await expect(more).not.toBeFocused();
+  expect(await show.locator('body').evaluate((body) => document.activeElement === body)).toBe(true);
+
+  // Out of full screen, Slides' "Exit full screen" is hidden, and the keys pass it by for the
+  // "Enter full screen" in its place.
+  await page.evaluate(() => document.exitFullscreen());
+  await expect.poll(() => isFullScreen(page)).toBe(false);
+  await openSlideshowMenuWithKeys(page, show);
+  await expect(exitItem(show)).toBeHidden();
+  const stops = show.locator('.punch-viewer-navbar-menu:has(.slides-companion-notes-menuitem) .goog-menuitem:not(.goog-menuitem-disabled)').filter({ visible: true });
+  const count = await stops.count();
+  const at = await stops.evaluateAll((nodes) => nodes.findIndex((node) => node.querySelector('.docs-icon-fullscreen')));
+  // Up from the last item, onto it from the one after.
+  await page.keyboard.press('End');
+  for (let i = 0; i < count - 1 - at; i++) await page.keyboard.press('ArrowUp');
+  await expect(enterItem(show)).toHaveClass(/goog-menuitem-highlight/);
+  await expect(highlighted).toHaveCount(1);
+  await page.keyboard.press('ArrowUp');
+  await expect(stops.nth(at - 1)).toHaveClass(/goog-menuitem-highlight/);
+  await page.keyboard.press('ArrowDown');
+  await expect(enterItem(show)).toHaveClass(/goog-menuitem-highlight/);
+  await page.keyboard.press('ArrowDown');
+  await expect(stops.nth(at + 1)).toHaveClass(/goog-menuitem-highlight/);
+  await expect(highlighted).toHaveCount(1);
+  await page.keyboard.press('ArrowUp');
+  await expect(enterItem(show)).toHaveClass(/goog-menuitem-highlight/);
+  await page.keyboard.press('Enter');
+  await expect.poll(() => isFullScreen(page)).toBe(true);
+  await expect(page.locator('iframe.punch-present-iframe')).toBeVisible();
+  expect(notes.isClosed()).toBe(false);
+});
+
 test('out of full screen, the slideshow’s ⋮ menu and ⌘+Shift+F take it back', async ({ context }) => {
   const { page, show } = await startSlideshow(context);
   await openSlideshowMenu(page, show);
@@ -325,6 +400,54 @@ test('the floating notes stay open after the slideshow, and follow the slide sel
   await expect(body(notes).locator('p').first()).toHaveText(new RegExp(`^${SLIDE_4_STARTS}`));
   await page.locator('.punch-filmstrip-thumbnail').nth(0).click();
   await expect(header(notes)).toHaveText(/^\D*1\D+\d+$/);
+});
+
+// Slides' menus only know their own items; its arrow keys stop on ours too, in their place, and
+// Enter chooses it, closing the menu as Slides' own items do.
+test('the arrow keys reach Show floating notes in View, and Enter opens them', async ({ context }) => {
+  const page = await context.newPage();
+  await page.goto(slide3);
+  await page.waitForSelector('#speakernotes');
+  const item = page.locator('.slides-companion-notes-menuitem');
+  const speakerNotes = page.locator('.goog-menuitem:has(+ .slides-companion-notes-menuitem)');
+  const filmstrip = page.locator('.slides-companion-notes-menuitem + .goog-menuitem');
+  const highlighted = page.locator('.goog-menu:has(.slides-companion-notes-menuitem) .goog-menuitem-highlight');
+  const isHighlighted = (element) => element.evaluate((node) => node.classList.contains('goog-menuitem-highlight'));
+  await page.locator('#docs-view-menu').click();
+  await expect(item).toBeVisible();
+  await page.mouse.move(5, 300);
+  for (let i = 0; i < 20 && !(await isHighlighted(speakerNotes)); i++) await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('ArrowDown');
+  await expect(item).toHaveClass(/goog-menuitem-highlight/);
+  await expect(highlighted).toHaveCount(1);
+  // Named for screen readers, where Slides names its own.
+  await expect(page.locator('#docs-menubar')).toHaveAttribute('aria-activedescendant', await item.getAttribute('id'));
+  await page.keyboard.press('ArrowDown');
+  await expect(filmstrip).toHaveClass(/goog-menuitem-highlight/);
+  await expect(page.locator('#docs-menubar')).toHaveAttribute('aria-activedescendant', await filmstrip.getAttribute('id'));
+  await page.keyboard.press('ArrowUp');
+  await expect(item).toHaveClass(/goog-menuitem-highlight/);
+  await page.keyboard.press('ArrowUp');
+  await expect(speakerNotes).toHaveClass(/goog-menuitem-highlight/);
+  await expect(highlighted).toHaveCount(1);
+  // Closed with it highlighted, the menu opens again with nothing highlighted, as Slides does.
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('Escape');
+  await expect(item).toBeHidden();
+  await page.locator('#docs-view-menu').click();
+  await expect(item).toBeVisible();
+  await expect(highlighted).toHaveCount(0);
+  await page.mouse.move(5, 300);
+  for (let i = 0; i < 20 && !(await isHighlighted(speakerNotes)); i++) await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('ArrowDown');
+
+  const opened = context.waitForEvent('page');
+  await page.keyboard.press('Enter');
+  const notes = await opened;
+  await expect(header(notes)).toHaveText(/3/);
+  await expect(item).toBeHidden();
+  // Focus goes back to the slide, as after Slides' own items.
+  await expect.poll(() => page.evaluate(() => document.activeElement.className)).toMatch(/docs-texteventtarget-iframe/);
 });
 
 test('View › Show floating notes opens them before presenting, and they stay on top as it goes full screen', async ({ context }) => {

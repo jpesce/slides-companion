@@ -652,25 +652,17 @@
         <span class="goog-menuitem-accel" aria-label="Space">Space</span>
       </div>`;
 
-    // Slides' menu doesn't know this item, so mirror its hover highlight by hand.
-    item.addEventListener('mouseenter', () => {
-      for (const highlighted of item.parentElement.querySelectorAll('.goog-menuitem-highlight')) {
-        if (highlighted === item) continue;
-        highlighted.dispatchEvent(new MouseEvent('mouseout', { bubbles: true, relatedTarget: item }));
-        highlighted.classList.remove('goog-menuitem-highlight');
-      }
-      item.classList.add('goog-menuitem-highlight');
-    });
-    item.addEventListener('mouseleave', () => item.classList.remove('goog-menuitem-highlight'));
-    item.addEventListener('mousedown', (event) => event.stopPropagation());
-    item.addEventListener('click', (event) => {
-      event.stopPropagation();
+    const choose = () => {
       const menu = item.parentElement;
       // Escape closes the menu through Slides itself, which also returns focus to the slide.
       menu.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, which: 27, bubbles: true }));
       openGallery(selection);
+    };
+    item.addEventListener('click', (event) => {
+      event.stopPropagation();
+      choose();
     });
-    return item;
+    return globalThis.slidesCompanion.menuItem(item, choose);
   }
 
   function addToContextMenu(framesLeft = 10) {
@@ -685,20 +677,29 @@
     if (!selection) return;
 
     const item = createMenuItem(selection);
+    let separator = null;
     // Lead the image group ("Crop image", "Replace image"…), or close the menu when it has none.
-    const crop = menu.querySelector('.docs-icon-editors-ia-crop')?.closest('.goog-menuitem');
-    if (crop) {
-      crop.before(item);
-    } else {
-      const separator = [...menu.querySelectorAll('.goog-menuseparator')].find(isShown);
-      if (separator) {
-        const copy = separator.cloneNode(true);
-        copy.removeAttribute('id');
-        copy.classList.add(MENU_ITEM_CLASS);
-        menu.append(copy);
+    function place() {
+      const crop = menu.querySelector('.docs-icon-editors-ia-crop')?.closest('.goog-menuitem');
+      if (crop) {
+        separator?.remove();
+        separator = null;
+        if (crop.previousElementSibling !== item) crop.before(item);
+        return;
       }
+      const slidesSeparator = [...menu.querySelectorAll(`.goog-menuseparator:not(.${MENU_ITEM_CLASS})`)].find(isShown);
+      if (!separator && slidesSeparator) {
+        separator = slidesSeparator.cloneNode(true);
+        separator.removeAttribute('id');
+        separator.classList.add(MENU_ITEM_CLASS);
+      }
+      if (menu.lastElementChild === item) return;
+      if (separator) menu.append(separator);
       menu.append(item);
     }
+    place();
+    // Opened with Shift+F10, Slides fills the menu after this, below what's there.
+    new MutationObserver((_, watching) => (item.isConnected ? place() : watching.disconnect())).observe(menu, { childList: true });
   }
 
   if (!IN_SLIDESHOW) document.addEventListener('contextmenu', () => requestAnimationFrame(() => addToContextMenu()), true);

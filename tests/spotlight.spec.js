@@ -240,6 +240,71 @@ test('the right-click menu offers Spotlight image for images only', async ({ con
   await expect(page.locator('.goog-menu[role="menu"]:visible')).toHaveCount(0);
 });
 
+// Slides' menus only know their own items; its arrow keys, Home and End stop on ours too, in their
+// place, and Enter chooses it, whether the menu was opened with the pointer or with Shift+F10.
+test('the arrow keys reach Spotlight image in the right-click menu, and Enter spotlights the image', async ({ context }) => {
+  const page = await openSlide(context);
+  const menu = page.locator('.goog-menu[role="menu"]').filter({ visible: true });
+  const item = menu.locator('.goog-menuitem', { hasText: 'Spotlight image' });
+  const stops = menu.locator('.goog-menuitem:not(.goog-menuitem-disabled)').filter({ visible: true });
+  const highlighted = menu.locator('.goog-menuitem-highlight');
+  const named = async (element) => expect(menu).toHaveAttribute('aria-activedescendant', await element.getAttribute('id'));
+  await clickCentre(page, `${object(RIGHT)} image`, { button: 'right' });
+  await expect(item).toBeVisible();
+  // It's the last, here: down from the first item.
+  await page.mouse.move(5, 5);
+  const count = await stops.count();
+  for (let i = 0; i < count; i++) await page.keyboard.press('ArrowDown');
+  await expect(highlighted).toHaveCount(1);
+  await expect(item).toHaveClass(/goog-menuitem-highlight/);
+  await named(item);
+  // Round to the first, back, and on to the one before it.
+  await page.keyboard.press('ArrowDown');
+  await expect(stops.first()).toHaveClass(/goog-menuitem-highlight/);
+  await named(stops.first());
+  await page.keyboard.press('ArrowUp');
+  await expect(item).toHaveClass(/goog-menuitem-highlight/);
+  await page.keyboard.press('ArrowUp');
+  await expect(stops.nth(count - 2)).toHaveClass(/goog-menuitem-highlight/);
+  await named(stops.nth(count - 2));
+  await expect(highlighted).toHaveCount(1);
+  await page.keyboard.press('End');
+  await expect(item).toHaveClass(/goog-menuitem-highlight/);
+  await page.keyboard.press('Home');
+  await expect(stops.first()).toHaveClass(/goog-menuitem-highlight/);
+  // The pointer and the keys share one highlight.
+  await item.hover();
+  await expect(highlighted).toHaveCount(1);
+  await page.keyboard.press('ArrowUp');
+  await expect(stops.nth(count - 2)).toHaveClass(/goog-menuitem-highlight/);
+  await page.keyboard.press('ArrowDown');
+  await expect(item).toHaveClass(/goog-menuitem-highlight/);
+  await stops.first().hover();
+  await expect(highlighted).toHaveCount(1);
+  await expect(stops.first()).toHaveClass(/goog-menuitem-highlight/);
+  await page.keyboard.press('End');
+  await page.keyboard.press('Enter');
+  await expect(stage(page)).toBeVisible();
+  await expect(menu).toHaveCount(0);
+  expect((await showing(page)).id).toBe(RIGHT);
+  await page.keyboard.press('Escape');
+  await expect(stage(page)).toHaveCount(0);
+
+  // From the keyboard alone: Shift+F10 opens the menu, and Up goes to the last item.
+  await page.mouse.move(5, 5);
+  await page.keyboard.press('Shift+F10');
+  await expect(item).toBeVisible();
+  await expect(item).not.toHaveClass(/goog-menuitem-highlight/);
+  // In its place, which Slides fills in after the menu opens.
+  await expect(stops.last()).toHaveText(/Spotlight image/);
+  await page.keyboard.press('Home');
+  await expect(stops.first()).toHaveClass(/goog-menuitem-highlight/);
+  await page.keyboard.press('ArrowUp');
+  await expect(item).toHaveClass(/goog-menuitem-highlight/);
+  await page.keyboard.press('Enter');
+  await expect(stage(page)).toBeVisible();
+});
+
 test('holding Space keeps the gallery open', async ({ context }) => {
   const page = await openSlide(context);
   await clickCentre(page, `${object(RIGHT)} image`);
