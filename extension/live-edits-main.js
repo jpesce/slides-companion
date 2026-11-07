@@ -59,9 +59,15 @@
 
   // ----- Slides as each player got them -----
 
-  // Slides numbers some ids afresh each time it draws a slide ("e23_21").
+  // Slides numbers some ids afresh each time it draws a slide ("e23_21"), both numbers: the second
+  // one too when the computer is busy (card 150). They're numbered here as they first come, so that
+  // only what refers to what counts.
   function fingerprint(svg) {
-    const text = String(svg).replace(/\be\d+_(\d+)\b/g, 'e_$1');
+    const ids = new Map();
+    const text = String(svg).replace(/\be\d+_\d+\b/g, (id) => {
+      if (!ids.has(id)) ids.set(id, ids.size);
+      return `e_${ids.get(id)}`;
+    });
     let hash = 0;
     for (let i = 0; i < text.length; i++) hash = (Math.imul(hash, 31) + text.charCodeAt(i)) | 0;
     return `${text.length}:${hash}`;

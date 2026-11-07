@@ -52,7 +52,9 @@ async function openDeck(context) {
           const requestPage = proto.requestPage3;
           proto.requestPage3 = function (id, prefetch, onImages, onSvg) {
             return requestPage.call(this, id, prefetch, onImages, function (svg, ...rest) {
-              const edited = window.edits[id] ? svg.replace(/>[^<\s][^<]{2,}</, `>${window.edits[id]}<`) : svg;
+              let edited = window.edits[id] ? svg.replace(/>[^<\s][^<]{2,}</, `>${window.edits[id]}<`) : svg;
+              // As Slides numbers some ids when it's busy: both numbers differ from one drawing to the next.
+              if (window.renumbered) edited = edited.replace(/\be(\d+)_(\d+)\b/g, (_, draw, item) => `e${+draw + 5}_${+item + 9}`);
               return onSvg.call(this, edited, ...rest);
             });
           };
@@ -251,6 +253,21 @@ test('set to wait for the next slideshow, nothing changes', async ({ context }) 
   await page.waitForTimeout(7000);
   await expect(copies(page)).toHaveCount(0);
   await expect(words(page, 'Lisbon')).toHaveCount(0);
+});
+
+// Card 150: on a busy computer, Slides numbers a slide's clip paths differently each time it draws it.
+test('a slide drawn again, unedited but numbered differently, loads no new player', async ({ context }) => {
+  const page = await startSlideshow(context);
+  await page.evaluate(() => (window.renumbered = true));
+  // Slides redraws the slide's thumbnail, as it does when it's busy, with nothing edited.
+  await edit(page, SLIDE_3);
+  await page.waitForTimeout(7000);
+  await expect(copies(page)).toHaveCount(0);
+  await expect(page.locator(PLAYER)).toHaveCount(1);
+
+  // An edit still shows.
+  await edit(page, SLIDE_3, 'Lisbon');
+  await expect(words(page, 'Lisbon')).toBeVisible({ timeout: 15000 });
 });
 
 test('an edit undone before it shows changes nothing', async ({ context }) => {
