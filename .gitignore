@@ -9,3 +9,5 @@ extension/_metadata/
 benchmark/*
 !benchmark/README.md
 !benchmark/_fetch-log.tsv
+build/
+.releasenotes.tmp

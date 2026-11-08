@@ -1,0 +1,43 @@
+# Changelog
+
+What changed in each version, newest first. Each version's section becomes its tag message and GitHub release notes (`make release`).
+
+## v1.0.0 - Unreleased
+
+**Image Spotlight is now Slides Companion**
+
+Presenter tools for Google Slides, still free, open source, and working entirely in your browser. Spotlight is still here, rebuilt, alongside new tools for presenting. Settings open from the extension's button in Slides' side toolbar.
+
+- **Spotlight:** select an image and press <kbd>Space</kbd>, or right-click it and choose Spotlight image, to see it full screen. Go through the slide's other images with the arrow keys or the bar below the picture. During a slideshow, click an image to spotlight it. Choose whether grouped images show as one picture or each on its own.
+- **Download image:** right-click an image and save it as it was added to the deck, under the deck's name.
+- **Links:** during a slideshow, links open over your slide, and <kbd>Esc</kbd> brings you back right where you left it. Back and Forward work as in a tab, PDFs open in Google's viewer, and when a site won't show inside the slideshow, you can allow every site or open it in a new tab.
+- **Zoom & scroll:** zoom into a slide with your trackpad, mouse wheel or <kbd>+</kbd> and <kbd>-</kbd> to show a detail up close. Scrolling no longer skips slides by accident.
+- **Pen:** what you draw with Slides' pen stays on the slide for the next time you present.
+- **Timer:** in presenter view, count down from how long you have, with a bar that fills as you go and an orange warning near the end. Each deck remembers its time.
+- **Floating notes:** your speaker notes in a window of their own, from View › Show floating notes or <kbd>Shift</kbd>+<kbd>S</kbd> while presenting.
+- **Live edits:** edits to the deck, by you or anyone else, reach a slideshow that's already running.
+- **Keyboard:** our shortcuts are listed in Slides' Keyboard shortcuts dialog, and our menu items work with the arrow keys and access keys like Slides' own.
+- **Languages:** the extension speaks Slides' language, in 33 languages, right to left in Arabic and Hebrew.
+- The toolbar popup is gone: everything now lives inside Slides.
+
+## v0.1.2 - 2025-05-23
+
+**Update extension name**
+
+- Renamed to the correct title: "Image Spotlight for Google Slides"
+
+## v0.1.1 - 2025-05-20
+
+**Update permissions**
+
+- Remove `activeTab` permission
+
+## v0.1.0 - 2025-05-08
+
+**Initial release**
+
+Introduces the image spotlight feature and related interactions.
+
+- Enable image spotlight on click + Space
+- Exit spotlight mode by pressing Space, Esc, or by clicking anywhere
+- Retain image crop or mask during spotlight

@@ -13,6 +13,8 @@ A free Chrome extension (Manifest V3) that improves presenting in Google Slides.
 - `npm test`: Playwright tests in Chromium against the shared test deck (`tests/fixtures.js`).
 - `npm run dev`: watches `extension/` and auto-reloads the unpacked extension and open Slides tabs (in Dia/Chrome, not the test Chromium).
 - `npm run chromium`: opens a Chromium window with the extension loaded.
+- `npm run build`: the release build, in `build/`, without the dev auto-reload. `npm run test:build` runs the tests on it.
+- `make help`: the release steps (bump, tag, GitHub release). Each version's notes are its section of `CHANGELOG.md`; add a line there, from the user's side, for every change users will notice.
 
 ## Kanban
 

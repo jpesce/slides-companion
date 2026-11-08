@@ -1,5 +1,5 @@
 // Watches extension/ and rewrites extension/dev-stamp.txt on every change.
-// The unpacked extension polls that file and reloads itself (see extension/background.js).
+// The unpacked extension polls that file and reloads itself (see extension/dev-reload.js).
 // A change to _locales also writes extension/messages.js afresh (scripts/build-messages.mjs).
 import { watch, writeFileSync } from 'node:fs';
 import path from 'node:path';

@@ -4,10 +4,12 @@
   "type": "module",
   "scripts": {
     "dev": "node scripts/dev.mjs",
+    "build": "node scripts/build.mjs",
     "chromium": "node scripts/chromium.mjs",
     "illustrations": "node scripts/build-illustrations.mjs",
     "messages": "node scripts/build-messages.mjs",
     "test": "playwright test",
+    "test:build": "npm run build && EXTENSION_PATH=build/slides-companion playwright test",
     "test:headed": "playwright test --headed"
   },
   "devDependencies": {

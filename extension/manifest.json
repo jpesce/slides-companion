@@ -1,9 +1,13 @@
 {
   "manifest_version": 3,
   "name": "__MSG_extensionName__",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "__MSG_extensionDescription__",
   "default_locale": "en",
+  "icons": {
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
   "background": {
     "service_worker": "background.js"
   },

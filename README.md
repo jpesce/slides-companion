@@ -1,44 +1,98 @@
-# Slides Companion
+<p align="center">
+  <img width="100" src="https://github.com/user-attachments/assets/6fe34184-6b7b-4d24-8382-f31046a871b8" alt="Slides Companion"/>
+  <h1 align="center"><b>Slides Companion</b></h1>
+</p>
 
-Free, client-side-only Chrome extension with presenter tools for Google Slides. A rewrite of [Image Spotlight for Google Slides](https://github.com/jpesce/image-spotlight-for-google-slides). Research: problems and competitors; competitor source code in [benchmark/](benchmark/README.md).
+<p align="center">
+  <a href="https://chromewebstore.google.com/detail/image-spotlight-for-googl/habmkngfcidcchgmdpampgcbmnllkbhd" target="_blank"><img width="160" src="https://github.com/user-attachments/assets/b980234b-a7fa-4f31-82cb-61b7c5dcc85f" alt="Available in the Chrome Web Store"/></a>
+</p>
+
+Free presenter tools for Google Slides™, in a Chrome extension. It works on top of Slides' own slideshow, so your videos, animations and clicker keep working, and it looks like part of Slides. Formerly Image Spotlight for Google Slides. Get it from the [Chrome Web Store](https://chromewebstore.google.com/detail/image-spotlight-for-googl/habmkngfcidcchgmdpampgcbmnllkbhd).
 
 ## Features
 
-- **Companion:** our logo sits first in Slides' side toolbar, and its eyes follow the mouse. Click it for Settings.
-- **Spotlight:** select an image and press <kbd>Space</kbd> (or right-click it and choose **Spotlight image**) to see it full screen on a black stage. <kbd>←</kbd> <kbd>→</kbd> or a click on the left or right third go through the slide's other images; with several images selected, just those. <kbd>Esc</kbd>, <kbd>Space</kbd> or the X closes it. The X and a ‹ 2/5 › bar sit above and below the picture, out of sight until the pointer moves there; over the picture, the pointer turns into an arrow showing which way a click goes. During a slideshow, click an image to spotlight it; clicks anywhere else still change slides. Works for anyone who can view the deck.
-- **Settings:** whether clicking an image in a full screen slideshow spotlights it (on by default), and whether a group of images shows as one picture or each image on its own.
+- 🔍 **Spotlight:** select an image and press <kbd>Space</kbd> to see it full screen, then go through the slide's other images. During a slideshow, just click an image.
+- 🔗 **Links:** during a slideshow, links open over your slide, PDFs included, and <kbd>Esc</kbd> brings you back right where you left it.
+- 🔎 **Zoom & scroll:** zoom into a slide with your trackpad, mouse wheel or <kbd>+</kbd> and <kbd>-</kbd> to show a detail up close, and never skip a slide by brushing the trackpad.
+- 🖊️ **Pen:** what you draw with Slides' pen stays on the slide for the next time you present.
+- ⏱️ **Timer:** in presenter view, count down from how long you have, with a warning before the end.
+- 📝 **Floating notes:** your speaker notes in a window of their own while you present.
+- ✏️ **Live edits:** edits to the deck reach a slideshow that's already running, handy for a deck on an office TV.
+- 🖼️ **Download image:** save an image from a slide as it was added to the deck.
+- 🌍 Speaks Slides' language, in 33 languages.
+- 🕊️ 100% free and open source. No account, no servers: everything happens in your browser.
 
-## Layout
+Each feature has its own page in Settings: click the extension's button in Slides' side toolbar.
+
+## Getting started
+
+1. Install from the [Chrome Web Store](https://chromewebstore.google.com/detail/image-spotlight-for-googl/habmkngfcidcchgmdpampgcbmnllkbhd).
+2. Open any Google Slides presentation.
+3. Click an image and press <kbd>Space</kbd> to spotlight it, or start a slideshow and present as usual.
+
+### Manual installation
+
+> [!NOTE]
+> This method is recommended only for developers and advanced users.<br/>
+> For the best experience, install the extension from the [Chrome Web Store](https://chromewebstore.google.com/detail/image-spotlight-for-googl/habmkngfcidcchgmdpampgcbmnllkbhd).
+
+Download a [release](https://github.com/jpesce/image-spotlight-for-google-slides/releases), unzip it, and [load it as an unpacked extension](https://developer.chrome.com/docs/extensions/get-started/tutorial/hello-world#load-unpacked).
+
+## Contributing
+
+Contributions are welcome! Feel free to [open an issue](https://github.com/jpesce/image-spotlight-for-google-slides/issues) or submit a [pull request](https://github.com/jpesce/image-spotlight-for-google-slides/pulls). See [Development](#development) below to get started, and [CLAUDE.md](CLAUDE.md) for the project's principles.
+
+## Development
 
 ```
 extension/   the extension itself (load this folder in Chrome)
 tests/       Playwright tests, run in a separate Chromium
-scripts/     dev helpers
+scripts/     build, release and dev helpers
+kanban/      the work board, one card per deliverable
 benchmark/   competitors' code, for reference only
 ```
 
-## Setup
+### Setup
 
 ```bash
 npm install
 npx playwright install chromium
 ```
 
-## Automated tests (separate Chromium)
+### Your Chrome (signed in)
+
+1. Open `chrome://extensions`, turn on **Developer mode**, click **Load unpacked**, pick the `extension/` folder.
+2. Run `npm run dev` and leave it running.
+
+While `npm run dev` runs, saving any file in `extension/` reloads the extension and every open Slides tab within about a second. A change to `extension/_locales/` also rewrites `extension/messages.js` (`npm run messages`). The release build leaves the auto-reload out.
+
+### Tests
 
 ```bash
 npm test
 ```
 
-Each run launches Playwright's Chromium with `extension/` loaded and checks it against a public deck. Set `TEST_DECK_URL` to use another deck shared as "anyone with the link". Use `npm run test:headed` to watch, or `npm run chromium` to open that browser and click around.
+Each run launches Playwright's Chromium with `extension/` loaded and checks it against a public deck. Set `TEST_DECK_URL` to use another deck shared as "anyone with the link". Use `npm run test:headed` to watch, or `npm run chromium` to open that browser and click around. `npm run test:build` runs every test on the release build instead.
 
-Regular Chrome stopped accepting `--load-extension` in version 137, which is why tests use Chromium.
+Regular Chrome stopped accepting `--load-extension` in version 137, which is why tests use Chromium. Auto-reload doesn't work there, and tests don't need it, since each run starts fresh.
 
-## Your Chrome (signed in)
+### Releasing
 
-1. Open `chrome://extensions`, turn on **Developer mode**, click **Load unpacked**, pick the `extension/` folder.
-2. Run `npm run dev` and leave it running.
+`npm run build` (or `make build`) writes the release build to `build/slides-companion/` and zips it as `build/slides-companion-v<version>.zip`, without the dev auto-reload and the permission only it uses.
 
-While `npm run dev` runs, saving any file in `extension/` reloads the extension and every open Slides tab within about a second. Only unpacked builds do this; store installs never auto-reload.
+1. `make bump` raises the version in `extension/manifest.json` and starts its section in [CHANGELOG.md](CHANGELOG.md).
+2. Write what changed there, from the user's side, and replace "Unreleased" with the date.
+3. Commit and push to `main`.
+4. `make all` builds, tags the version with its changelog section, pushes the tag, and creates the GitHub release with the zip attached.
+5. Upload the zip at the [Chrome Web Store dashboard](https://chrome.google.com/webstore/devconsole), with the listing text from [STORE.md](STORE.md) if it changed.
 
-Auto-reload doesn't work in the test Chromium: an extension loaded from the command line is unloaded by `chrome.runtime.reload()`. Tests don't need it, since each run starts fresh.
+`make help` lists every step, to run them one at a time.
+
+## License
+
+[![GPLv3 License](https://img.shields.io/badge/License-GPLv3-blue.svg)](./LICENSE)
+
+This is 100% free and open source software licensed under the GNU General Public License v3.0.<br/>
+Yours to use, learn, share, and improve. See the [LICENSE](./LICENSE) file for more details.
+
+Google Slides is a trademark of Google LLC. This extension is not made or endorsed by Google.

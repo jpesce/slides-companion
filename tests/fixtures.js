@@ -3,7 +3,9 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 
-export const extensionPath = path.resolve(import.meta.dirname, '../extension');
+// The extension the tests load: extension/, or the release build with
+// EXTENSION_PATH=build/slides-companion (`npm run test:build`).
+export const extensionPath = path.resolve(import.meta.dirname, '..', process.env.EXTENSION_PATH ?? 'extension');
 
 // Our test deck. The test browser is signed out, so it must be shared as "Anyone with the link".
 // Override with TEST_DECK_URL.
