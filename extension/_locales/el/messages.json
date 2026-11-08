@@ -1,5 +1,6 @@
 {
   "extensionName": { "message": "Slides Companion" },
+  "storeName": { "message": "Slides Companion: χρονόμετρο, ζουμ & σημειώσεις ομιλητή για Google Slides™" },
   "extensionDescription": { "message": "Εργαλεία παρουσιαστή για τις Παρουσιάσεις Google." },
   "settingsLabel": { "message": "Ρυθμίσεις Slides Companion" },
 

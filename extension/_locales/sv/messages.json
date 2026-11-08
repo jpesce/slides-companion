@@ -1,5 +1,6 @@
 {
   "extensionName": { "message": "Slides Companion" },
+  "storeName": { "message": "Slides Companion: timer, zoom och stödanteckningar – Google Presentationer™" },
   "extensionDescription": { "message": "Verktyg för presentatörer i Google Presentationer." },
   "settingsLabel": { "message": "Inställningar för Slides Companion" },
 

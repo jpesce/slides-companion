@@ -1,5 +1,6 @@
 {
   "extensionName": { "message": "Slides Companion" },
+  "storeName": { "message": "Slides Companion: ตัวจับเวลา ซูม และบันทึกของผู้บรรยายสำหรับ Google สไลด์™" },
   "extensionDescription": { "message": "เครื่องมือสำหรับผู้นำเสนอใน Google สไลด์" },
   "settingsLabel": { "message": "การตั้งค่า Slides Companion" },
 

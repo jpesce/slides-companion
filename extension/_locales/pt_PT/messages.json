@@ -1,5 +1,6 @@
 {
   "extensionName": { "message": "Slides Companion" },
+  "storeName": { "message": "Slides Companion: temporizador, zoom e notas do orador – Google Slides™" },
   "extensionDescription": { "message": "Ferramentas de apresentação para o Google Slides." },
   "settingsLabel": { "message": "Definições do Slides Companion" },
 

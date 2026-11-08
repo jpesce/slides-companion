@@ -1,7 +1,11 @@
 {
   "extensionName": {
     "message": "Slides Companion",
-    "description": "The extension's name, in Chrome and the Web Store. A name: keep it as it is unless it has an established translation."
+    "description": "Our name, as Slides' Keyboard shortcuts dialog shows it and at the start of storeName. A name: keep it as it is unless it has an established translation."
+  },
+  "storeName": {
+    "message": "Slides Companion: Timer, Zoom & Speaker Notes for Google Slides™",
+    "description": "The extension's full name in Chrome and the Web Store, where people search by name: our name (as extensionName), then what it does, with the words people search for and Google Slides' own name in this language, marked ™ as Google asks. 75 characters at most."
   },
   "extensionDescription": {
     "message": "Presenter tools for Google Slides.",

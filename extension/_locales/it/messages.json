@@ -1,5 +1,6 @@
 {
   "extensionName": { "message": "Slides Companion" },
+  "storeName": { "message": "Slides Companion: timer, zoom e note del relatore per Presentazioni Google™" },
   "extensionDescription": { "message": "Strumenti per chi presenta con Presentazioni Google." },
   "settingsLabel": { "message": "Impostazioni di Slides Companion" },
 

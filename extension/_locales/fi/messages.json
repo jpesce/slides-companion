@@ -1,5 +1,6 @@
 {
   "extensionName": { "message": "Slides Companion" },
+  "storeName": { "message": "Slides Companion: ajastin, zoomaus, puhujan muistiinpanot – Google Slides™" },
   "extensionDescription": { "message": "Esittäjän työkaluja Google Slidesiin." },
   "settingsLabel": { "message": "Slides Companionin asetukset" },
 

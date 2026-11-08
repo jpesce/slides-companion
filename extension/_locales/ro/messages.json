@@ -1,5 +1,6 @@
 {
   "extensionName": { "message": "Slides Companion" },
+  "storeName": { "message": "Slides Companion: cronometru, zoom și note de vorbitor – Prezentări Google™" },
   "extensionDescription": { "message": "Instrumente pentru prezentatori în Prezentări Google." },
   "settingsLabel": { "message": "Setări Slides Companion" },
 

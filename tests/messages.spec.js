@@ -33,3 +33,17 @@ test('every message is used, and every message asked for exists', () => {
   expect(asked.length).toBeGreaterThan(20);
   expect(asked.filter((key) => !keys.includes(key))).toEqual([]);
 });
+
+// Chrome and the Web Store show our name and line under it in every language, within their limits
+// (75 and 132 characters). The store finds extensions by name, so it says what we do, after our own
+// name, and names Google Slides as Google asks of other makers: after "for", marked ™, never first.
+test('our name and summary in the Web Store fit, in every language', () => {
+  for (const [locale, messages] of Object.entries(readLocales())) {
+    const name = resolve(messages.storeName);
+    expect([...name].length, `${locale}: ${name}`).toBeLessThanOrEqual(75);
+    expect(name.startsWith(resolve(messages.extensionName)), `${locale}: ${name}`).toBe(true);
+    expect(name, locale).toContain('Google');
+    expect(name, locale).toContain('™');
+    expect([...resolve(messages.extensionDescription)].length, locale).toBeLessThanOrEqual(132);
+  }
+});

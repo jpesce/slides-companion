@@ -1,5 +1,6 @@
 {
   "extensionName": { "message": "Slides Companion" },
+  "storeName": { "message": "Slides Companion: таймер, масштаб, нотатки доповідача – Google Презентації™" },
   "extensionDescription": { "message": "Інструменти доповідача для Google Презентацій." },
   "settingsLabel": { "message": "Налаштування Slides Companion" },
 

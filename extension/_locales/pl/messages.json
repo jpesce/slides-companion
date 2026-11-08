@@ -1,5 +1,6 @@
 {
   "extensionName": { "message": "Slides Companion" },
+  "storeName": { "message": "Slides Companion: minutnik, zoom i notatki prelegenta – Prezentacje Google™" },
   "extensionDescription": { "message": "Narzędzia dla prowadzących w Prezentacjach Google." },
   "settingsLabel": { "message": "Ustawienia Slides Companion" },
 

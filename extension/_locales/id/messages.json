@@ -1,5 +1,6 @@
 {
   "extensionName": { "message": "Slides Companion" },
+  "storeName": { "message": "Slides Companion: pengatur waktu, zoom & catatan pembicara – Google Slide™" },
   "extensionDescription": { "message": "Alat presentasi untuk Google Slide." },
   "settingsLabel": { "message": "Setelan Slides Companion" },
 

@@ -1,5 +1,6 @@
 {
   "extensionName": { "message": "Slides Companion" },
+  "storeName": { "message": "Slides Companion: timer, zoom en sprekernotities voor Google Presentaties™" },
   "extensionDescription": { "message": "Tools voor presentatoren in Google Presentaties." },
   "settingsLabel": { "message": "Instellingen voor Slides Companion" },
 

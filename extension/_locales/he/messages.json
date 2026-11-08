@@ -1,5 +1,6 @@
 {
   "extensionName": { "message": "Slides Companion" },
+  "storeName": { "message": "Slides Companion: טיימר, זום והערות הדובר ל-Google Slides™" },
   "extensionDescription": { "message": "כלים להצגת מצגות ב-Google Slides." },
   "settingsLabel": { "message": "ההגדרות של Slides Companion" },
 

@@ -1,5 +1,6 @@
 {
   "extensionName": { "message": "Slides Companion" },
+  "storeName": { "message": "Slides Companion: időzítő, nagyítás és előadói jegyzetek – Google Diák™" },
   "extensionDescription": { "message": "Előadói eszközök a Google Diákhoz." },
   "settingsLabel": { "message": "Slides Companion beállításai" },
 

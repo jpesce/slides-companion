@@ -1,5 +1,6 @@
 {
   "extensionName": { "message": "Slides Companion" },
+  "storeName": { "message": "Slides Companion: timer, zoom og præsentationsnoter til Google Slides™" },
   "extensionDescription": { "message": "Præsentationsværktøjer til Google Slides." },
   "settingsLabel": { "message": "Indstillinger for Slides Companion" },
 

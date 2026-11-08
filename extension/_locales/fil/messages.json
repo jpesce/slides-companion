@@ -1,5 +1,6 @@
 {
   "extensionName": { "message": "Slides Companion" },
+  "storeName": { "message": "Slides Companion: timer, zoom at speaker notes para sa Google Slides™" },
   "extensionDescription": { "message": "Mga tool sa pag-present para sa Google Slides." },
   "settingsLabel": { "message": "Mga setting ng Slides Companion" },
 

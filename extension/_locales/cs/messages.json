@@ -1,5 +1,6 @@
 {
   "extensionName": { "message": "Slides Companion" },
+  "storeName": { "message": "Slides Companion: časovač, lupa a poznámky řečníka pro Prezentace Google™" },
   "extensionDescription": { "message": "Nástroje pro prezentující v Prezentacích Google." },
   "settingsLabel": { "message": "Nastavení Slides Companion" },
 

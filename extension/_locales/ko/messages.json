@@ -1,5 +1,6 @@
 {
   "extensionName": { "message": "Slides Companion" },
+  "storeName": { "message": "Slides Companion: Google Slides™용 타이머, 확대/축소, 발표자 노트" },
   "extensionDescription": { "message": "Google Slides용 발표 도구입니다." },
   "settingsLabel": { "message": "Slides Companion 설정" },
 

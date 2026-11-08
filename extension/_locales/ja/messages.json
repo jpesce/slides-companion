@@ -1,5 +1,6 @@
 {
   "extensionName": { "message": "Slides Companion" },
+  "storeName": { "message": "Slides Companion：Google スライド™ 用のタイマー、ズーム、スピーカー ノート" },
   "extensionDescription": { "message": "Google スライドのプレゼンター向けツール。" },
   "settingsLabel": { "message": "Slides Companion の設定" },
 

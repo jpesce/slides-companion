@@ -1,5 +1,6 @@
 {
   "extensionName": { "message": "Slides Companion" },
+  "storeName": { "message": "Slides Companion: Google Slaytlar™ için zamanlayıcı, zum, konuşmacı notları" },
   "extensionDescription": { "message": "Google Slaytlar için sunucu araçları." },
   "settingsLabel": { "message": "Slides Companion ayarları" },
 

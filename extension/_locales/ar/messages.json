@@ -1,5 +1,6 @@
 {
   "extensionName": { "message": "Slides Companion" },
+  "storeName": { "message": "Slides Companion: الموقّت والتكبير وملاحظات المحاضر لعروض Google التقديمية™" },
   "extensionDescription": { "message": "أدوات للمقدِّمين في العروض التقديمية من Google." },
   "settingsLabel": { "message": "إعدادات Slides Companion" },
 

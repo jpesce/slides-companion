@@ -1,5 +1,6 @@
 {
   "extensionName": { "message": "Slides Companion" },
+  "storeName": { "message": "Slides Companion: tidtaker, zoom, foredragsnotater – Google Presentasjoner™" },
   "extensionDescription": { "message": "Verktøy for foredragsholdere i Google Presentasjoner." },
   "settingsLabel": { "message": "Innstillinger for Slides Companion" },
 

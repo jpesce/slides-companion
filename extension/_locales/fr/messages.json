@@ -1,5 +1,6 @@
 {
   "extensionName": { "message": "Slides Companion" },
+  "storeName": { "message": "Slides Companion : minuteur, zoom et notes de l’orateur pour Google Slides™" },
   "extensionDescription": { "message": "Des outils pour présenter dans Google Slides." },
   "settingsLabel": { "message": "Paramètres de Slides Companion" },
 

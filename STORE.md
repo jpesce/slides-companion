@@ -4,7 +4,7 @@ The text for the [Chrome Web Store dashboard](https://chrome.google.com/webstore
 
 ## Name and summary
 
-Come from `extension/_locales/*/messages.json` (`extensionName`, `extensionDescription`), in every language.
+Come from `extension/_locales/*/messages.json`, in every language: `storeName` ("Slides Companion: Timer, Zoom & Speaker Notes for Google Slides™" in English) and `extensionDescription`. The store finds extensions mostly by the words in their name, so the name carries the most-searched words of our niche after our own, and Google Slides' name in each language, after "for" and marked ™, as Google's branding rules ask. A test keeps each within Chrome's limits (75 and 132 characters).
 
 ## Description
 

@@ -1,5 +1,6 @@
 {
   "extensionName": { "message": "Slides Companion" },
+  "storeName": { "message": "Slides Companion: Google Slides™ के लिए टाइमर, ज़ूम और स्पीकर नोट" },
   "extensionDescription": { "message": "Google Slides में प्रज़ेंट करने के लिए टूल." },
   "settingsLabel": { "message": "Slides Companion की सेटिंग" },
 

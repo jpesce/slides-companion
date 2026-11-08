@@ -1,5 +1,6 @@
 {
   "extensionName": { "message": "Slides Companion" },
+  "storeName": { "message": "Slides Companion：Google 簡報™ 專用的計時器、縮放與演講者備忘稿" },
   "extensionDescription": { "message": "Google 簡報專用的簡報者工具。" },
   "settingsLabel": { "message": "Slides Companion 設定" },
 
