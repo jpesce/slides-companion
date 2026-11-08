@@ -36,11 +36,11 @@ Each feature has its own page in Settings: click the extension's button in Slide
 > This method is recommended only for developers and advanced users.<br/>
 > For the best experience, install the extension from the [Chrome Web Store](https://chromewebstore.google.com/detail/image-spotlight-for-googl/habmkngfcidcchgmdpampgcbmnllkbhd).
 
-Download a [release](https://github.com/jpesce/image-spotlight-for-google-slides/releases), unzip it, and [load it as an unpacked extension](https://developer.chrome.com/docs/extensions/get-started/tutorial/hello-world#load-unpacked).
+Download a [release](https://github.com/jpesce/slides-companion/releases), unzip it, and [load it as an unpacked extension](https://developer.chrome.com/docs/extensions/get-started/tutorial/hello-world#load-unpacked).
 
 ## Contributing
 
-Contributions are welcome! Feel free to [open an issue](https://github.com/jpesce/image-spotlight-for-google-slides/issues) or submit a [pull request](https://github.com/jpesce/image-spotlight-for-google-slides/pulls). See [Development](#development) below to get started, and [CLAUDE.md](CLAUDE.md) for the project's principles.
+Contributions are welcome! Feel free to [open an issue](https://github.com/jpesce/slides-companion/issues) or submit a [pull request](https://github.com/jpesce/slides-companion/pulls). See [Development](#development) below to get started, and [CLAUDE.md](CLAUDE.md) for the project's principles.
 
 ## Development
 

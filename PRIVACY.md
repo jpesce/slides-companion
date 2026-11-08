@@ -47,4 +47,4 @@ This policy may change as the extension does. Changes will be posted on this pag
 ## 8. Contact
 
 Questions or concerns? Reach out through the GitHub repository:
-👉 [GitHub Issues](https://github.com/jpesce/image-spotlight-for-google-slides/issues)
+👉 [GitHub Issues](https://github.com/jpesce/slides-companion/issues)

@@ -54,4 +54,4 @@ Google Slides is a trademark of Google LLC. This extension is not made or endors
 
 **Data usage:** collects no user data.
 
-**Privacy policy:** https://github.com/jpesce/image-spotlight-for-google-slides/blob/main/PRIVACY.md
+**Privacy policy:** https://github.com/jpesce/slides-companion/blob/main/PRIVACY.md
