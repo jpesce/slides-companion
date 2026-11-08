@@ -456,6 +456,9 @@
       }
       toggle();
     });
+    // O, a letter in the words in most languages ("Mostrar", "Notizen") that none of Slides' items in
+    // View has, editors' and some accounts' included (S P T A M J G I R D X L B N F Z U).
+    globalThis.slidesCompanion.accessKey(item, 'o');
     showState();
     // Slides builds the View menu when it first opens. Its item has no name but its words: the ones
     // Slides uses in this language, or else, should Slides reword it, those of the notes panel.

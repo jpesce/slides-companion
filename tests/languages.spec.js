@@ -35,11 +35,19 @@ for (const locale of Object.keys(locales).filter((locale) => locale !== 'en')) {
         expect(ours, await item.textContent()).toBe(theirs);
       };
 
-      // View, below Slides' "Show speaker notes".
-      await page.locator('#docs-view-menu').click();
+      // View, below Slides' "Show speaker notes", opened from the keyboard so access keys show: our
+      // O is marked in our words, or written after them, "(O)", where they haven't it, as Slides
+      // writes its own letters (Japanese "スピーカー ノートを表示(N)").
+      await page.keyboard.press(process.platform === 'darwin' ? 'Control+Alt+v' : 'Alt+v');
       const notesItem = page.locator('.slides-companion-notes-menuitem');
-      await expect(notesItem).toHaveText(text('showFloatingNotes'));
-      await oneLine(notesItem, page.locator('.goog-menuitem:has(+ .slides-companion-notes-menuitem)'));
+      const notesWords = text('showFloatingNotes');
+      const hasO = [...notesWords].some((character) => character.toLowerCase() === 'o');
+      await expect(notesItem).toHaveText(hasO ? notesWords : `${notesWords}(O)`);
+      await expect(notesItem.locator('.goog-menuitem-label')).toHaveAttribute('aria-label', `${notesWords} o`);
+      await expect(notesItem.locator('.goog-menuitem-mnemonic-hint')).toHaveCSS('text-decoration-line', 'underline');
+      // As tall as Slides' items written the same way ("(P)" after the words adds a pixel).
+      const sameForm = hasO ? ':not(:has(.goog-menuitem-mnemonic-separator))' : ':has(.goog-menuitem-mnemonic-separator)';
+      await oneLine(notesItem, page.locator(`.goog-menu:has(.slides-companion-notes-menuitem) > .goog-menuitem:not(.slides-companion-notes-menuitem):has(.goog-menuitem-label)${sameForm}:visible`).first());
       await page.keyboard.press('Escape');
 
       // The image's right-click menu.

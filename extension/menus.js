@@ -10,6 +10,8 @@
   const KEYS = { ArrowDown: 40, ArrowUp: 38 };
   // Enter on each of our items.
   const choices = new WeakMap();
+  // Our items' access keys (see accessKey).
+  const letters = new WeakMap();
   let count = 0;
 
   const isOurs = (item) => choices.has(item);
@@ -85,11 +87,35 @@
     return list[at <= 0 ? list.length - 1 : at - 1];
   }
 
+  // A Slides item's access key, as it marks it in the label.
+  const slidesLetter = (item) => item.querySelector('.goog-menuitem-mnemonic-hint')?.textContent.toLowerCase();
+
+  // The item of ours whose access key this is, in the open menu, if Slides has no item with it.
+  // Slides goes by the key pressed, not the character it types (keyCode), so the letter works
+  // with Shift and in any keyboard layout, Cyrillic or Greek too.
+  function chosenByLetter(menu, event) {
+    const letter = String.fromCharCode(event.keyCode).toLowerCase();
+    const mine = items(menu).find((item) => letters.get(item) === letter && shows(item));
+    const slides = [...menu.querySelectorAll('.goog-menuitem')].some((item) => !isOurs(item) && slidesLetter(item) === letter);
+    return mine && !slides ? mine : null;
+  }
+
   function onKeydown(event) {
-    if (!event.isTrusted || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey || event.isComposing) return;
-    if (!['ArrowDown', 'ArrowUp', 'Home', 'End', 'Enter'].includes(event.key)) return;
+    if (!event.isTrusted || event.metaKey || event.ctrlKey || event.altKey || event.isComposing) return;
+    const isLetter = event.keyCode >= 65 && event.keyCode <= 90;
+    if (!isLetter && (event.shiftKey || !['ArrowDown', 'ArrowUp', 'Home', 'End', 'Enter'].includes(event.key))) return;
     const menu = [...document.querySelectorAll(`.${MARK}`)].find(shows)?.closest('[role="menu"]');
     if (!menu || !shows(menu) || !hasKeyboard(menu)) return;
+    // An access key chooses its item, as Enter does, with the menu opened by keyboard or pointer.
+    const lettered = isLetter && chosenByLetter(menu, event);
+    if (lettered) {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      unhighlight(lettered);
+      choices.get(lettered)();
+      return;
+    }
+    if (event.shiftKey || !['ArrowDown', 'ArrowUp', 'Home', 'End', 'Enter'].includes(event.key)) return;
     const current = menu.querySelector(`.${HIGHLIGHT}`);
     if (event.key === 'Enter') {
       if (!current || !isOurs(current)) return;
@@ -128,6 +154,34 @@
     item.addEventListener('mouseleave', () => unhighlight(item));
     item.addEventListener('mousedown', (event) => event.stopPropagation());
     return item;
+  };
+
+  // Gives one of our items an access key, a letter that chooses it while its menu is open, written
+  // as Slides writes its own (in its menu bar's menus; its right-click and slideshow menus have
+  // none): the letter's first appearance in the label, whatever its case, marked; or, when the label
+  // hasn't it (Japanese, Arabic…), the letter in capitals after it, "(O)". Slides shows either only
+  // when the menu was opened from the keyboard. Screen readers hear the label, then the letter.
+  // Once per item, on its words alone.
+  globalThis.slidesCompanion.accessKey = (item, key) => {
+    const letter = key.toLowerCase();
+    const label = item.querySelector('.goog-menuitem-label');
+    const words = label.textContent;
+    const span = (className, ...children) => {
+      const element = document.createElement('span');
+      element.className = className;
+      element.style.userSelect = 'none';
+      element.append(...children);
+      return element;
+    };
+    const characters = [...words];
+    const at = characters.findIndex((character) => character.toLowerCase() === letter);
+    const parts =
+      at < 0
+        ? [words, span('goog-menuitem-mnemonic-separator', '(', span('goog-menuitem-mnemonic-hint', letter.toUpperCase()), ')')]
+        : [characters.slice(0, at).join(''), span('goog-menuitem-mnemonic-hint', characters[at]), characters.slice(at + 1).join('')];
+    label.replaceChildren(...parts.filter((part) => part !== ''));
+    label.setAttribute('aria-label', `${words} ${letter}`);
+    letters.set(item, letter);
   };
 
   window.addEventListener('keydown', onKeydown, true);

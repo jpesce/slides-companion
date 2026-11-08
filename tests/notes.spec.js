@@ -450,6 +450,64 @@ test('the arrow keys reach Show floating notes in View, and Enter opens them', a
   await expect.poll(() => page.evaluate(() => document.activeElement.className)).toMatch(/docs-texteventtarget-iframe/);
 });
 
+// Each item in Slides' menu bar has an access key: a letter that chooses it while its menu is open,
+// with Shift or not, however the menu was opened. Ours is O, written as Slides writes its own, and
+// shown as theirs are: only when the menu was opened from the keyboard.
+test('O chooses Show floating notes in View, as Slides’ letters choose its items', async ({ context }) => {
+  const page = await context.newPage();
+  await page.goto(slide3);
+  await page.waitForSelector('#speakernotes');
+  const item = page.locator('.slides-companion-notes-menuitem');
+  const speakerNotes = page.locator('.goog-menuitem:has(+ .slides-companion-notes-menuitem)');
+  const letter = (menuItem) => menuItem.locator('.goog-menuitem-mnemonic-hint');
+  const look = (element) =>
+    element.evaluate((node) => {
+      const { textDecorationLine, display, font, color } = getComputedStyle(node);
+      return { textDecorationLine, display, font, color };
+    });
+
+  // From the keyboard, the letter is underlined, as "n" is in Show speaker notes.
+  await page.keyboard.press(process.platform === 'darwin' ? 'Control+Alt+v' : 'Alt+v');
+  await expect(item).toBeVisible();
+  await expect(item).toHaveText('Show floating notes');
+  await expect(letter(item)).toHaveText('o');
+  await expect(item.locator('.goog-menuitem-label')).toHaveAttribute('aria-label', 'Show floating notes o');
+  expect(await look(letter(item))).toEqual({ ...(await look(letter(speakerNotes))), textDecorationLine: 'underline' });
+  // None of Slides' items in View has it.
+  const slidesLetters = await page
+    .locator('.goog-menu:has(.slides-companion-notes-menuitem) .goog-menuitem:not(.slides-companion-notes-menuitem) .goog-menuitem-label[aria-label]')
+    .evaluateAll((labels) => labels.map((label) => label.getAttribute('aria-label').at(-1)));
+  expect(slidesLetters).toContain('n');
+  expect(slidesLetters).not.toContain('o');
+
+  const opened = context.waitForEvent('page');
+  await page.keyboard.press('o');
+  const notes = await opened;
+  await expect(header(notes)).toHaveText(/3/);
+  await expect(item).toBeHidden();
+  await expect.poll(() => page.evaluate(() => document.activeElement.className)).toMatch(/docs-texteventtarget-iframe/);
+
+  // With the pointer, no letter shows, as on Slides' items, and Shift+O still chooses it.
+  await page.locator('#docs-view-menu').click();
+  await expect(item).toHaveAttribute('aria-checked', 'true');
+  expect(await look(letter(item))).toEqual({ ...(await look(letter(speakerNotes))), textDecorationLine: 'none' });
+  const closed = notes.waitForEvent('close');
+  await page.keyboard.press('Shift+O');
+  await closed;
+  await expect(item).toBeHidden();
+
+  // Slides' own letters still choose its items: F, Show filmstrip, there and back.
+  const filmstrip = page.locator('.slides-companion-notes-menuitem + .goog-menuitem');
+  for (const shown of ['false', 'true']) {
+    await page.keyboard.press(process.platform === 'darwin' ? 'Control+Alt+v' : 'Alt+v');
+    await expect(item).toBeVisible();
+    await expect(letter(filmstrip)).toHaveText('f');
+    await page.keyboard.press('f');
+    await expect(item).toBeHidden();
+    await expect(filmstrip).toHaveAttribute('aria-checked', shown);
+  }
+});
+
 test('View › Show floating notes opens them before presenting, and they stay on top as it goes full screen', async ({ context }) => {
   const page = await context.newPage();
   await page.goto(slide3);
