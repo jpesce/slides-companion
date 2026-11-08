@@ -83,6 +83,48 @@ test('Open in new tab opens the page browsed to', async ({ context }) => {
   await expect(stage(show)).toHaveCount(0);
 });
 
+// Card 160: Google's viewer shows a PDF, page.js in it too, and the bar is the PDF's.
+test('a PDF opens in Google’s viewer, with the PDF’s site, and Esc and Open in new tab work there', async ({ context }) => {
+  const PDF = 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf';
+  const page = await context.newPage();
+  await page.goto(slide);
+  await expect(page.locator(`#workspace [id="editor-${LINKED_PHOTO}"] image`)).toBeVisible();
+  await page.locator('#punch-start-presentation-left').click();
+  const show = page.frameLocator('iframe.punch-present-iframe');
+  await expect.poll(async () => (await link(show).boundingBox())?.y).toBeGreaterThan(0);
+  await show.locator(`[id="${LINKED_PHOTO}"] a`).evaluateAll((links, href) => links.forEach((link) => link.setAttribute('href', href)), PDF);
+  const open = async () => {
+    const { x, y } = await centre(link(show));
+    await page.mouse.click(x, y);
+    await expect(show.frameLocator('iframe.slides-companion-spotlight-website').locator('img[src^="blob:"]').first()).toBeVisible({ timeout: 20000 });
+  };
+  await open();
+  await expect(site(show)).toHaveText('w3.org');
+  // page.js says where it is (Back shows), and no page was added to go back to.
+  const back = stage(show).locator('.slides-companion-spotlight-back');
+  await expect(back).toHaveJSProperty('hidden', false);
+  await expect(back).toBeDisabled();
+
+  // Into the viewer's page number. (A click on the PDF itself leaves the keys with the slideshow.)
+  const { x, y } = await centre(website(show));
+  await page.mouse.move(x, y - 10, { steps: 5 });
+  const box = await show.frameLocator('iframe.slides-companion-spotlight-website').locator('input').first().boundingBox();
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+  await expect.poll(() => frameAt(page, 'https://docs.google.com/viewer')?.evaluate(() => document.hasFocus())).toBe(true);
+  await page.keyboard.press('Escape');
+  await expect(stage(show)).toHaveCount(0);
+  await expect(show.locator('.punch-viewer-svgpage-a11yelement')).toHaveAttribute('aria-label', /^Slide 4\b/);
+
+  await open();
+  const opened = context.waitForEvent('page');
+  await page.mouse.move((await centre(site(show))).x, (await centre(site(show))).y, { steps: 3 });
+  await press(page, stage(show).locator('.slides-companion-spotlight-new-tab'));
+  const tab = await opened;
+  expect(tab.url()).toBe(PDF);
+  // Chrome's viewer, left open, holds the browser's closing up for half a minute.
+  await tab.close();
+});
+
 test('with every site allowed, Settings doesn’t ask for it', async ({ context }) => {
   const page = await context.newPage();
   await page.goto(deckUrl);

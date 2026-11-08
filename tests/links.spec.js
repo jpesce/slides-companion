@@ -191,6 +191,62 @@ test('Shorts, live videos and Drive files open in their players', async ({ conte
   }
 });
 
+// Card 160: Chrome's PDF viewer isn't let into the page's frame, and a link in it would take the
+// whole tab. Google's servers fetch the PDF, so it's a real one, online.
+const PDF = 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf';
+test('a PDF opens in Google’s viewer, in Slides’ language, where Esc goes back too', async ({ context }) => {
+  const { page, show } = await startSlideshow(context);
+  await linkTo(show, `https://www.google.com/url?q=${encodeURIComponent(PDF)}&sa=D`);
+  await clickLink(page, show);
+  const viewer = new URL('https://docs.google.com/viewer?embedded=true');
+  viewer.searchParams.set('url', PDF);
+  viewer.searchParams.set('hl', await show.locator('html').getAttribute('lang'));
+  await expect(website(show)).toHaveAttribute('src', viewer.href);
+  await expect(stage(show).locator('.slides-companion-spotlight-site')).toHaveText('w3.org');
+  const pdf = show.frameLocator('iframe.slides-companion-spotlight-website');
+  await expect(pdf.locator('img[src^="blob:"]').first()).toBeVisible({ timeout: 20000 });
+
+  // In the viewer's page number, Esc still goes back to the slide. (A click on the PDF itself leaves
+  // the keys with the slideshow.)
+  await overPage(page, show);
+  await clickCentre(page, pdf.locator('input').first());
+  await expect(website(show)).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(stage(show)).toHaveCount(0);
+  expect(await slideNumber(show)).toBe(4);
+
+  // Open in new tab opens the PDF itself.
+  await clickLink(page, show);
+  await page.mouse.move(200, page.viewportSize().height - 40);
+  const opened = context.waitForEvent('page');
+  await press(page, stage(show).getByRole('button', { name: 'Open in new tab' }));
+  const tab = await opened;
+  expect(tab.url()).toBe(PDF);
+  // Chrome's viewer, left open, holds the browser's closing up for half a minute.
+  await tab.close();
+});
+
+// GitHub's page for a PDF ends in .pdf too. Google's viewer would show it as code; it shows as any
+// page instead, here GitHub's refusal to be shown inside another page.
+test('a .pdf address that’s a web page opens as one, not in the PDF viewer', async ({ context }) => {
+  const GITHUB = 'https://github.com/mozilla/pdf.js/blob/master/test/pdfs/tracemonkey.pdf';
+  const { page, show } = await startSlideshow(context);
+  await linkTo(show, GITHUB);
+  // Whether the viewer ever shows, with the page's code in it.
+  await show.locator('body').evaluate(() => {
+    window.sawCode = false;
+    const watch = () => {
+      const viewer = document.querySelector('iframe.slides-companion-spotlight-website[src^="https://docs.google.com/viewer"]');
+      if (viewer && getComputedStyle(viewer).visibility !== 'hidden' && viewer.contentDocument?.querySelector('pre')) window.sawCode = true;
+      requestAnimationFrame(watch);
+    };
+    watch();
+  });
+  await clickLink(page, show);
+  await expect(inRefusal(show).getByRole('heading')).toHaveText('github.com won’t open over your slide', { timeout: 20000 });
+  expect(await show.locator('body').evaluate(() => window.sawCode)).toBe(false);
+});
+
 // The slideshow is an https page, where Chrome blocks plain http ones.
 test('an http link opens at its https address, and in a new tab as it was', async ({ context }) => {
   await context.route('http://www.google.com/', (route) => route.fulfill({ contentType: 'text/html', body: PAGE }));

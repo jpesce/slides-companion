@@ -351,7 +351,7 @@
     if (!picture) return false;
     gallery.index = index;
     gallery.stage.querySelector('.slides-companion-spotlight-picture').replaceChildren(picture);
-    if (isPage(item) && !item.allSites) checkRefusal(item);
+    if (isPage(item)) checkRefusal(item);
     updateNavbar();
     const count = gallery.items.length;
     gallery.stage.querySelector('.slides-companion-spotlight-status').textContent =
@@ -360,7 +360,8 @@
   }
 
   // The page, live. Sandboxed without top navigation, so it can't take the slideshow's window.
-  function pageFrame({ address, shown }) {
+  function pageFrame(item) {
+    const { address, shown } = item;
     const frame = document.createElement('iframe');
     frame.className = 'slides-companion-spotlight-website';
     // How page.js knows it's in this frame.
@@ -380,7 +381,16 @@
       try {
         frame.contentWindow.addEventListener('keydown', onPageKeydown, true);
       } catch {}
+      if (!inPdfViewer(item)) return;
+      if (viewerGotWebPage(frame)) showAsPage(item);
+      else frame.classList.remove('slides-companion-spotlight-checking');
     });
+    // Google's viewer shows nothing until it has loaded, and it then says what it got: a web page's
+    // code doesn't flash meanwhile.
+    if (inPdfViewer(item)) {
+      frame.classList.add('slides-companion-spotlight-checking');
+      setTimeout(() => frame.classList.remove('slides-companion-spotlight-checking'), VIEWER_HIDES_MS);
+    }
     return frame;
   }
 
@@ -617,6 +627,8 @@
   const EXTENSION_ORIGIN = new URL(chrome.runtime.getURL('')).origin;
 
   function checkRefusal(item) {
+    // With every site allowed, nothing refuses; nor does Google's PDF viewer.
+    if (item.allSites || inPdfViewer(item)) return;
     const page = gallery.stage.querySelector('.slides-companion-spotlight-website');
     const probe = document.createElement('iframe');
     probe.className = 'slides-companion-spotlight-probe';
@@ -679,7 +691,7 @@
     if (gallery?.items[gallery.index] !== item) return;
     gallery.stage.querySelector('.slides-companion-spotlight-status').textContent = '';
     gallery.stage.querySelector('.slides-companion-spotlight-picture').replaceChildren(pageFrame(item));
-    if (!item.allSites) checkRefusal(item);
+    checkRefusal(item);
   }
 
   // The gallery takes every key, so Tab goes nowhere else: into the message, at its first button, or
@@ -940,8 +952,48 @@
     // Waiting for its animation, the link isn't shown yet: the click goes on to the next step.
     const address = link && isShowing(link) && linkAddress(link);
     if (!address) return null;
-    const shown = shownAddress(address);
+    const shown = pdfViewer(address) ?? shownAddress(address);
     return { address, shown, visited: [shown], at: 0 };
+  }
+
+  // ----- PDFs (card 160) -----
+
+  // A PDF shows in Google's viewer, as Drive shows one. Chrome's own viewer isn't let into the page's
+  // frame (sandboxed), and out of it a link in the PDF would take the slideshow's whole tab. Google
+  // fetches the PDF, so one it can't reach (a company's own) says so, and opens in a new tab from
+  // the bar. It speaks Slides' language.
+  const PDF_VIEWER = 'https://docs.google.com/viewer';
+  const VIEWER_HIDES_MS = 5000;
+  const inPdfViewer = (item) => item.shown.startsWith(`${PDF_VIEWER}?`);
+
+  function pdfViewer(address) {
+    if (!/\.pdf$/i.test(address.pathname)) return null;
+    const viewer = new URL(`${PDF_VIEWER}?embedded=true`);
+    viewer.searchParams.set('url', address.href);
+    if (document.documentElement.lang) viewer.searchParams.set('hl', document.documentElement.lang);
+    return viewer.href;
+  }
+
+  // Whether what the viewer got is a web page, as its page says ("text/html", where a PDF's says
+  // "application/pdf"), read from Slides' own site. Unsure (Google changed its page), it's left.
+  function viewerGotWebPage(frame) {
+    try {
+      const scripts = [...frame.contentDocument.scripts].map((script) => script.textContent).join('\n');
+      return scripts.includes('"text/html"') && !scripts.includes('"application/pdf"');
+    } catch {
+      return false;
+    }
+  }
+
+  // An address ending in .pdf that's a page about the PDF (GitHub's, Dropbox's) shows as any page,
+  // which the viewer would show as its code.
+  function showAsPage(item) {
+    item.shown = shownAddress(item.address);
+    item.visited = [item.shown];
+    item.at = 0;
+    if (gallery?.items[gallery.index] !== item) return;
+    gallery.stage.querySelector('.slides-companion-spotlight-picture').replaceChildren(pageFrame(item));
+    checkRefusal(item);
   }
 
   // Slides sends links through Google's redirect (google.com/url?q=<address>). Links to a slide of
