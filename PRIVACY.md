@@ -11,7 +11,7 @@ We do **not** collect, transmit, or store any personal information. The extensio
 ## 2. What the extension keeps, and where
 
 - **Your settings** (for example, what a click on a link does during a slideshow) are saved with Chrome's sync storage, so they follow you to your other computers if you've turned on Chrome sync. Chrome syncs them with your Google account, as it does your bookmarks; we never see them.
-- **What you draw** with Slides' pen, **your timer's time** for each deck, and the **size and zoom of the floating notes window** are saved on your computer only.
+- **What you draw** with Slides' pen, **your timer's time** for each deck, the **size and zoom of the floating notes window**, and the words Slides uses in your language to name a slide and an empty notes box (so the floating notes window says them the same way) are saved on your computer only.
 
 You can remove all of it by removing the extension.
 
@@ -20,7 +20,7 @@ You can remove all of it by removing the extension.
 - **Host access to `https://docs.google.com/presentation/*`:** to add the extension's tools to Google Slides. No other Google page is touched.
 - **`storage`:** to keep what's listed above.
 - **Access to every site (optional):** Chrome asks you for it only if you click **Allow all sites** in the extension's Links settings. With it, sites that otherwise refuse to be shown inside another page open over your slide during a slideshow. You can take it back at any time from Chrome's extension settings.
-- **`declarativeNetRequestWithHostAccess`:** while a page is open over your slide, and only if you've allowed every site, the extension lets that page show inside the slideshow by setting aside the instruction sites use to refuse being shown inside another page. This applies only to the tab you're presenting in, and ends when the page closes.
+- **`declarativeNetRequestWithHostAccess`:** while a page is open over your slide, and only if you've allowed every site, the extension lets that page show inside the slideshow. To do so, in the tab you're presenting in, it removes two instructions sites send with their pages: the one that refuses being shown inside another page (`X-Frame-Options`), and their content security policy (`Content-Security-Policy`), which carries that refusal along with other protections. It does so for every page shown inside that tab's slideshow, pages within the opened page included, but never for Google Slides itself. It stops when the page closes, or when the tab does.
 - **`scripting`:** with every site allowed, a small script runs in pages opened over your slide, so <kbd>Esc</kbd> takes you back to your slideshow and the bar below can show which site you're on. It reads nothing else from the page.
 
 ## 4. Requests your browser makes

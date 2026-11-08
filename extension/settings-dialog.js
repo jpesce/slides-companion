@@ -169,6 +169,7 @@
 
   // The framed notice asking for every site (all-sites.js), shown only while it's missing.
   const ALL_SITES_SOURCE = 'slides-companion-all-sites';
+  const EXTENSION_ORIGIN = new URL(chrome.runtime.getURL('')).origin;
   const allSitesFrame = () => root?.querySelector('.slides-companion-dialog-frame');
   const tellAllSites = (message) => allSitesFrame()?.contentWindow.postMessage(message, new URL(allSitesFrame().src).origin);
 
@@ -286,7 +287,7 @@
   // The framed notice: its size, and the dialog's keys pressed in it.
   function onFrameMessage(event) {
     const frame = allSitesFrame();
-    if (!frame || event.source !== frame.contentWindow || event.data?.source !== ALL_SITES_SOURCE) return;
+    if (!frame || event.source !== frame.contentWindow || event.origin !== EXTENSION_ORIGIN || event.data?.source !== ALL_SITES_SOURCE) return;
     if (event.data.type === 'height') {
       // Gone while it had the keys (its button chosen with Enter): they go to what takes its place.
       const held = document.activeElement === frame ? controlStops().indexOf(frame) : -1;

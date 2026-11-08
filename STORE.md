@@ -44,9 +44,9 @@ Google Slides is a trademark of Google LLC. This extension is not made or endors
 
 **Permission justifications:**
 
-- `storage`: saves the presenter's settings, drawings, timer time for each deck, and the floating notes window's size.
+- `storage`: saves the presenter's settings, drawings, timer time for each deck, and the floating notes window's size and zoom.
 - `scripting`: when the presenter allows every site, runs a small script in pages opened over the slide during a slideshow, so Esc returns to the slideshow and the bar shows the page's site.
-- `declarativeNetRequestWithHostAccess`: when the presenter allows every site, lets a page open over the slide in the presenting tab, by removing the headers sites use to refuse being shown in a frame, in that tab only while the page is open.
+- `declarativeNetRequestWithHostAccess`: when the presenter allows every site, lets a page open over the slide in the presenting tab, by removing the X-Frame-Options and Content-Security-Policy response headers of frames in that tab (never Google Slides' own), only while the page is open.
 - Host permission `https://docs.google.com/presentation/*`: adds the tools to Google Slides.
 - Optional host permission for every site: asked only when the presenter clicks "Allow all sites" in Settings, so any site can open over the slide.
 

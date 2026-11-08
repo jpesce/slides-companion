@@ -62,30 +62,58 @@ chrome.tabs.onRemoved.addListener((tabId) => dropFrameHeadersRule(tabId).catch((
 // viewer: only with every site allowed, which lets the extension ask any site. Without the
 // presenter's cookies, as Google's viewer will fetch it. A GET stops at the headers, for sites that
 // don't answer HEAD. Null when the site doesn't say.
+//
+// Asked over https, so nobody on the way sees the address or changes the answer, and it's one trip
+// rather than two for the many sites that send http on to https. Over http only when an http
+// address's site can't be reached over https at all (old servers), as the viewer would fetch it.
 const TYPE_WAIT_MS = 3000;
 async function isPdf(href) {
+  let address;
+  try {
+    address = new URL(href);
+  } catch {
+    return null;
+  }
+  if (!['http:', 'https:'].includes(address.protocol)) return null;
   if (!(await chrome.permissions.contains(ALL_SITES))) return null;
-  const typeOf = async (method) => {
+  // The response's type; null when the site answered without saying, undefined when it couldn't
+  // be reached.
+  const typeOf = async (url, method) => {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), TYPE_WAIT_MS);
     try {
-      const response = await fetch(href, { method, credentials: 'omit', cache: 'no-store', signal: controller.signal });
+      const response = await fetch(url, { method, credentials: 'omit', cache: 'no-store', signal: controller.signal });
       return response.ok ? (response.headers.get('content-type') ?? '') : null;
     } catch {
-      return null;
+      return undefined;
     } finally {
       clearTimeout(timer);
       controller.abort();
     }
   };
-  const type = (await typeOf('HEAD')) ?? (await typeOf('GET'));
-  return type === null ? null : /^application\/pdf\b/i.test(type);
+  const ask = async (url) => {
+    const head = await typeOf(url, 'HEAD');
+    return head === null ? await typeOf(url, 'GET') : head;
+  };
+  const secure = new URL(address);
+  secure.protocol = 'https:';
+  let type = await ask(secure.href);
+  if (type === undefined && address.protocol === 'http:') type = await ask(address.href);
+  return type === null || type === undefined ? null : /^application\/pdf\b/i.test(type);
 }
+
+// What each part of the extension asks, by who may ask it: spotlight.js, in Slides' pages, and
+// page.js, in a page shown over the slide (a frame, never a tab's own page). page.js runs on every
+// site, so a site can't use it to ask for anything else.
+const FROM_SLIDES = new Set(['page-open', 'page-type', 'page-closed', 'page-go']);
+const FROM_PAGE = new Set(['page-key', 'page-address']);
+const SLIDES_ORIGIN = 'https://docs.google.com';
 
 chrome.runtime.onMessage.addListener((message, sender, respond) => {
   const tabId = sender.tab?.id;
   if (tabId === undefined) return;
-  switch (message?.type) {
+  if (FROM_SLIDES.has(message?.type) ? sender.origin !== SLIDES_ORIGIN : !FROM_PAGE.has(message?.type) || sender.frameId === 0) return;
+  switch (message.type) {
     // spotlight.js is about to show a page: it waits for the answer (whether every site can be
     // shown) so the page loads with the rules in place (this tab's, or the check's), and page.js in
     // it, if every site was only just allowed (card 130).

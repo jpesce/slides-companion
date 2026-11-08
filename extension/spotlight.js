@@ -837,7 +837,16 @@
     return pictures.length === 1 ? pictures[0].href.baseVal || null : null;
   }
 
-  const EXTENSIONS = { 'image/jpeg': 'jpg', 'image/svg+xml': 'svg', 'image/tiff': 'tif' };
+  // Pictures' types as Slides keeps them, and their files' extensions.
+  const EXTENSIONS = {
+    'image/png': 'png',
+    'image/jpeg': 'jpg',
+    'image/gif': 'gif',
+    'image/webp': 'webp',
+    'image/bmp': 'bmp',
+    'image/svg+xml': 'svg',
+    'image/tiff': 'tif',
+  };
 
   // Saved under the deck's name, with the file's own extension. Slides already has the file in the
   // page, so it's saved from there.
@@ -852,8 +861,7 @@
     }
     const link = document.createElement('a');
     link.href = URL.createObjectURL(file);
-    const type = file.type.startsWith('image/') ? file.type : 'image/png';
-    link.download = `${deckName()}.${EXTENSIONS[type] ?? type.slice('image/'.length)}`;
+    link.download = `${deckName()}.${EXTENSIONS[file.type] ?? 'png'}`;
     link.click();
     setTimeout(() => URL.revokeObjectURL(link.href), 60_000);
   }
