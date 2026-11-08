@@ -11,18 +11,19 @@ Free presenter tools for Google Slides™, in a Chrome extension. It works on to
 
 ## Features
 
-- 🔍 **Spotlight:** select an image and press <kbd>Space</kbd> to see it full screen, then go through the slide's other images. During a slideshow, just click an image.
-- 🔗 **Links:** during a slideshow, links open over your slide, PDFs included, and <kbd>Esc</kbd> brings you back right where you left it.
-- 🔎 **Zoom & scroll:** zoom into a slide with your trackpad, mouse wheel or <kbd>+</kbd> and <kbd>-</kbd> to show a detail up close, and never skip a slide by brushing the trackpad.
-- 🖊️ **Pen:** what you draw with Slides' pen stays on the slide for the next time you present.
-- ⏱️ **Timer:** in presenter view, count down from how long you have, with a warning before the end.
-- 📝 **Floating notes:** your speaker notes in a window of their own while you present.
-- ✏️ **Live edits:** edits to the deck reach a slideshow that's already running, handy for a deck on an office TV.
-- 🖼️ **Download image:** save an image from a slide as it was added to the deck.
-- 🌍 Speaks Slides' language, in 33 languages.
+- 🔍 **Spotlight:** select an image and press <kbd>Space</kbd>, or right-click it, to see it full screen, then go through the slide's other images with the arrow keys. During a slideshow, just click an image. Grouped images show as one picture or each on its own, as you choose.
+- 🔗 **Links:** during a slideshow, links open over your slide, and <kbd>Esc</kbd> brings you back right where you left it. Back and Forward work as in a tab, PDFs open in Google's viewer, and YouTube and Drive videos play from where the link starts them. A site that won't show inside another page says so, with a way to allow it or open it in a new tab. Prefer a new tab every time? That's a setting.
+- 🔎 **Zoom & scroll:** zoom into a slide with your trackpad, mouse wheel or <kbd>+</kbd> and <kbd>-</kbd> to show a detail up close, and drag to look around. Or make scrolling do nothing, so brushing the trackpad never skips a slide.
+- 🖊️ **Pen:** what you draw with Slides' pen stays on the slide for the next time you present, until you choose Erase all.
+- ⏱️ **Timer:** in presenter view, click the timer to count down from how long you have, and add a minute on the go. A bar fills as you go and the timer turns orange 1, 2 or 5 minutes before the end. Each deck remembers its time.
+- 📝 **Floating notes:** your speaker notes in a window of their own while you present, to place on any screen, zoom or make full screen. Open it from View › Show floating notes or with <kbd>Shift</kbd>+<kbd>S</kbd>.
+- ✏️ **Live edits:** edits to the deck, by you or anyone else, reach a slideshow that's already running, handy for a deck on an office TV. The slide on screen changes right away, once you've moved on, or not until the next slideshow, as you choose.
+- 🖼️ **Download image:** right-click an image to save it as it was added to the deck.
+- ⌨️ **Keyboard:** our shortcuts are listed in Slides' own Keyboard shortcuts dialog (<kbd>Ctrl</kbd>+<kbd>/</kbd>, or <kbd>⌘</kbd>+<kbd>/</kbd> on a Mac), and our menu items work with the arrow keys and access keys like Slides' own.
+- 🌍 **Languages:** speaks Slides' language, in 33 languages, right to left in Arabic and Hebrew.
 - 🕊️ 100% free and open source. No account, no servers: everything happens in your browser.
 
-Each feature has its own page in Settings: click the extension's button in Slides' side toolbar.
+Each feature has its own page in Settings, with what it does and its choices: click the extension's button at the top of Slides' side toolbar, whose eyes follow your mouse.
 
 ## Getting started
 
