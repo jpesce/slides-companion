@@ -91,6 +91,30 @@ const frameHeadersRule = (tabId) => ({
 const dropFrameHeadersRule = (tabId) => chrome.declarativeNetRequest.updateSessionRules({ removeRuleIds: [tabId] });
 chrome.tabs.onRemoved.addListener((tabId) => dropFrameHeadersRule(tabId).catch(() => {}));
 
+// Whether an address is a PDF, asked of its site (card 170), for spotlight.js to show it in Google's
+// viewer: only with every site allowed, which lets the extension ask any site. Without the
+// presenter's cookies, as Google's viewer will fetch it. A GET stops at the headers, for sites that
+// don't answer HEAD. Null when the site doesn't say.
+const TYPE_WAIT_MS = 3000;
+async function isPdf(href) {
+  if (!(await chrome.permissions.contains(ALL_SITES))) return null;
+  const typeOf = async (method) => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), TYPE_WAIT_MS);
+    try {
+      const response = await fetch(href, { method, credentials: 'omit', cache: 'no-store', signal: controller.signal });
+      return response.ok ? (response.headers.get('content-type') ?? '') : null;
+    } catch {
+      return null;
+    } finally {
+      clearTimeout(timer);
+      controller.abort();
+    }
+  };
+  const type = (await typeOf('HEAD')) ?? (await typeOf('GET'));
+  return type === null ? null : /^application\/pdf\b/i.test(type);
+}
+
 chrome.runtime.onMessage.addListener((message, sender, respond) => {
   const tabId = sender.tab?.id;
   if (tabId === undefined) return;
@@ -107,6 +131,9 @@ chrome.runtime.onMessage.addListener((message, sender, respond) => {
         }
         respond({ allSites });
       });
+      return true;
+    case 'page-type':
+      isPdf(message.href).then((pdf) => respond({ pdf }));
       return true;
     case 'page-closed':
       dropFrameHeadersRule(tabId).catch(() => {});

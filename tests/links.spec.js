@@ -226,6 +226,23 @@ test('a PDF opens in Google’s viewer, in Slides’ language, where Esc goes ba
   await tab.close();
 });
 
+// Card 170: a PDF at an address that doesn't say so fails the refusal check, as it fails in the
+// page's frame; Google's viewer, asked out of sight, finds it's a PDF, and it shows there.
+test('a PDF whose address doesn’t end in .pdf (arXiv’s) shows in Google’s viewer too', async ({ context }) => {
+  const ARXIV = 'https://arxiv.org/pdf/1706.03762';
+  const { page, show } = await startSlideshow(context);
+  await linkTo(show, ARXIV);
+  await clickLink(page, show);
+  const viewer = new URL('https://docs.google.com/viewer?embedded=true');
+  viewer.searchParams.set('url', ARXIV);
+  viewer.searchParams.set('hl', await show.locator('html').getAttribute('lang'));
+  await expect(website(show)).toHaveAttribute('src', viewer.href, { timeout: 15000 });
+  const pdf = show.frameLocator('iframe.slides-companion-spotlight-website');
+  await expect(pdf.locator('img[src^="blob:"]').first()).toBeVisible({ timeout: 20000 });
+  await expect(stage(show).locator('.slides-companion-spotlight-refused, .slides-companion-spotlight-probe')).toHaveCount(0);
+  await expect(stage(show).locator('.slides-companion-spotlight-site')).toHaveText('arxiv.org');
+});
+
 // GitHub's page for a PDF ends in .pdf too. Google's viewer would show it as code; it shows as any
 // page instead, here GitHub's refusal to be shown inside another page.
 test('a .pdf address that’s a web page opens as one, not in the PDF viewer', async ({ context }) => {

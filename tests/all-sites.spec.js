@@ -125,6 +125,27 @@ test('a PDF opens in Google’s viewer, with the PDF’s site, and Esc and Open 
   await tab.close();
 });
 
+// Card 170: nothing refuses, so the extension asks the site what a link is; a PDF goes to Google's
+// viewer, not Chrome's "blocked" page.
+test('a PDF whose address doesn’t end in .pdf (arXiv’s) shows in Google’s viewer', async ({ context }) => {
+  const ARXIV = 'https://arxiv.org/pdf/1706.03762';
+  const page = await context.newPage();
+  await page.goto(slide);
+  await expect(page.locator(`#workspace [id="editor-${LINKED_PHOTO}"] image`)).toBeVisible();
+  await page.locator('#punch-start-presentation-left').click();
+  const show = page.frameLocator('iframe.punch-present-iframe');
+  await expect.poll(async () => (await link(show).boundingBox())?.y).toBeGreaterThan(0);
+  await show.locator(`[id="${LINKED_PHOTO}"] a`).evaluateAll((links, href) => links.forEach((link) => link.setAttribute('href', href)), ARXIV);
+  const { x, y } = await centre(link(show));
+  await page.mouse.click(x, y);
+  const viewer = new URL('https://docs.google.com/viewer?embedded=true');
+  viewer.searchParams.set('url', ARXIV);
+  viewer.searchParams.set('hl', await show.locator('html').getAttribute('lang'));
+  await expect(website(show)).toHaveAttribute('src', viewer.href, { timeout: 15000 });
+  await expect(show.frameLocator('iframe.slides-companion-spotlight-website').locator('img[src^="blob:"]').first()).toBeVisible({ timeout: 20000 });
+  await expect(site(show)).toHaveText('arxiv.org');
+});
+
 test('with every site allowed, Settings doesn’t ask for it', async ({ context }) => {
   const page = await context.newPage();
   await page.goto(deckUrl);

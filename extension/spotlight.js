@@ -351,7 +351,7 @@
     if (!picture) return false;
     gallery.index = index;
     gallery.stage.querySelector('.slides-companion-spotlight-picture').replaceChildren(picture);
-    if (isPage(item)) checkRefusal(item);
+    if (isPage(item)) checkPage(item);
     updateNavbar();
     const count = gallery.items.length;
     gallery.stage.querySelector('.slides-companion-spotlight-status').textContent =
@@ -377,20 +377,19 @@
     // A page on Slides' own site (a Doc, another deck) is in reach: Esc there closes it too, once
     // the presenter has gone into it. Other sites can't be listened to; page.js does it there, with
     // every site allowed (card 56).
+    // Google's viewer shows nothing until it has loaded, and it then says what it got: a web page's
+    // code doesn't flash meanwhile.
+    const reveal = inPdfViewer(item) ? hideWhileChecking(frame, VIEWER_WAIT_MS) : null;
     frame.addEventListener('load', () => {
       try {
         frame.contentWindow.addEventListener('keydown', onPageKeydown, true);
       } catch {}
       if (!inPdfViewer(item)) return;
-      if (viewerGotWebPage(frame)) showAsPage(item);
-      else frame.classList.remove('slides-companion-spotlight-checking');
+      const got = viewerGot(frame);
+      if (got) item.pdf = got === 'pdf';
+      if (got === 'page') showAt(item, shownAddress(item.address));
+      else reveal();
     });
-    // Google's viewer shows nothing until it has loaded, and it then says what it got: a web page's
-    // code doesn't flash meanwhile.
-    if (inPdfViewer(item)) {
-      frame.classList.add('slides-companion-spotlight-checking');
-      setTimeout(() => frame.classList.remove('slides-companion-spotlight-checking'), VIEWER_HIDES_MS);
-    }
     return frame;
   }
 
@@ -624,23 +623,40 @@
   // Meanwhile the page waits out of sight, for a moment at most, so that a refusal doesn't flash.
   const CHECK_PAGE = 'https://docs.google.com/presentation/slides-companion-check';
   const CHECK_HIDES_MS = 1000;
+  // The page out of sight while it's checked, for a moment at most if given; what's returned shows
+  // it again.
+  function hideWhileChecking(page, ms) {
+    const CHECKING = 'slides-companion-spotlight-checking';
+    page.classList.add(CHECKING);
+    const timer = ms && setTimeout(() => page.classList.remove(CHECKING), ms);
+    return () => {
+      clearTimeout(timer);
+      page.classList.remove(CHECKING);
+    };
+  }
   const EXTENSION_ORIGIN = new URL(chrome.runtime.getURL('')).origin;
 
+  // Whether the page can be shown, or is a PDF (card 170): with every site allowed nothing refuses,
+  // so only the second is asked. Google's PDF viewer is neither.
+  function checkPage(item) {
+    if (inPdfViewer(item)) return;
+    if (item.allSites) askType(item);
+    else checkRefusal(item);
+  }
+
   function checkRefusal(item) {
-    // With every site allowed, nothing refuses; nor does Google's PDF viewer.
-    if (item.allSites || inPdfViewer(item)) return;
     const page = gallery.stage.querySelector('.slides-companion-spotlight-website');
     const probe = document.createElement('iframe');
     probe.className = 'slides-companion-spotlight-probe';
     probe.setAttribute('sandbox', 'allow-same-origin');
     probe.setAttribute('aria-hidden', 'true');
     probe.tabIndex = -1;
-    page.classList.add('slides-companion-spotlight-checking');
-    const timer = setTimeout(() => page.classList.remove('slides-companion-spotlight-checking'), CHECK_HIDES_MS);
+    const reveal = hideWhileChecking(page, CHECK_HIDES_MS);
     const decided = (refused) => {
-      clearTimeout(timer);
       probe.remove();
-      page.classList.remove('slides-companion-spotlight-checking');
+      reveal();
+      // A PDF fails here too, as it does in the page's frame: the viewer is asked first (card 170).
+      if (refused && mayBePdf(item)) return askViewer(item, page);
       if (refused && gallery?.items[gallery.index] === item) showRefusal(item);
     };
     probe.addEventListener(
@@ -691,7 +707,7 @@
     if (gallery?.items[gallery.index] !== item) return;
     gallery.stage.querySelector('.slides-companion-spotlight-status').textContent = '';
     gallery.stage.querySelector('.slides-companion-spotlight-picture').replaceChildren(pageFrame(item));
-    checkRefusal(item);
+    checkPage(item);
   }
 
   // The gallery takes every key, so Tab goes nowhere else: into the message, at its first button, or
@@ -956,44 +972,92 @@
     return { address, shown, visited: [shown], at: 0 };
   }
 
-  // ----- PDFs (card 160) -----
+  // ----- PDFs (cards 160 and 170) -----
 
   // A PDF shows in Google's viewer, as Drive shows one. Chrome's own viewer isn't let into the page's
   // frame (sandboxed), and out of it a link in the PDF would take the slideshow's whole tab. Google
   // fetches the PDF, so one it can't reach (a company's own) says so, and opens in a new tab from
-  // the bar. It speaks Slides' language.
+  // the bar. It speaks Slides' language. An address ending in .pdf goes there straight away; any
+  // other, once found to be a PDF (askViewer, askType).
   const PDF_VIEWER = 'https://docs.google.com/viewer';
-  const VIEWER_HIDES_MS = 5000;
+  // How long the viewer, out of sight, has to say what it got.
+  const VIEWER_WAIT_MS = 5000;
   const inPdfViewer = (item) => item.shown.startsWith(`${PDF_VIEWER}?`);
+  // Not known yet, and not shown in a player (YouTube's, Drive's: another path), which never is.
+  const mayBePdf = (item) => item.pdf === undefined && !inPdfViewer(item) && new URL(item.shown).pathname === item.address.pathname;
 
-  function pdfViewer(address) {
-    if (!/\.pdf$/i.test(address.pathname)) return null;
+  function viewerAddress(address) {
     const viewer = new URL(`${PDF_VIEWER}?embedded=true`);
     viewer.searchParams.set('url', address.href);
     if (document.documentElement.lang) viewer.searchParams.set('hl', document.documentElement.lang);
     return viewer.href;
   }
+  const pdfViewer = (address) => (/\.pdf$/i.test(address.pathname) ? viewerAddress(address) : null);
 
-  // Whether what the viewer got is a web page, as its page says ("text/html", where a PDF's says
-  // "application/pdf"), read from Slides' own site. Unsure (Google changed its page), it's left.
-  function viewerGotWebPage(frame) {
+  // What the viewer got, as its page says ("application/pdf", "text/html"), read from Slides' own
+  // site: a PDF, a web page, or null when it got nothing ("No preview available") or can't tell
+  // (Google changed its page).
+  function viewerGot(frame) {
     try {
       const scripts = [...frame.contentDocument.scripts].map((script) => script.textContent).join('\n');
-      return scripts.includes('"text/html"') && !scripts.includes('"application/pdf"');
-    } catch {
-      return false;
-    }
+      if (scripts.includes('"application/pdf"')) return 'pdf';
+      if (scripts.includes('"text/html"')) return 'page';
+    } catch {}
+    return null;
   }
 
-  // An address ending in .pdf that's a page about the PDF (GitHub's, Dropbox's) shows as any page,
-  // which the viewer would show as its code.
-  function showAsPage(item) {
-    item.shown = shownAddress(item.address);
-    item.visited = [item.shown];
+  // The link shown at another address: as any page (an address ending in .pdf that's a page about
+  // the PDF, GitHub's, which the viewer would show as its code), or in the viewer.
+  function showAt(item, shown) {
+    item.shown = shown;
+    item.visited = [shown];
     item.at = 0;
     if (gallery?.items[gallery.index] !== item) return;
     gallery.stage.querySelector('.slides-companion-spotlight-picture').replaceChildren(pageFrame(item));
-    checkRefusal(item);
+    checkPage(item);
+  }
+
+  // Without every site allowed, a PDF fails the refusal check, as a site that refuses does. Before
+  // saying so, Google's viewer is asked what the address is, out of sight and without its scripts
+  // (it can't play or count anything): a PDF shows in it; anything else gets the message. Meanwhile
+  // the page stays out of sight, as it's Chrome's error page. Google sees only addresses that would
+  // fail otherwise.
+  function askViewer(item, page) {
+    if (gallery?.items[gallery.index] !== item) return;
+    const reveal = hideWhileChecking(page);
+    const probe = document.createElement('iframe');
+    probe.className = 'slides-companion-spotlight-probe';
+    probe.setAttribute('sandbox', 'allow-same-origin');
+    probe.setAttribute('aria-hidden', 'true');
+    probe.tabIndex = -1;
+    let done = false;
+    const decided = (got) => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      probe.remove();
+      if (got) item.pdf = got === 'pdf';
+      if (gallery?.items[gallery.index] !== item) return;
+      if (item.pdf) return showAt(item, viewerAddress(item.address));
+      reveal();
+      showRefusal(item);
+    };
+    const timer = setTimeout(() => decided(null), VIEWER_WAIT_MS);
+    probe.addEventListener('load', () => decided(viewerGot(probe)), { once: true });
+    probe.src = viewerAddress(item.address);
+    gallery.stage.append(probe);
+  }
+
+  // With every site allowed, nothing refuses, and a PDF shows as Chrome's "blocked" page instead:
+  // the background asks the site itself what the address is, while the page waits out of sight
+  // for a moment at most.
+  async function askType(item) {
+    if (!mayBePdf(item)) return;
+    const reveal = hideWhileChecking(gallery.stage.querySelector('.slides-companion-spotlight-website'), CHECK_HIDES_MS);
+    const answer = await askBackground({ type: 'page-type', href: item.address.href });
+    reveal();
+    if (typeof answer?.pdf === 'boolean') item.pdf = answer.pdf;
+    if (item.pdf && gallery?.items[gallery.index] === item && !inPdfViewer(item)) showAt(item, viewerAddress(item.address));
   }
 
   // Slides sends links through Google's redirect (google.com/url?q=<address>). Links to a slide of
