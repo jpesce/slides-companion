@@ -137,6 +137,13 @@
   pointer-events: none;
 }
 
+/* Our words read in their own direction, whichever way the bar is laid out: English in a
+   right-to-left Slides we don't speak (Persian, Urdu) stays "Next (←)", not "(←) Next". */
+.slides-companion-spotlight-tooltip,
+.slides-companion-spotlight-status {
+  unicode-bidi: plaintext;
+}
+
 .slides-companion-spotlight-tooltip[hidden] {
   display: none;
 }
@@ -149,6 +156,11 @@
   height: 100%;
   border: 0;
   background: #fff;
+}
+
+/* Right to left, the arrows point the other way, as in Slides' slideshow bar. */
+.slides-companion-spotlight[dir='rtl'] :is(.slides-companion-spotlight-previous, .slides-companion-spotlight-next, .slides-companion-spotlight-back, .slides-companion-spotlight-forward) svg {
+  scale: -1 1;
 }
 
 /* A site's page waits out of sight while it's checked for a refusal (card 130), so one never flashes. */

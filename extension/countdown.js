@@ -55,14 +55,15 @@
   const formatTyped = (seconds) => format(seconds).replace(/^00:/, '').replace(/^0(?=\d)/, '');
 
   // As it's said, in the words' language: 20 minutes, 1 hour, 30 minutes. (As Intl.DurationFormat
-  // says it, which needs Chrome 129.)
+  // says it, which needs Chrome 129.) In the digits Slides writes in every language, 0–9, whatever
+  // Intl's default for the language.
   function spoken(seconds) {
     const locale = globalThis.slidesCompanion.locale();
     const parts = [[Math.floor(seconds / 3600), 'hour'], [Math.floor(seconds / 60) % 60, 'minute'], [seconds % 60, 'second']];
     return new Intl.ListFormat(locale, { type: 'unit', style: 'long' }).format(
       parts
         .filter(([count]) => count)
-        .map(([count, unit]) => new Intl.NumberFormat(locale, { style: 'unit', unit, unitDisplay: 'long' }).format(count)),
+        .map(([count, unit]) => new Intl.NumberFormat(locale, { style: 'unit', unit, unitDisplay: 'long', numberingSystem: 'latn' }).format(count)),
     );
   }
 
@@ -348,7 +349,10 @@
     // No taller than the window (Slides' menu scrolls), less its padding and border.
     menu.style.maxHeight = `${innerHeight - (menu.offsetHeight - menu.clientHeight) - 12}px`;
     const box = anchor.getBoundingClientRect();
-    const left = anchor === timerButton ? box.right - menu.offsetWidth : box.left;
+    // Under the timer button, the menu's end lines up with the button's, as the button is the last
+    // in its row; under the time, its start with the time's. Right to left, those are the other sides.
+    const fromEnd = (anchor === timerButton) !== globalThis.slidesCompanion.rightToLeft();
+    const left = fromEnd ? box.right - menu.offsetWidth : box.left;
     menu.style.left = `${Math.max(0, Math.min(left, innerWidth - menu.offsetWidth)) + scrollX}px`;
     menu.style.top = `${Math.max(0, Math.min(box.bottom, innerHeight - menu.offsetHeight)) + scrollY}px`;
     anchor.classList.add(anchor === timerButton ? 'jfk-button-checked' : 'slides-companion-countdown-open');

@@ -60,7 +60,7 @@
   flex: none;
   flex-direction: column;
   width: 256px;
-  border-right: 1px solid #c4c7c5;
+  border-inline-end: 1px solid #c4c7c5;
 }
 
 .slides-companion-dialog-title {
@@ -76,10 +76,11 @@
   flex-direction: column;
   min-height: 0;
   overflow-y: auto;
-  margin: 24px 8px 0 0;
+  margin: 24px 0 0;
+  margin-inline-end: 8px;
 }
 
-/* Meet's rows, the icon 24px in, rounded on the right, with a line on what the feature is about
+/* Meet's rows, the icon 24px in, rounded at the end (the right, or the left right to left), with a line on what the feature is about
    below its name: Meet's 14px above and below, the 20px name and Material 3's Body Small line
    (16px) make 64. Chosen, they're Slides' chosen toolbar button. */
 .slides-companion-settings-feature {
@@ -88,14 +89,16 @@
   align-items: center;
   gap: 12px;
   height: 64px;
-  padding: 0 8px 0 24px;
+  padding: 0;
+  padding-inline: 24px 8px;
   border: 0;
-  border-radius: 0 32px 32px 0;
+  border-start-end-radius: 32px;
+  border-end-end-radius: 32px;
   background: transparent;
   color: #444746;
   font: 500 14px / 20px "Google Sans Flex", "Google Sans Text", "Google Sans", Roboto, Arial, sans-serif;
   letter-spacing: 0.15px;
-  text-align: left;
+  text-align: start;
   cursor: pointer;
 }
 
@@ -223,13 +226,13 @@
   align-items: center;
   gap: 12px;
   min-height: 44px;
-  padding-left: 4px;
+  padding-inline-start: 4px;
   cursor: pointer;
 }
 
 .slides-companion-dialog-option input {
   position: absolute;
-  left: 4px;
+  inset-inline-start: 4px;
   width: 36px;
   height: 36px;
   margin: 0;

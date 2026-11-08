@@ -333,7 +333,7 @@
     function viewerStylesheet() {
       const linked = slideshow()?.querySelector('link[rel="stylesheet"][href*="viewer_css"]')?.href;
       if (linked) return linked;
-      const direction = document.documentElement.dir === 'rtl' ? 'rtl' : 'ltr';
+      const direction = globalThis.slidesCompanion.rightToLeft() ? 'rtl' : 'ltr';
       const pattern = new RegExp(`/static/presentation/client/css/\\d+-viewer_css_${direction}\\.css`);
       for (const script of document.scripts) {
         const found = script.textContent.match(pattern)?.[0];
@@ -369,6 +369,9 @@
       const layout = doc.createElement('style');
       layout.textContent = LAYOUT_CSS;
       doc.head.append(layout);
+      // In Slides' language and direction, as presenter view is.
+      doc.documentElement.lang = document.documentElement.lang;
+      doc.body.dir = globalThis.slidesCompanion.rightToLeft() ? 'rtl' : 'ltr';
       doc.body.className = 'punch-viewer-speakernotes-body';
       doc.body.innerHTML = PANE_HTML;
       for (const button of doc.querySelectorAll('[data-zoom]')) wireButton(button, () => zoomBy(Number(button.dataset.zoom)));
@@ -454,12 +457,19 @@
       toggle();
     });
     showState();
-    // Slides builds the View menu when it first opens. Its item is named like the notes panel.
+    // Slides builds the View menu when it first opens. Its item has no name but its words: the ones
+    // Slides uses in this language, or else, should Slides reword it, those of the notes panel.
     keepInMenu(item, () => {
-      const notesName = document.querySelector('#speakernotes')?.getAttribute('aria-label')?.toLowerCase();
-      if (!notesName) return null;
-      const options = document.querySelectorAll(`.shell-menu [role="menuitemcheckbox"]:not(.${MENU_ITEM_CLASS})`);
-      return [...options].find((option) => option.textContent.toLowerCase().includes(notesName));
+      const options = [...document.querySelectorAll(`.shell-menu [role="menuitemcheckbox"]:not(.${MENU_ITEM_CLASS})`)];
+      // Its words, less its access key (Japanese "(N)").
+      const words = (option) => {
+        const label = option.querySelector('.goog-menuitem-label')?.cloneNode(true);
+        label?.querySelector('.goog-menuitem-mnemonic-separator')?.remove();
+        return label?.textContent.trim().toLowerCase() ?? '';
+      };
+      const named = text('slidesShowSpeakerNotes').toLowerCase();
+      const panel = document.querySelector('#speakernotes')?.getAttribute('aria-label')?.toLowerCase();
+      return options.find((option) => words(option) === named) ?? (panel && options.find((option) => words(option).includes(panel)));
     });
   }
 
@@ -514,7 +524,7 @@
           <div class="docs-icon-img-container docs-icon-img docs-icon-picture-in-picture-top-right-20"></div>
         </div>
         <span class="goog-menuitem-label"></span>
-        <span class="goog-menuitem-accel" aria-label="Shift+S">Shift+S</span>
+        <span class="goog-menuitem-accel" aria-label="${html('keyShift')}+S">${html('keyShift')}+S</span>
       </div>`;
     const chooseNotes = () => {
       closeMenu();

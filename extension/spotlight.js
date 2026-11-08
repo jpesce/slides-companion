@@ -5,7 +5,7 @@
 // clicked opens its page on the same stage, so the presenter never leaves the slideshow. Rewritten
 // from Image Spotlight for Google Slides.
 {
-  const { text, html } = globalThis.slidesCompanion;
+  const { text, html, rightToLeft, arrows } = globalThis.slidesCompanion;
   const SVG_NS = 'http://www.w3.org/2000/svg';
   // The slideshow runs in its own page: an iframe in the editor, or a window of its own.
   const IN_SLIDESHOW = /\/(local)?present$/.test(location.pathname);
@@ -261,18 +261,21 @@
     stage.setAttribute('role', 'dialog');
     stage.setAttribute('aria-modal', 'true');
     stage.setAttribute('aria-label', label);
+    // Mirrored right to left, as Slides' own slideshow bar is.
+    stage.dir = rightToLeft() ? 'rtl' : 'ltr';
+    const { forward, back } = arrows();
     stage.innerHTML = `
       <div class="slides-companion-spotlight-picture"></div>
       <div class="slides-companion-spotlight-bar">
         <div class="slides-companion-spotlight-group slides-companion-spotlight-steps">
-          <button type="button" class="slides-companion-spotlight-previous" aria-label="${html('spotlightPrevious')}" aria-description="${html('spotlightPreviousTip')}" data-slides-companion-tip="${html('spotlightPreviousTip')}">${PREVIOUS_ICON}</button>
+          <button type="button" class="slides-companion-spotlight-previous" aria-label="${html('spotlightPrevious')}" aria-description="${html('spotlightPreviousTip', back)}" data-slides-companion-tip="${html('spotlightPreviousTip', back)}">${PREVIOUS_ICON}</button>
           <div class="slides-companion-spotlight-page" aria-hidden="true"></div>
-          <button type="button" class="slides-companion-spotlight-next" aria-label="${html('spotlightNext')}" aria-description="${html('spotlightNextTip')}" data-slides-companion-tip="${html('spotlightNextTip')}">${NEXT_ICON}</button>
+          <button type="button" class="slides-companion-spotlight-next" aria-label="${html('spotlightNext')}" aria-description="${html('spotlightNextTip', forward)}" data-slides-companion-tip="${html('spotlightNextTip', forward)}">${NEXT_ICON}</button>
         </div>
         <div class="slides-companion-spotlight-group slides-companion-spotlight-sitebar" hidden>
           <button type="button" class="slides-companion-spotlight-back" aria-label="${html('spotlightBack')}" data-slides-companion-tip="${html('spotlightBack')}" hidden>${BACK_ICON}</button>
           <button type="button" class="slides-companion-spotlight-forward" aria-label="${html('spotlightForward')}" data-slides-companion-tip="${html('spotlightForward')}" hidden>${FORWARD_ICON}</button>
-          <div class="slides-companion-spotlight-site"></div>
+          <div class="slides-companion-spotlight-site" dir="auto"></div>
           <button type="button" class="slides-companion-spotlight-new-tab" aria-label="${html('openInNewTab')}" data-slides-companion-tip="${html('openInNewTab')}">${NEW_TAB_ICON}</button>
         </div>
         <div class="slides-companion-spotlight-group slides-companion-spotlight-saver">
@@ -737,11 +740,12 @@
 
   // ----- Keyboard -----
 
+  // Right to left, ← goes forward, as in Slides' slideshow.
   const NAVIGATION = {
-    ArrowRight: () => step(1),
+    ArrowRight: () => step(rightToLeft() ? -1 : 1),
     ArrowDown: () => step(1),
     PageDown: () => step(1),
-    ArrowLeft: () => step(-1),
+    ArrowLeft: () => step(rightToLeft() ? 1 : -1),
     ArrowUp: () => step(-1),
     PageUp: () => step(-1),
     Home: () => show(0),

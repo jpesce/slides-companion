@@ -20,6 +20,30 @@
     "message": "Space",
     "description": "The space bar, as Slides names keys beside its menu items (its shortcut for Spotlight image)."
   },
+  "keyShift": {
+    "message": "Shift",
+    "description": "The Shift key as Slides names it in its menus (\"Shift+L\", Turn on the pen, in the slideshow's ⋮ menu). Filled from Slides, not translated."
+  },
+  "dialogKeySpace": {
+    "message": "Space",
+    "description": "The Space bar as Slides names it in its Keyboard shortcuts dialog (Next, during a slideshow), with any word Slides puts by a named key there (Hebrew \"מקש רווח\"). Each word is a key cap of its own, as in Slides. Filled from Slides, not translated."
+  },
+  "dialogKeyShift": {
+    "message": "Shift",
+    "description": "The Shift key as Slides names it in its Keyboard shortcuts dialog (Turn on the pen, during a slideshow). Filled from Slides, not translated."
+  },
+  "dialogKeyEsc": {
+    "message": "Esc",
+    "description": "The Escape key as Slides names it in its Keyboard shortcuts dialog (Exit slideshow). Filled from Slides, not translated."
+  },
+  "dialogKeyHome": {
+    "message": "Home",
+    "description": "The Home key as Slides names it in its Keyboard shortcuts dialog (First slide). Filled from Slides, not translated."
+  },
+  "dialogKeyEnd": {
+    "message": "End",
+    "description": "The End key as Slides names it in its Keyboard shortcuts dialog (Last slide). Filled from Slides, not translated."
+  },
   "spotlightClose": {
     "message": "Close",
     "description": "The button that closes the full screen image, for screen readers."
@@ -33,16 +57,18 @@
     "description": "The button that shows the slide's previous image full screen, for screen readers."
   },
   "spotlightPreviousTip": {
-    "message": "Previous (←)",
-    "description": "Its tooltip, as Slides' slideshow names its own Previous button."
+    "message": "Previous ($KEY$)",
+    "description": "Its tooltip, as Slides' slideshow names its own Previous button. The key is its arrow, ← (→ where Slides reads right to left).",
+    "placeholders": { "key": { "content": "$1", "example": "←" } }
   },
   "spotlightNext": {
     "message": "Next image",
     "description": "The button that shows the slide's next image full screen, for screen readers."
   },
   "spotlightNextTip": {
-    "message": "Next (→)",
-    "description": "Its tooltip, as Slides' slideshow names its own Next button."
+    "message": "Next ($KEY$)",
+    "description": "Its tooltip, as Slides' slideshow names its own Next button. The key is its arrow, → (← where Slides reads right to left).",
+    "placeholders": { "key": { "content": "$1", "example": "→" } }
   },
   "spotlightBack": {
     "message": "Back",
@@ -72,6 +98,10 @@
   "showFloatingNotes": {
     "message": "Show floating notes",
     "description": "In Slides' View menu, below Slides' \"Show speaker notes\" and worded like it: a small window with the speaker notes that floats over the slideshow."
+  },
+  "slidesShowSpeakerNotes": {
+    "message": "Show speaker notes",
+    "description": "Slides' own item in its View menu, which ours goes below, as Slides names it (without its access key, such as \"(N)\"). Filled from Slides, not translated."
   },
   "openFloatingNotes": {
     "message": "Open floating notes",
@@ -173,6 +203,11 @@
   "ok": {
     "message": "OK",
     "description": "The Settings dialog's button that saves and closes it, as in Slides' own dialogs."
+  },
+  "hint": {
+    "message": "($HINT$)",
+    "description": "A note under a choice in Settings, in brackets as the language writes them around a note in running text: Japanese and Simplified Chinese \"（…）\".",
+    "placeholders": { "hint": { "content": "$1", "example": "for short talks" } }
   },
   "asSlidesDoes": {
     "message": "as Slides does on its own",

@@ -12,7 +12,7 @@ body {
 }
 
 /* Workspace's notice in Slides (appsElementsWorkspaceRecommendationBanner, Small, with an icon),
-   inset as Slides' own banners are (16px corners), in its default colours: the icon on the left,
+   inset as Slides' own banners are (16px corners), in its default colours: the icon at the start,
    the text beside it, and the action under the text, lined up with it. */
 .slides-companion-banner {
   position: relative;

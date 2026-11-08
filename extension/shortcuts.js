@@ -4,7 +4,7 @@
 // builds the dialog each time it opens, and its list again at each letter typed in its search, so
 // the section goes back in after each build, keeping only the keys whose name matches, as Slides does.
 {
-  const { text, settings } = globalThis.slidesCompanion;
+  const { text, settings, arrows } = globalThis.slidesCompanion;
   const IN_SLIDESHOW = /\/(local)?present$/.test(location.pathname);
   // Slides' own classes, which give our section Slides' look.
   const SLIDES = 'appsElementsKeyboardShortcutsDialog';
@@ -15,19 +15,23 @@
   function shortcuts() {
     // During a slideshow, Spotlight opens from a click on an image, if Settings lets it.
     const spotlight = !IN_SLIDESHOW || settings.get('spotlightOnClick');
+    // Right to left, Slides goes forward with ←, and so does Spotlight.
+    const { forward, back } = arrows();
+    // Keys named as Slides names them in this dialog, in its language.
+    const named = (key) => text(key).split(' ');
     return [
       // During a slideshow, Space is Slides' (next slide).
-      !IN_SLIDESHOW && ['shortcutSpotlight', [[text('spaceKey')]]],
-      spotlight && ['shortcutNextImage', [['→'], ['↓']]],
-      spotlight && ['shortcutPreviousImage', [['←'], ['↑']]],
-      spotlight && ['shortcutFirstImage', [['Home']]],
-      spotlight && ['shortcutLastImage', [['End']]],
-      spotlight && ['shortcutCloseSpotlight', [['Esc']]],
+      !IN_SLIDESHOW && ['shortcutSpotlight', [named('dialogKeySpace')]],
+      spotlight && ['shortcutNextImage', [[forward], ['↓']]],
+      spotlight && ['shortcutPreviousImage', [[back], ['↑']]],
+      spotlight && ['shortcutFirstImage', [named('dialogKeyHome')]],
+      spotlight && ['shortcutLastImage', [named('dialogKeyEnd')]],
+      spotlight && ['shortcutCloseSpotlight', [named('dialogKeyEsc')]],
       ['shortcutZoomIn', [['+'], ['=']]],
       ['shortcutZoomOut', [['-']]],
-      globalThis.slidesCompanion.floatingNotesHere() && ['shortcutFloatingNotes', [['Shift', 'S']]],
+      globalThis.slidesCompanion.floatingNotesHere() && ['shortcutFloatingNotes', [[...named('dialogKeyShift'), 'S']]],
       // Only while links open over the slide (in Settings, Links).
-      settings.get('slideshowLinks') === 'here' && ['shortcutClosePage', [['Esc']]],
+      settings.get('slideshowLinks') === 'here' && ['shortcutClosePage', [named('dialogKeyEsc')]],
     ]
       .filter(Boolean)
       .map(([name, ways]) => ({ name: text(name), ways }));

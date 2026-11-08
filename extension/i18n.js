@@ -44,6 +44,15 @@
   // the words around them.
   globalThis.slidesCompanion.locale = () => ourLocale(slidesLanguage()).replaceAll('_', '-');
 
+  // Whether Slides lays itself out right to left (Arabic, Hebrew…), as it then mirrors its arrows
+  // and keys: ← is the next slide. Slides' language decides it, not ours, which may be English.
+  const RIGHT_TO_LEFT = /^(ar|iw|he|fa|ur|yi|ji|ps|sd|ug|ckb|dv)\b/i;
+  globalThis.slidesCompanion.rightToLeft = () => RIGHT_TO_LEFT.test(slidesLanguage());
+  // The arrow keys that go forward and back, as Slides has them, for the words that name them.
+  globalThis.slidesCompanion.arrows = () => (globalThis.slidesCompanion.rightToLeft() ? { forward: '←', back: '→' } : { forward: '→', back: '←' });
+  // The direction of our words, for the pages and panels we write ourselves.
+  globalThis.slidesCompanion.dir = () => (RIGHT_TO_LEFT.test(globalThis.slidesCompanion.locale()) ? 'rtl' : 'ltr');
+
   // A message, with what goes in its places ($1, $2…) in order.
   const text = (key, ...values) => {
     const message = messages[ourLocale(slidesLanguage())][key] ?? messages[FALLBACK][key];

@@ -41,10 +41,15 @@ export function render(locales = readLocales()) {
       Object.fromEntries(Object.entries(entries).map(([key, entry]) => [key, resolve(entry)])),
     ]),
   );
+  // A language a line, each read with JSON.parse: every Slides frame loads all of them, and a string
+  // of JSON is quicker to read in than the same object written as code.
+  const lines = Object.entries(messages).map(([locale, words]) => `  ${JSON.stringify(locale)}: JSON.parse(${JSON.stringify(JSON.stringify(words))}),`);
   return `// Made by scripts/build-messages.mjs (npm run messages) from _locales: change those, not this.
 // Our words in each language, by message (see i18n.js).
 globalThis.slidesCompanion ??= {};
-globalThis.slidesCompanion.messages = ${JSON.stringify(messages, null, 2)};
+globalThis.slidesCompanion.messages = {
+${lines.join('\n')}
+};
 `;
 }
 

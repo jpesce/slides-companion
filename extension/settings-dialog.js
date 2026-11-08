@@ -9,6 +9,7 @@
 
   // A message, made safe to write into the dialog's HTML.
   const words = (key, ...values) => globalThis.slidesCompanion.html(key, ...values);
+  const { text } = globalThis.slidesCompanion;
 
   // An option in a group of choices, its label and hint named by message.
   const radio = (name, value, label, hint) => `
@@ -16,8 +17,7 @@
       <input type="radio" name="${name}" value="${value}">
       <span class="slides-companion-radio" aria-hidden="true"></span>
       <span class="slides-companion-dialog-label">
-        ${words(label)}
-        <span class="slides-companion-dialog-hint">(${words(hint)})</span>
+        ${words(label)}<span class="slides-companion-dialog-hint">${words('hint', text(hint))}</span>
       </span>
     </label>`;
 
@@ -27,8 +27,7 @@
       <input type="checkbox" name="${name}">
       <span class="slides-companion-checkbox" aria-hidden="true">${CHECKMARK}</span>
       <span class="slides-companion-dialog-label">
-        ${words(label)}
-        <span class="slides-companion-dialog-hint">(${words(hint)})</span>
+        ${words(label)}<span class="slides-companion-dialog-hint">${words('hint', text(hint))}</span>
       </span>
     </label>`;
 
@@ -183,6 +182,9 @@
 
     root = document.createElement('div');
     root.className = 'slides-companion-dialog-root';
+    // Laid out in our words' direction: right to left in Arabic or Hebrew, but English stays left to
+    // right even where Slides is right to left in a language we don't speak (Persian, Urdu).
+    root.dir = globalThis.slidesCompanion.dir();
     root.innerHTML = settingsHtml();
     for (const input of root.querySelectorAll('input')) {
       input.checked = input.type === 'checkbox' ? settings.get(input.name) : settings.get(input.name) === input.value;

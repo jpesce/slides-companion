@@ -9,6 +9,7 @@
   const { text } = globalThis.slidesCompanion;
   const query = new URLSearchParams(location.search);
   document.documentElement.lang = query.get('hl') ?? 'en';
+  document.documentElement.dir = globalThis.slidesCompanion.dir();
   const site = query.get('site') ?? '';
 
   const open = document.querySelector('.slides-companion-refused-open');

@@ -43,7 +43,7 @@
 
 /* Slides leaves a gap after each of its buttons; after the last, there's only just room for it. */
 .slides-companion-countdown-button.punch-viewer-speakernotes-timer-button {
-  margin-right: 0;
+  margin-inline-end: 0;
 }
 
 /* Google's orange, readable on presenter view's background at this size, and Slides' red. */
@@ -55,7 +55,8 @@
   color: var(--gm3-sys-color-error, #b3261e);
 }
 
-/* Past the end, the minus sign sits in the margin before the time, so the buttons beside it stay put. */
+/* Past the end, the minus sign sits in the margin before the time, so the buttons beside it stay put.
+   On the left in every language: a time reads left to right, right-to-left text around it or not. */
 .slides-companion-countdown.slides-companion-countdown-over {
   position: relative;
 }

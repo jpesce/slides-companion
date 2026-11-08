@@ -8,6 +8,7 @@
   const DIALOG_ORIGIN = 'https://docs.google.com';
   const { text } = globalThis.slidesCompanion;
   document.documentElement.lang = new URLSearchParams(location.search).get('hl') ?? 'en';
+  document.documentElement.dir = globalThis.slidesCompanion.dir();
 
   const banner = document.querySelector('.slides-companion-banner');
   const allow = banner.querySelector('.slides-companion-banner-action');
