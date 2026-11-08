@@ -25,6 +25,8 @@ Free presenter tools for Google Slides™, in a Chrome extension. It works on to
 
 Each feature has its own page in Settings, with what it does and its choices: click the extension's button at the top of Slides' side toolbar, whose eyes follow your mouse.
 
+Looking for something it doesn't do, like a phone remote or audience polls? [How Slides Companion compares](BENCHMARK.md) sets it side by side with Google Slides' own tools and other projects.
+
 ## Getting started
 
 1. Install from the [Chrome Web Store](https://chromewebstore.google.com/detail/image-spotlight-for-googl/habmkngfcidcchgmdpampgcbmnllkbhd).
