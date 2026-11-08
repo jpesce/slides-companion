@@ -5,9 +5,8 @@ playwright-report/
 extension/dev-stamp.txt
 extension/_metadata/
 
-# Third-party code for reference only (mostly unlicensed); keep just the index.
-benchmark/*
-!benchmark/README.md
-!benchmark/_fetch-log.tsv
+# Third-party code for reference only (mostly unlicensed), with its index: on this computer only.
+# BENCHMARK.md is the public comparison, with links to every project.
+benchmark/
 build/
 .releasenotes.tmp

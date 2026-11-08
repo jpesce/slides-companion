@@ -15,6 +15,7 @@ const BUILD_DIR = path.join(root, 'build');
 // Files that are only for working on the extension.
 const DEV_FILES = new Set(['dev-reload.js', 'dev-stamp.txt', '_metadata', '.DS_Store']);
 const DEV_LINE = "importScripts('dev-reload.js');";
+const LICENSE_FILES = ['LICENSE', 'THIRD-PARTY-NOTICES.txt'];
 // Permissions only the dev auto-reload uses.
 const DEV_PERMISSIONS = ['alarms'];
 
@@ -32,6 +33,8 @@ export function build({ buildDir = BUILD_DIR } = {}) {
 
   fs.rmSync(outDir, { recursive: true, force: true });
   fs.cpSync(source, outDir, { recursive: true, filter: (file) => !DEV_FILES.has(path.basename(file)) });
+  // The licenses travel with the package: ours (GPLv3) and the icons' (Apache 2.0).
+  for (const file of LICENSE_FILES) fs.copyFileSync(path.join(root, file), path.join(outDir, file));
 
   // background.js loads the dev auto-reload in one line, with the comment above it.
   const backgroundPath = path.join(outDir, 'background.js');

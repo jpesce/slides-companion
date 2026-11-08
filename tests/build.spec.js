@@ -28,6 +28,9 @@ test('the release build leaves out the dev auto-reload and the permission only i
   expect(path.basename(built.zip)).toBe(`slides-companion-v${source.version}.zip`);
   expect(zipped).toContain('manifest.json');
   expect(zipped).toContain('background.js');
+  // Our license and the icons' notices go with it.
+  expect(zipped).toContain('LICENSE');
+  expect(zipped).toContain('THIRD-PARTY-NOTICES.txt');
   expect(zipped.filter((file) => /dev-|_metadata|\.DS_Store/.test(file))).toEqual([]);
   // Every file the manifest names is in the zip.
   const named = [

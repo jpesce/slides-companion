@@ -50,7 +50,6 @@ extension/   the extension itself (load this folder in Chrome)
 tests/       Playwright tests, run in a separate Chromium
 scripts/     build, release and dev helpers
 kanban/      the work board, one card per deliverable
-benchmark/   competitors' code, for reference only
 ```
 
 ### Setup
