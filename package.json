@@ -6,6 +6,7 @@
     "dev": "node scripts/dev.mjs",
     "build": "node scripts/build.mjs",
     "chromium": "node scripts/chromium.mjs",
+    "demo": "node scripts/demo/record.mjs && node scripts/demo/edit.mjs",
     "illustrations": "node scripts/build-illustrations.mjs",
     "messages": "node scripts/build-messages.mjs",
     "test": "playwright test",
@@ -13,10 +14,6 @@
     "test:headed": "playwright test --headed"
   },
   "devDependencies": {
-    "@playwright/test": "^1.64.1",
-    "pptxgenjs": "^4.0.1"
-  },
-  "overrides": {
-    "image-size": "^2.0.3"
+    "@playwright/test": "^1.64.1"
   }
 }

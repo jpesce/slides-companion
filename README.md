@@ -9,6 +9,8 @@
 
 Free presenter tools for Google Slides™, in a Chrome extension. It works on top of Slides' own slideshow, so your videos, animations and clicker keep working, and it looks like part of Slides. Formerly Image Spotlight for Google Slides. Get it from the [Chrome Web Store](https://chromewebstore.google.com/detail/image-spotlight-for-googl/habmkngfcidcchgmdpampgcbmnllkbhd).
 
+https://github.com/user-attachments/assets/d34dfa35-ae3a-41f7-a0b9-a08e66d2e289
+
 ## Features
 
 - 🔍 **Spotlight:** select an image and press <kbd>Space</kbd>, or right-click it, to see it full screen, then go through the slide's other images with the arrow keys. During a slideshow, just click an image. Grouped images show as one picture or each on its own, as you choose.

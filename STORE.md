@@ -38,6 +38,20 @@ Formerly Image Spotlight for Google Slides.
 
 Google Slides is a trademark of Google LLC. This extension is not made or endorsed by Google.
 
+## Video
+
+The store's "YouTube video" field (Store listing › Graphic assets) shows a video at the top of the listing, before the screenshots. Ours is the demo video, `build/demo/slides-companion-demo.mp4`, made by `npm run demo` (see `scripts/demo/`). It has no sound, and its captions sit at the top, clear of YouTube's controls.
+
+1. Upload it to YouTube, as Public or Unlisted (the store plays either), with the title "Slides Companion: presenter tools for Google Slides™" and this description:
+
+   > Free presenter tools for Google Slides™: see pictures up close, open links over your slide, zoom in, keep your drawings, count down in presenter view, float your notes on top and edit the deck while it's on screen. https://chromewebstore.google.com/detail/image-spotlight-for-googl/habmkngfcidcchgmdpampgcbmnllkbhd
+
+2. Paste its link into the field.
+
+After a re-recording, upload the new video and replace the link.
+
+The README plays a lighter copy, `build/demo/slides-companion-demo-readme.mp4`, also made by `npm run demo`: GitHub plays videos up to 10 MB on a free plan. After a re-recording, drop it into any GitHub comment box to get a new `user-attachments` link (no need to post the comment), and replace the one under the README's intro.
+
 ## Privacy practices
 
 **Single purpose:** tools for presenting with Google Slides.
