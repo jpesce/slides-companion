@@ -1,0 +1,39 @@
+name: Something doesn't work
+description: A feature that misbehaves, or looks wrong next to Slides' own.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: And what you expected instead. A screenshot or a short screen recording helps a lot.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: How can we see it?
+      description: The steps, from opening the deck. If you can, share a deck where it happens (view access is enough).
+      placeholder: |
+        1. Open a deck with…
+        2. Start the slideshow…
+        3. …
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and version
+      placeholder: Chrome 142, Edge 141, Arc…
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Extension version
+      description: In chrome://extensions, under Slides Companion.
+  - type: input
+    id: language
+    attributes:
+      label: Slides' language
+      placeholder: English, Português (Brasil)…

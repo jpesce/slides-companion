@@ -45,60 +45,18 @@ Download a [release](https://github.com/jpesce/slides-companion/releases), unzip
 
 ## Contributing
 
-Found a bug, or missing something? [Open an issue](https://github.com/jpesce/slides-companion/issues). To change the code, start with [Development](#development) below and the project's principles in [CLAUDE.md](CLAUDE.md), then open a [pull request](https://github.com/jpesce/slides-companion/pulls).
-
-## Development
-
-```
-extension/   the extension itself (load this folder in Chrome)
-tests/       Playwright tests, run in a separate Chromium
-scripts/     build, release and dev helpers
-kanban/      the work board, one card per deliverable
-```
-
-### Setup
+Found a bug, or missing something? [Open an issue](https://github.com/jpesce/slides-companion/issues). To change the code, [CONTRIBUTING.md](CONTRIBUTING.md) has the project's principles, setup, tests and how a release goes out. In short:
 
 ```bash
 npm install
 npx playwright install chromium
-```
-
-### Your Chrome (signed in)
-
-1. Open `chrome://extensions`, turn on **Developer mode**, click **Load unpacked**, pick the `extension/` folder.
-2. Run `npm run dev` and leave it running.
-
-While `npm run dev` runs, saving any file in `extension/` reloads the extension and every open Slides tab within about a second. A change to `extension/_locales/` also rewrites `extension/messages.js` (`npm run messages`). The release build leaves the auto-reload out.
-
-### Tests
-
-```bash
 npm test
 ```
-
-Each run launches Playwright's Chromium with `extension/` loaded and checks it against a public deck. Set `TEST_DECK_URL` to use another deck shared as "anyone with the link". Use `npm run test:headed` to watch, or `npm run chromium` to open that browser and click around. `npm run test:build` runs every test on the release build instead.
-
-Regular Chrome stopped accepting `--load-extension` in version 137, which is why tests use Chromium. Auto-reload doesn't work there, and tests don't need it, since each run starts fresh.
-
-`npm test` runs `npm run lint` first: ESLint, and Prettier's check of the formatting. `npm run format` fixes what can be fixed by itself. On GitHub, every push and pull request runs the lint, the release build and the tests that need no Google Slides (`npm run test:offline`, a few seconds); the rest run only locally.
-
-### Releasing
-
-`npm run build` (or `make build`) writes the release build to `build/slides-companion/` and zips it as `build/slides-companion-v<version>.zip`, without the dev auto-reload and the `alarms` permission only it uses.
-
-1. `make bump` raises the version in `extension/manifest.json` and starts its section in [CHANGELOG.md](CHANGELOG.md).
-2. Write what changed there, from the user's side, and replace "Unreleased" with the date.
-3. Commit and push to `main`.
-4. `make test-build` runs every test on the release build, in about 45 minutes, and marks the commit as tested if they pass.
-5. `make all` checks that this commit passed, builds, then asks before it tags the version with its changelog section, pushes the tag, and creates the GitHub release with the zip attached.
-6. Upload the zip at the [Chrome Web Store dashboard](https://chrome.google.com/webstore/devconsole), with the listing text from [STORE.md](STORE.md) if it changed.
-
-`make help` lists every step, to run them one at a time.
 
 ## License
 
 [![GPLv3 License](https://img.shields.io/badge/License-GPLv3-blue.svg)](./LICENSE)
 
-Licensed under the GNU General Public License v3.0: see [LICENSE](./LICENSE).
+Free and open source under the GNU General Public License v3.0: yours to use, learn from, share and improve. See [LICENSE](./LICENSE).
 
 Google Slides is a trademark of Google LLC. This extension is not made or endorsed by Google.

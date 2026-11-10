@@ -1,0 +1,25 @@
+name: An idea
+description: Something you miss while presenting with Google Slides.
+labels: [idea]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Slides Companion works entirely in your browser, with no servers or accounts, so things like a phone remote or audience polls are out of its reach. [BENCHMARK.md](https://github.com/jpesce/slides-companion/blob/main/BENCHMARK.md) lists projects that do them.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What gets in your way?
+      description: The moment while presenting or preparing where you miss it. The problem helps us more than a solution.
+    validations:
+      required: true
+  - type: textarea
+    id: today
+    attributes:
+      label: What do you do today?
+      description: A workaround, another tool, or nothing.
+  - type: textarea
+    id: how-often
+    attributes:
+      label: How often does it happen?
+      description: Every talk, once in a while, for one kind of deck…
