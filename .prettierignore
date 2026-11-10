@@ -1,0 +1,16 @@
+benchmark/
+build/
+node_modules/
+playwright-report/
+test-results/
+.chromium-profile/
+kanban/
+package-lock.json
+# Generated: npm run messages and npm run illustrations.
+extension/messages.js
+extension/illustrations.js
+# Translations are edited by hand, one string per line.
+extension/_locales/
+# Prose keeps its own line breaks and tables, and whitespace in HTML can show on screen.
+*.md
+*.html

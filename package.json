@@ -12,11 +12,21 @@
     "demo": "node scripts/demo/record.mjs && node scripts/demo/edit.mjs",
     "illustrations": "node scripts/build-illustrations.mjs",
     "messages": "node scripts/build-messages.mjs",
-    "test": "playwright test",
+    "lint": "eslint . && prettier --check .",
+    "format": "prettier --write . && eslint --fix .",
+    "test": "npm run lint && playwright test",
     "test:build": "npm run build && node scripts/release.mjs testing && EXTENSION_PATH=build/slides-companion playwright test && node scripts/release.mjs tested",
     "test:headed": "playwright test --headed"
   },
   "devDependencies": {
-    "@playwright/test": "^1.64.1"
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.64.1",
+    "eslint": "^10.14.0",
+    "eslint-plugin-playwright": "^2.12.2",
+    "globals": "^17.14.0",
+    "prettier": "^3.9.10"
+  },
+  "overrides": {
+    "minimatch": "^11.0.5"
   }
 }

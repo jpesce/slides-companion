@@ -64,7 +64,7 @@ test('with Slides in Portuguese, the slideshow’s ⋮ menu and the floating not
   await page.locator('#punch-start-presentation-left').click();
   const show = page.frameLocator('iframe.punch-present-iframe');
   await expect(show.locator('.punch-viewer-svgpage-a11yelement')).toHaveAttribute('aria-label', /3/);
-  expect(await show.locator('html').getAttribute('lang')).toBe('pt-BR');
+  await expect(show.locator('html')).toHaveAttribute('lang', 'pt-BR');
 
   await page.mouse.move(300, 500);
   await show.locator('.punch-viewer-navbar-more').click();
@@ -97,7 +97,7 @@ test('with Slides in Portuguese, the message for a site that won’t open over t
   await expect(message.getByRole('heading')).toHaveText('google.com não abre sobre o seu slide');
   await expect(message.getByText('Permita todos os sites para mostrá-lo aqui ou abra-o em uma nova guia.')).toBeVisible();
   await expect(message.getByRole('button')).toHaveText(['Abrir em uma nova guia', 'Permitir todos os sites']);
-  expect(await message.locator('html').getAttribute('lang')).toBe('pt-BR');
+  await expect(message.locator('html')).toHaveAttribute('lang', 'pt-BR');
 });
 
 test('with Slides in Portuguese, our keys in Slides’ Keyboard shortcuts dialog speak Portuguese', async ({ context }) => {
