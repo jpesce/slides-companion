@@ -7,7 +7,7 @@
   <a href="https://chromewebstore.google.com/detail/image-spotlight-for-googl/habmkngfcidcchgmdpampgcbmnllkbhd" target="_blank"><img width="160" src="https://github.com/user-attachments/assets/b980234b-a7fa-4f31-82cb-61b7c5dcc85f" alt="Available in the Chrome Web Store"/></a>
 </p>
 
-Free presenter tools for Google Slides™, in a Chrome extension. It works on top of Slides' own slideshow, so your videos, animations and clicker keep working, and it looks like part of Slides. Formerly Image Spotlight for Google Slides. Get it from the [Chrome Web Store](https://chromewebstore.google.com/detail/image-spotlight-for-googl/habmkngfcidcchgmdpampgcbmnllkbhd).
+Free presenter tools for Google Slides™, in an extension for Chrome and browsers built on Chrome. It works on top of Slides' own slideshow, so your videos, animations and clicker keep working, and it looks like part of Slides. Formerly Image Spotlight for Google Slides. Get it from the [Chrome Web Store](https://chromewebstore.google.com/detail/image-spotlight-for-googl/habmkngfcidcchgmdpampgcbmnllkbhd).
 
 https://github.com/user-attachments/assets/d34dfa35-ae3a-41f7-a0b9-a08e66d2e289
 
@@ -18,7 +18,7 @@ https://github.com/user-attachments/assets/d34dfa35-ae3a-41f7-a0b9-a08e66d2e289
 - 🔎 **Zoom & scroll:** zoom into a slide with your trackpad, mouse wheel or <kbd>+</kbd> and <kbd>-</kbd> to show a detail up close, and drag to look around. Or make scrolling do nothing, so brushing the trackpad never skips a slide.
 - 🖊️ **Pen:** what you draw with Slides' pen stays on the slide for the next time you present, until you choose Erase all.
 - ⏱️ **Timer:** in presenter view, click the timer to count down from how long you have, and add a minute on the go. A bar fills as you go and the timer turns orange 1, 2 or 5 minutes before the end. Each deck remembers its time.
-- 📝 **Floating notes:** your speaker notes in a window of their own while you present, to place on any screen, zoom or make full screen. Open it from View › Show floating notes or with <kbd>Shift</kbd>+<kbd>S</kbd>.
+- 📝 **Floating notes:** your speaker notes in a small picture-in-picture window that floats over the full-screen slideshow, so one screen is enough. Meeting apps leave it out when you share only the slideshow's tab or window. Zoom into the notes, or move the window to another screen. Open it from View › Show floating notes, the slideshow's ⋮ menu or <kbd>Shift</kbd>+<kbd>S</kbd>.
 - ✏️ **Live edits:** edits to the deck, by you or anyone else, reach a slideshow that's already running, handy for a deck on an office TV. The slide on screen changes right away, once you've moved on, or not until the next slideshow, as you choose.
 - 🖼️ **Download image:** right-click an image to save it as it was added to the deck.
 - ⌨️ **Keyboard:** our shortcuts are listed in Slides' own Keyboard shortcuts dialog (<kbd>Ctrl</kbd>+<kbd>/</kbd>, or <kbd>⌘</kbd>+<kbd>/</kbd> on a Mac), and our menu items work with the arrow keys and access keys like Slides' own.
@@ -45,7 +45,7 @@ Download a [release](https://github.com/jpesce/slides-companion/releases), unzip
 
 ## Contributing
 
-Contributions are welcome! Feel free to [open an issue](https://github.com/jpesce/slides-companion/issues) or submit a [pull request](https://github.com/jpesce/slides-companion/pulls). See [Development](#development) below to get started, and [CLAUDE.md](CLAUDE.md) for the project's principles.
+Found a bug, or missing something? [Open an issue](https://github.com/jpesce/slides-companion/issues). To change the code, start with [Development](#development) below and the project's principles in [CLAUDE.md](CLAUDE.md), then open a [pull request](https://github.com/jpesce/slides-companion/pulls).
 
 ## Development
 
@@ -82,7 +82,7 @@ Regular Chrome stopped accepting `--load-extension` in version 137, which is why
 
 ### Releasing
 
-`npm run build` (or `make build`) writes the release build to `build/slides-companion/` and zips it as `build/slides-companion-v<version>.zip`, without the dev auto-reload and the permission only it uses.
+`npm run build` (or `make build`) writes the release build to `build/slides-companion/` and zips it as `build/slides-companion-v<version>.zip`, without the dev auto-reload and the `alarms` permission only it uses.
 
 1. `make bump` raises the version in `extension/manifest.json` and starts its section in [CHANGELOG.md](CHANGELOG.md).
 2. Write what changed there, from the user's side, and replace "Unreleased" with the date.
@@ -96,7 +96,6 @@ Regular Chrome stopped accepting `--load-extension` in version 137, which is why
 
 [![GPLv3 License](https://img.shields.io/badge/License-GPLv3-blue.svg)](./LICENSE)
 
-This is 100% free and open source software licensed under the GNU General Public License v3.0.<br/>
-Yours to use, learn, share, and improve. See the [LICENSE](./LICENSE) file for more details.
+Licensed under the GNU General Public License v3.0: see [LICENSE](./LICENSE).
 
 Google Slides is a trademark of Google LLC. This extension is not made or endorsed by Google.

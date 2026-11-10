@@ -34,7 +34,7 @@ The extension makes no requests to us. Some features load things from the web, a
 
 ## 5. Data sharing
 
-We do **not** share or sell any data. There is no third-party service, tracker or analytics in the extension.
+We do **not** share or sell any data. There are no trackers or analytics in the extension. The only requests it makes, to Google or to other sites, are the ones listed in section 4.
 
 ## 6. Children's privacy
 

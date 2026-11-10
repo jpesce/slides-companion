@@ -4,7 +4,9 @@ The text for the [Chrome Web Store dashboard](https://chrome.google.com/webstore
 
 ## Name and summary
 
-Come from `extension/_locales/*/messages.json`, in every language: `storeName` ("Slides Companion: Timer, Zoom & Speaker Notes for Google Slides™" in English) and `extensionDescription`. The store finds extensions mostly by the words in their name, so the name carries the most-searched words of our niche after our own, and Google Slides' name in each language, after "for" and marked ™, as Google's branding rules ask. A test keeps each within Chrome's limits (75 and 132 characters).
+Come from `extension/_locales/*/messages.json`, in every language: `storeName` ("Slides Companion: Timer, Zoom & Speaker Notes for Google Slides™" in English) and `extensionDescription`. A test keeps each within Chrome's limits (75 and 132 characters).
+
+The store finds extensions mostly by the words in their name. So after our own name, it carries the most-searched words of our niche, then Google Slides' name in each language, after "for" and marked ™, as Google's branding rules ask.
 
 ## Description
 
@@ -26,7 +28,7 @@ TIMER
 In presenter view, count down from how long you have, with a bar that fills as you go and a warning before the end.
 
 FLOATING NOTES
-Your speaker notes in a window of their own while you present.
+Your speaker notes in a small window that floats over the full-screen slideshow, so one screen is enough. Meeting apps leave it out when you share only the slideshow's tab.
 
 LIVE EDITS
 Edits to the deck, by you or anyone else, reach a slideshow that's already running. Showing a deck on an office TV? Start the slideshow from the editor on the TV, and edits show there within seconds. (A "Publish to the web" link takes Google 30 to 60 minutes to update.)

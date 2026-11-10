@@ -1,6 +1,6 @@
 # Changelog
 
-What changed in each version, newest first. Each version's section becomes its tag message and GitHub release notes (`make release`).
+What changed in each version, newest first. Each version's section becomes its tag message (`make tag`) and its GitHub release notes (`make release`).
 
 ## v1.0.0 - Unreleased
 
@@ -10,11 +10,11 @@ Presenter tools for Google Slides, still free, open source, and working entirely
 
 - **Spotlight:** select an image and press <kbd>Space</kbd>, or right-click it and choose Spotlight image, to see it full screen. Go through the slide's other images with the arrow keys or the bar below the picture. During a slideshow, click an image to spotlight it. Choose whether grouped images show as one picture or each on its own.
 - **Download image:** right-click an image and save it as it was added to the deck, under the deck's name.
-- **Links:** during a slideshow, links open over your slide, and <kbd>Esc</kbd> brings you back right where you left it. Back and Forward work as in a tab, PDFs open in Google's viewer, and when a site won't show inside the slideshow, you can allow every site or open it in a new tab.
+- **Links:** during a slideshow, links open over your slide, and <kbd>Esc</kbd> brings you back right where you left it. Back and Forward work as in a tab, PDFs open in Google's viewer, YouTube and Drive videos play in their own players, and when a site won't show inside the slideshow, you can allow every site or open it in a new tab.
 - **Zoom & scroll:** zoom into a slide with your trackpad, mouse wheel or <kbd>+</kbd> and <kbd>-</kbd> to show a detail up close. Scrolling no longer skips slides by accident.
 - **Pen:** what you draw with Slides' pen stays on the slide for the next time you present.
 - **Timer:** in presenter view, count down from how long you have, with a bar that fills as you go and an orange warning near the end. Each deck remembers its time.
-- **Floating notes:** your speaker notes in a window of their own, from View › Show floating notes or <kbd>Shift</kbd>+<kbd>S</kbd> while presenting.
+- **Floating notes:** your speaker notes in a small window that floats over the full-screen slideshow, and that meeting apps leave out when you share only the slideshow's tab. Open it from View › Show floating notes, the slideshow's ⋮ menu or <kbd>Shift</kbd>+<kbd>S</kbd>.
 - **Live edits:** edits to the deck, by you or anyone else, reach a slideshow that's already running.
 - **Keyboard:** our shortcuts are listed in Slides' Keyboard shortcuts dialog, and our menu items work with the arrow keys and access keys like Slides' own.
 - **Languages:** the extension speaks Slides' language, in 33 languages, right to left in Arabic and Hebrew.

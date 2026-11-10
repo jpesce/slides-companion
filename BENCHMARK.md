@@ -16,7 +16,7 @@ _Checked on 8 November 2026._ Figures come from each project's own page: the Chr
 | **Stop scrolling from changing slides** | Scrolling changes slides | A setting, or zoom instead | [Stop Slide Scrolling](#scrolling) |
 | **Keep what you draw** | A pen and laser pointer; drawings disappear when the slideshow ends | Slides' own pen drawings stay for the next time you present | [Annotate](#drawing-and-laser-pointers) (its own layer, with an account) |
 | **Countdown only you can see** | Presenter view's timer counts up | Presenter view's own timer counts down, warns before the end, adds a minute | [SlidePace](#timers) (has a presenter-only option); most timers show on the slide, for the audience |
-| **Speaker notes in a window of their own** | Presenter view (with one screen, not at the same time as full screen) | A floating notes window, to zoom or make full screen | [HumDocs](#speaker-notes-and-teleprompters) (picture-in-picture); phone remotes |
+| **See your notes while the slideshow is full screen** | Presenter view (with one screen, not at the same time as full screen) | A small picture-in-picture window over the full-screen slideshow, left out when you share only the slideshow's tab | [HumDocs](#speaker-notes-and-teleprompters) (also picture-in-picture, and can follow your voice); phone remotes |
 | **Edits reach a slideshow that's running** | No; a "Publish to the web" link updates within minutes | Yes: right away, once you've moved on, or at the next slideshow | [Live Present Slides](#live-edits-and-signage) (shows the editor instead of the slideshow) |
 | **Download an image as it was added** | No | Right-click › Download image | [Google Slides & Docs - Download Image](#downloading-images) |
 | **Phone remote** | No | No | [Remote for Slides](#remotes), [Copresent](#remotes) |
@@ -111,7 +111,7 @@ Smaller timers that also show on the slide: [Slidetime](https://github.com/fyrot
 
 | Project | Kind | Users · rating | Price · license | How it works | Compared with Slides Companion |
 |---|---|---|---|---|---|
-| **Slides Companion** | Chrome extension | new | Free · GPL-3.0 | Your notes in a window of their own, following the slideshow, to place on any screen, zoom or make full screen | Works with one screen, while the slideshow is full screen |
+| **Slides Companion** | Chrome extension | new | Free · GPL-3.0 | Your notes in a picture-in-picture window that floats over the full-screen slideshow and follows it; zoom the notes, or move the window to another screen | Works with one screen, while the slideshow is full screen; left out when you share only the slideshow's tab |
 | [HumDocs](https://chromewebstore.google.com/detail/jphhlejhlbepeokpeamjefdciccopjap) | Chrome extension | 80 · 4.8 (5) | Free trial, then a one-time Pro · proprietary | Notes in a picture-in-picture window that stays above the full-screen slideshow; a class timer on the slide; can follow your voice | Similar idea, with more extras; Pro is paid |
 | [NotesPrompter](https://chromewebstore.google.com/detail/dpgbpmpogejhbfdekndmpbpcgddiaehf) | Chrome extension | 81 · 5.0 (1) | Free · not stated | Turns presenter view's notes into a scrolling teleprompter, with a mirror mode | Inside presenter view |
 | [SyncVocal](https://chromewebstore.google.com/detail/liodlhlcmfcknefddjejcmikmflklppp) | Chrome extension | 85 · no ratings | Free; its AI writing help needs an account · not stated | A floating prompter with your notes that scrolls, and changes slides, as you speak | Follows your voice |
