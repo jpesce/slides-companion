@@ -35,8 +35,10 @@
   }
   const state = (frame) => frame?.dataset.slidesCompanionPlayer ?? (frame ? 'shown' : null);
   const isCopy = (frame) => Boolean(frame && 'slidesCompanionCopy' in frame.dataset);
-  const shownPlayer = () => [...document.querySelectorAll(PLAYER)].find((frame) => state(frame) === 'shown') ?? null;
-  const loadingPlayer = () => document.querySelector(`${PLAYER}[data-slides-companion-player="loading"]`);
+  const shownPlayer = () =>
+    [...document.querySelectorAll(PLAYER)].find((frame) => state(frame) === 'shown') ?? null;
+  const loadingPlayer = () =>
+    document.querySelector(`${PLAYER}[data-slides-companion-player="loading"]`);
 
   // Slides puts each object on the window as a slideshow starts; its methods are wrapped once.
   const wrapped = new WeakSet();
@@ -81,8 +83,9 @@
   let svgApi = null;
 
   const deckOrder = () =>
-    [...document.querySelectorAll('.punch-filmstrip-thumbnail[data-slide-page-id]')].map((thumbnail) => thumbnail.dataset.slidePageId).join(' ') +
-    ` / ${window.SK_viewerDataApi?.getSlidePageCount?.()}`;
+    [...document.querySelectorAll('.punch-filmstrip-thumbnail[data-slide-page-id]')]
+      .map((thumbnail) => thumbnail.dataset.slidePageId)
+      .join(' ') + ` / ${window.SK_viewerDataApi?.getSlidePageCount?.()}`;
 
   watch('SK_svgDataApi', (proto) => {
     const requestPage = proto.requestPage3;
@@ -104,10 +107,15 @@
     new Promise((resolve) => {
       const timeout = setTimeout(() => resolve(null), 3000);
       try {
-        svgApi.requestPage3(pageId, false, () => {}, (svg) => {
-          clearTimeout(timeout);
-          resolve(fingerprint(svg));
-        });
+        svgApi.requestPage3(
+          pageId,
+          false,
+          () => {},
+          (svg) => {
+            clearTimeout(timeout);
+            resolve(fingerprint(svg));
+          },
+        );
       } catch {
         clearTimeout(timeout);
         resolve(null);
@@ -119,7 +127,9 @@
   function differences(frame) {
     const got = frame && delivered.get(frame);
     if (!got) return null;
-    const changed = [...current].filter(([pageId, print]) => print && got.has(pageId) && got.get(pageId) !== print).map(([pageId]) => pageId);
+    const changed = [...current]
+      .filter(([pageId, print]) => print && got.has(pageId) && got.get(pageId) !== print)
+      .map(([pageId]) => pageId);
     return { changed, moved: orders.has(frame) && orders.get(frame) !== deckOrder() };
   }
 
@@ -132,8 +142,13 @@
     const shown = differences(shownPlayer());
     const loading = differences(loadingPlayer());
     // What the edits so far add up to, to tell when they've stopped.
-    const version = fingerprint(JSON.stringify([...current].filter(([pageId]) => shown?.changed.includes(pageId))) + deckOrder());
-    document.dispatchEvent(new CustomEvent(RESULT_EVENT, { detail: JSON.stringify({ id, shown, loading, version }) }));
+    const version = fingerprint(
+      JSON.stringify([...current].filter(([pageId]) => shown?.changed.includes(pageId))) +
+        deckOrder(),
+    );
+    document.dispatchEvent(
+      new CustomEvent(RESULT_EVENT, { detail: JSON.stringify({ id, shown, loading, version }) }),
+    );
   });
 
   // The deck's order as each player started.
@@ -261,9 +276,13 @@
     if (PRESENTER_VIEW.test(String(name ?? ''))) presenterView = opened;
     return opened;
   };
-  const presenterViewName = () => (presenterView && !presenterView.closed ? presenterView.name : null);
+  const presenterViewName = () =>
+    presenterView && !presenterView.closed ? presenterView.name : null;
   document.addEventListener('slides-companion-presenter-view', () => {
-    document.documentElement.toggleAttribute('data-slides-companion-presenter-view', Boolean(presenterViewName()));
+    document.documentElement.toggleAttribute(
+      'data-slides-companion-presenter-view',
+      Boolean(presenterViewName()),
+    );
   });
 
   // The time on presenter view's timer, to the millisecond: its seconds, and how long since it last
@@ -276,7 +295,11 @@
     if (!doc || ticks?.doc === doc) return;
     ticks?.disconnect();
     ticks = new MutationObserver((records) => {
-      const changed = (record) => (record.target.nodeType === Node.ELEMENT_NODE ? record.target : record.target.parentElement)?.closest(TIMER);
+      const changed = (record) =>
+        (record.target.nodeType === Node.ELEMENT_NODE
+          ? record.target
+          : record.target.parentElement
+        )?.closest(TIMER);
       if (records.some(changed)) ticked = performance.now();
     });
     ticks.doc = doc;
@@ -286,14 +309,20 @@
     const doc = presenterViewName() && presenterView.document;
     const match = doc?.querySelector(TIMER)?.textContent.match(/^(\d+):(\d\d):(\d\d)$/);
     const since = performance.now() - ticked;
-    const time = match && since < 1500 ? (match[1] * 3600 + match[2] * 60 + Number(match[3])) * 1000 + Math.min(since, 999) : null;
+    const time =
+      match && since < 1500
+        ? (match[1] * 3600 + match[2] * 60 + Number(match[3])) * 1000 + Math.min(since, 999)
+        : null;
     if (time === null) delete document.documentElement.dataset.slidesCompanionPresenterViewTime;
     else document.documentElement.dataset.slidesCompanionPresenterViewTime = Math.round(time);
   });
   // While a copy takes it over (see countdown.js).
   document.addEventListener('slides-companion-presenter-view-taking-over', (event) => {
     const doc = presenterViewName() && presenterView.document;
-    doc?.documentElement.toggleAttribute('data-slides-companion-taking-over', event.detail === 'true');
+    doc?.documentElement.toggleAttribute(
+      'data-slides-companion-taking-over',
+      event.detail === 'true',
+    );
     if (event.detail === 'true') keepOpen();
   });
 

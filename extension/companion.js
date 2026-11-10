@@ -103,13 +103,17 @@
       });
     }
 
-    document.addEventListener('mousemove', (event) => {
-      mouseX = event.clientX;
-      mouseY = event.clientY;
-      if (pending) return;
-      pending = true;
-      requestAnimationFrame(render);
-    }, { passive: true });
+    document.addEventListener(
+      'mousemove',
+      (event) => {
+        mouseX = event.clientX;
+        mouseY = event.clientY;
+        if (pending) return;
+        pending = true;
+        requestAnimationFrame(render);
+      },
+      { passive: true },
+    );
   }
 
   function mount(sideToolbar) {

@@ -26,8 +26,12 @@ async function startSlideshow(context) {
 }
 
 const slideNumber = (page) =>
-  shown(page).locator('.punch-viewer-svgpage-a11yelement').getAttribute('aria-label').then((label) => Number(label.match(/\d+/)[0]));
-const words = (page, text) => shown(page).locator('.punch-viewer-svgpage-svgcontainer text', { hasText: text });
+  shown(page)
+    .locator('.punch-viewer-svgpage-a11yelement')
+    .getAttribute('aria-label')
+    .then((label) => Number(label.match(/\d+/)[0]));
+const words = (page, text) =>
+  shown(page).locator('.punch-viewer-svgpage-svgcontainer text', { hasText: text });
 
 // The test browser can't edit the deck, so this stands in for an edit: the editor's copy of a slide
 // gets a different first word, and its thumbnail in the filmstrip is redrawn, as when it's edited.
@@ -52,9 +56,15 @@ async function openDeck(context) {
           const requestPage = proto.requestPage3;
           proto.requestPage3 = function (id, prefetch, onImages, onSvg) {
             return requestPage.call(this, id, prefetch, onImages, function (svg, ...rest) {
-              let edited = window.edits[id] ? svg.replace(/>[^<\s][^<]{2,}</, `>${window.edits[id]}<`) : svg;
+              let edited = window.edits[id]
+                ? svg.replace(/>[^<\s][^<]{2,}</, `>${window.edits[id]}<`)
+                : svg;
               // As Slides numbers some ids when it's busy: both numbers differ from one drawing to the next.
-              if (window.renumbered) edited = edited.replace(/\be(\d+)_(\d+)\b/g, (_, draw, item) => `e${+draw + 5}_${+item + 9}`);
+              if (window.renumbered)
+                edited = edited.replace(
+                  /\be(\d+)_(\d+)\b/g,
+                  (_, draw, item) => `e${+draw + 5}_${+item + 9}`,
+                );
               return onSvg.call(this, edited, ...rest);
             });
           };
@@ -71,13 +81,18 @@ async function edit(page, slideId, word) {
     ([slideId, word]) => {
       if (word) window.edits[slideId] = word;
       else delete window.edits[slideId];
-      document.querySelector(`.punch-filmstrip-thumbnail[data-slide-page-id="${slideId}"]`).dataset.edited = word ?? '';
+      document.querySelector(
+        `.punch-filmstrip-thumbnail[data-slide-page-id="${slideId}"]`,
+      ).dataset.edited = word ?? '';
     },
     [slideId, word],
   );
 }
 
-const replaced = (page) => expect(slidesOwn(page)).toHaveAttribute('data-slides-companion-player', 'replaced', { timeout: 15000 });
+const replaced = (page) =>
+  expect(slidesOwn(page)).toHaveAttribute('data-slides-companion-player', 'replaced', {
+    timeout: 15000,
+  });
 
 async function choose(context, option) {
   const page = await context.newPage();
@@ -88,7 +103,9 @@ async function choose(context, option) {
   await page.close();
 }
 
-test('an edit to the slide on screen shows within seconds, and the slideshow carries on', async ({ context }) => {
+test('an edit to the slide on screen shows within seconds, and the slideshow carries on', async ({
+  context,
+}) => {
   const page = await startSlideshow(context);
   await edit(page, SLIDE_3, 'Lisbon');
   await expect(words(page, 'Lisbon')).toBeVisible({ timeout: 15000 });
@@ -113,7 +130,9 @@ test('an edit to the slide on screen shows within seconds, and the slideshow car
   await expect(copies(page)).toHaveCount(0);
 });
 
-test('an edit to another slide changes nothing on screen, and shows when you get there', async ({ context }) => {
+test('an edit to another slide changes nothing on screen, and shows when you get there', async ({
+  context,
+}) => {
   const page = await startSlideshow(context);
   await edit(page, SLIDE_2, 'Edited');
   await replaced(page);
@@ -137,15 +156,26 @@ test('presenter view moves to the new player, without another window', async ({ 
 
   // Slides' timer, in seconds, as presenter view shows it (or our countdown, while it stands in).
   const time = () =>
-    presenter.locator('.punch-viewer-speakernotes-timer-time').filter({ visible: true }).textContent().then((text) => {
-      const [hours, minutes, seconds] = text.split(':').map(Number);
-      return hours * 3600 + minutes * 60 + seconds;
-    });
+    presenter
+      .locator('.punch-viewer-speakernotes-timer-time')
+      .filter({ visible: true })
+      .textContent()
+      .then((text) => {
+        const [hours, minutes, seconds] = text.split(':').map(Number);
+        return hours * 3600 + minutes * 60 + seconds;
+      });
   await expect.poll(time).toBeGreaterThanOrEqual(3);
 
   await edit(page, SLIDE_3, 'Lisbon');
   const times = [];
-  const watching = setInterval(() => time().then((seconds) => times.push(seconds), () => {}), 200);
+  const watching = setInterval(
+    () =>
+      time().then(
+        (seconds) => times.push(seconds),
+        () => {},
+      ),
+    200,
+  );
   await expect(words(page, 'Lisbon')).toBeVisible({ timeout: 15000 });
   await page.waitForTimeout(3000);
   clearInterval(watching);
@@ -170,25 +200,39 @@ test('presenter view moves to the new player, without another window', async ({ 
 
 // While a new player takes over, presenter view is written afresh: the countdown and its bar stay as
 // they were, and nothing below them moves.
-test('presenter view’s countdown and its bar stay put while a new player takes over', async ({ context }) => {
+test('presenter view’s countdown and its bar stay put while a new player takes over', async ({
+  context,
+}) => {
   const page = await openDeck(context);
   await page.locator('#punch-start-presentation-right').click();
   const opened = context.waitForEvent('page');
   await page.locator('.goog-menuitem').filter({ visible: true }).first().click();
   const presenter = await opened;
   await presenter.locator('.slides-companion-countdown-button').click();
-  await presenter.locator('.slides-companion-countdown-menu .goog-menuitem').filter({ hasText: 'Count down from 20 minutes' }).click();
+  await presenter
+    .locator('.slides-companion-countdown-menu .goog-menuitem')
+    .filter({ hasText: 'Count down from 20 minutes' })
+    .click();
   await expect(presenter.locator('.slides-companion-countdown-bar')).toBeVisible();
   await expect(slidesOwn(page)).toHaveAttribute('data-slides-companion-loaded');
 
   const look = () =>
-    presenter.evaluate(() => {
-      const shown = (element) => element && element.getBoundingClientRect().width > 0;
-      const time = [...document.querySelectorAll('.punch-viewer-speakernotes-timer-time')].find(shown);
-      const bar = document.querySelector('.slides-companion-countdown-bar');
-      const below = document.querySelector('.punch-viewer-speakernotes-page-control-panel');
-      return { time: time?.textContent, counting: time?.classList.contains('slides-companion-countdown'), bar: shown(bar), below: below?.getBoundingClientRect().top };
-    }).catch(() => null);
+    presenter
+      .evaluate(() => {
+        const shown = (element) => element && element.getBoundingClientRect().width > 0;
+        const time = [...document.querySelectorAll('.punch-viewer-speakernotes-timer-time')].find(
+          shown,
+        );
+        const bar = document.querySelector('.slides-companion-countdown-bar');
+        const below = document.querySelector('.punch-viewer-speakernotes-page-control-panel');
+        return {
+          time: time?.textContent,
+          counting: time?.classList.contains('slides-companion-countdown'),
+          bar: shown(bar),
+          below: below?.getBoundingClientRect().top,
+        };
+      })
+      .catch(() => null);
   const before = await look();
   const looks = [];
   const watching = setInterval(() => look().then((seen) => seen && looks.push(seen)), 100);
@@ -203,7 +247,9 @@ test('presenter view’s countdown and its bar stay put while a new player takes
   }
 });
 
-test('it waits for a calm moment: an image spotlit keeps the slide as it is', async ({ context }) => {
+test('it waits for a calm moment: an image spotlit keeps the slide as it is', async ({
+  context,
+}) => {
   const page = await startSlideshow(context);
   const image = shown(page).locator(`[id="${LEFT}"] image`);
   const box = await image.boundingBox();
@@ -231,10 +277,17 @@ test('what the pen drew, and the pen itself, carry over', async ({ context }) =>
   await expect(shown(page).locator('.sketchyViewerContent.disable-pointer-events')).toHaveCount(1);
   await page.keyboard.press('ArrowRight');
   await expect.poll(() => slideNumber(page)).toBe(3);
-  await expect(shown(page).locator('.punch-slide-markup-surface > g').first().locator(':scope > .slides-companion-kept-ink')).toHaveCount(1);
+  await expect(
+    shown(page)
+      .locator('.punch-slide-markup-surface > g')
+      .first()
+      .locator(':scope > .slides-companion-kept-ink'),
+  ).toHaveCount(1);
 });
 
-test('set to show edits once you’ve moved on, the slide on screen stays as it is until then', async ({ context }) => {
+test('set to show edits once you’ve moved on, the slide on screen stays as it is until then', async ({
+  context,
+}) => {
   await choose(context, /Once you’ve moved to another slide/);
   const page = await startSlideshow(context);
   await edit(page, SLIDE_3, 'Lisbon');
@@ -256,7 +309,9 @@ test('set to wait for the next slideshow, nothing changes', async ({ context }) 
 });
 
 // On a busy computer, Slides numbers a slide's clip paths differently each time it draws it.
-test('a slide drawn again, unedited but numbered differently, loads no new player', async ({ context }) => {
+test('a slide drawn again, unedited but numbered differently, loads no new player', async ({
+  context,
+}) => {
   const page = await startSlideshow(context);
   await page.evaluate(() => (window.renumbered = true));
   // Slides redraws the slide's thumbnail, as it does when it's busy, with nothing edited.
@@ -290,9 +345,16 @@ test('auto-play carries on, at the same pace, looping', async ({ context }) => {
       await more.dispatchEvent('mousedown');
       await more.dispatchEvent('mouseup');
     }
-    const box = await own.locator('.goog-menuitem[aria-haspopup]').filter({ visible: true }).first().boundingBox();
+    const box = await own
+      .locator('.goog-menuitem[aria-haspopup]')
+      .filter({ visible: true })
+      .first()
+      .boundingBox();
     await page.mouse.move(box.x + 20, box.y + box.height / 2);
-    const submenu = own.locator('[role="menu"]').filter({ has: own.locator('.goog-option') }).filter({ visible: true });
+    const submenu = own
+      .locator('[role="menu"]')
+      .filter({ has: own.locator('.goog-option') })
+      .filter({ visible: true });
     await submenu.locator('[role^="menuitem"]').nth(nth).click();
   }
   await autoPlay(5); // Every 5 seconds.
@@ -302,7 +364,11 @@ test('auto-play carries on, at the same pace, looping', async ({ context }) => {
   await edit(page, SLIDE_3, 'Lisbon');
   await replaced(page);
   const src = new URL(await copies(page).getAttribute('src'));
-  expect([src.searchParams.get('start'), src.searchParams.get('delayms'), src.searchParams.get('loop')]).toEqual(['true', '5000', 'true']);
+  expect([
+    src.searchParams.get('start'),
+    src.searchParams.get('delayms'),
+    src.searchParams.get('loop'),
+  ]).toEqual(['true', '5000', 'true']);
   const at = await slideNumber(page);
   await expect.poll(() => slideNumber(page), { timeout: 8000 }).toBe(at + 1);
 });
@@ -314,16 +380,36 @@ test('auto-play carries on, at the same pace, looping', async ({ context }) => {
 async function presentThroughMeet(page) {
   await page.evaluate(() => {
     const meet = (window.meet = { player: null, controls: null, view: null });
-    const playerOf = (object) => [...document.querySelectorAll('iframe.punch-present-iframe')].find((frame) => object instanceof frame.contentWindow.Object) ?? null;
+    const playerOf = (object) =>
+      [...document.querySelectorAll('iframe.punch-present-iframe')].find(
+        (frame) => object instanceof frame.contentWindow.Object,
+      ) ?? null;
     const listener = {};
-    for (const name of ['onApiExported', 'onCurrentViewChange', 'onNavigation', 'onPreviousPreviewChange', 'onNextPreviewChange', 'onNextNextPreviewChange', 'onSlideLoadStateChange', 'onFinishedLoading', 'onActionEnabledStateChange', 'onContentAnimationChange']) listener[name] = () => {};
-    listener.onApiExported = (content, controls) => Object.assign(meet, { player: playerOf(controls), controls });
+    for (const name of [
+      'onApiExported',
+      'onCurrentViewChange',
+      'onNavigation',
+      'onPreviousPreviewChange',
+      'onNextPreviewChange',
+      'onNextNextPreviewChange',
+      'onSlideLoadStateChange',
+      'onFinishedLoading',
+      'onActionEnabledStateChange',
+      'onContentAnimationChange',
+    ])
+      listener[name] = () => {};
+    listener.onApiExported = (content, controls) =>
+      Object.assign(meet, { player: playerOf(controls), controls });
     // The slide on screen, counting from 0, and the step it's at: "2-0-…".
     listener.onCurrentViewChange = (view) => (meet.view = view);
     const accessibility = Object.assign(new EventTarget(), { isEnabled: () => false });
     window.SK_remoteCoordinator = new (class {
       getRemoteEventListener = () => listener;
-      getNativeScreenReader = () => ({ speakMessages() {}, isStopSupported: () => false, stop() {} });
+      getNativeScreenReader = () => ({
+        speakMessages() {},
+        isStopSupported: () => false,
+        stop() {},
+      });
       getA11yVerbalizationConfig = () => ({ getNativeAccessibilityState: () => accessibility });
       getActiveFeatureStateList = () => '';
       getDynamicContextFunctions = () => ({});
@@ -335,11 +421,20 @@ async function presentThroughMeet(page) {
 }
 // Which player Meet has: Slides' own, or the copy on screen.
 const meetHas = (page) =>
-  page.evaluate(() => (!window.meet.player ? null : 'slidesCompanionCopy' in window.meet.player.dataset ? `copy, ${window.meet.player.dataset.slidesCompanionPlayer}` : 'Slides’ own'));
-const meetPresses = (page, button) => page.evaluate((button) => window.meet.controls[button](), button);
+  page.evaluate(() =>
+    !window.meet.player
+      ? null
+      : 'slidesCompanionCopy' in window.meet.player.dataset
+        ? `copy, ${window.meet.player.dataset.slidesCompanionPlayer}`
+        : 'Slides’ own',
+  );
+const meetPresses = (page, button) =>
+  page.evaluate((button) => window.meet.controls[button](), button);
 const meetShows = (page) => page.evaluate(() => Number(window.meet.view?.split('-')[0]) + 1);
 
-test('presenting through Meet, Meet’s Next and Previous move the slide on screen after an edit', async ({ context }) => {
+test('presenting through Meet, Meet’s Next and Previous move the slide on screen after an edit', async ({
+  context,
+}) => {
   const page = await openDeck(context);
   await presentThroughMeet(page);
   await page.locator('#punch-start-presentation-left').click();
@@ -358,7 +453,9 @@ test('presenting through Meet, Meet’s Next and Previous move the slide on scre
   await expect.poll(() => meetShows(page)).toBe(3);
 });
 
-test('presenting through Meet, a new player waiting out of sight leaves Meet with the slide on screen', async ({ context }) => {
+test('presenting through Meet, a new player waiting out of sight leaves Meet with the slide on screen', async ({
+  context,
+}) => {
   await choose(context, /Once you’ve moved to another slide/);
   const page = await openDeck(context);
   await presentThroughMeet(page);
@@ -366,7 +463,9 @@ test('presenting through Meet, a new player waiting out of sight leaves Meet wit
   await expect(slidesOwn(page)).toHaveAttribute('data-slides-companion-loaded');
 
   await edit(page, SLIDE_3, 'Lisbon');
-  await expect(copies(page)).toHaveAttribute('data-slides-companion-loaded', '', { timeout: 15000 });
+  await expect(copies(page)).toHaveAttribute('data-slides-companion-loaded', '', {
+    timeout: 15000,
+  });
   await page.waitForTimeout(2000);
   expect(await meetHas(page)).toBe('Slides’ own');
   // Moving on from Meet, the new player takes over on the slide moved to, and Meet has it.
@@ -385,7 +484,9 @@ test('Meet joining after an edit has showed gets the player on screen', async ({
   await replaced(page);
   await presentThroughMeet(page);
   // What the editor does as Meet joins: it tells the player it started.
-  await slidesOwn(page).evaluate((frame) => frame.contentWindow.SK_editorEventListener.onConnectRemote());
+  await slidesOwn(page).evaluate((frame) =>
+    frame.contentWindow.SK_editorEventListener.onConnectRemote(),
+  );
   await expect.poll(() => meetHas(page)).toBe('copy, shown');
   await meetPresses(page, 'goPrev');
   await expect.poll(() => slideNumber(page)).toBe(2);

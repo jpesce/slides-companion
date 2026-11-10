@@ -20,10 +20,17 @@
   const label = (open) => text(open ? 'closeFloatingNotes' : 'openFloatingNotes');
 
   const isToggleKey = (event) =>
-    event.key?.toLowerCase() === 's' && event.shiftKey && !event.metaKey && !event.ctrlKey && !event.altKey;
+    event.key?.toLowerCase() === 's' &&
+    event.shiftKey &&
+    !event.metaKey &&
+    !event.ctrlKey &&
+    !event.altKey;
   // Slides' own shortcut for full screen.
   const isFullScreenKey = (event) =>
-    event.key?.toLowerCase() === 'f' && event.shiftKey && (event.metaKey || event.ctrlKey) && !event.altKey;
+    event.key?.toLowerCase() === 'f' &&
+    event.shiftKey &&
+    (event.metaKey || event.ctrlKey) &&
+    !event.altKey;
 
   // Slides builds its menus once and keeps them, but may move its items: ours goes back after
   // `after()` whenever they change.
@@ -44,7 +51,9 @@
   // A slideshow started from the editor; one in a tab of its own has no notes to read.
   function slideshowEditor() {
     try {
-      return window.top !== window && window.top.document.querySelector('#speakernotes') ? window.top.document : null;
+      return window.top !== window && window.top.document.querySelector('#speakernotes')
+        ? window.top.document
+        : null;
     } catch {
       return null;
     }
@@ -107,14 +116,18 @@
     const learn = (key, value) =>
       chrome.storage.local
         .get(key)
-        .then((stored) => chrome.storage.local.set({ [key]: { ...stored[key], [language]: value } }))
+        .then((stored) =>
+          chrome.storage.local.set({ [key]: { ...stored[key], [language]: value } }),
+        )
         .catch(() => {});
-    chrome.storage.local.get(['notesZoom', 'notesWindow', 'slideLabels', 'notesPlaceholders']).then((stored) => {
-      zoom = stored.notesZoom ?? zoom;
-      size = stored.notesWindow ?? size;
-      slideLabel = stored.slideLabels?.[language] ?? slideLabel;
-      placeholder = stored.notesPlaceholders?.[language] ?? placeholder;
-    });
+    chrome.storage.local
+      .get(['notesZoom', 'notesWindow', 'slideLabels', 'notesPlaceholders'])
+      .then((stored) => {
+        zoom = stored.notesZoom ?? zoom;
+        size = stored.notesWindow ?? size;
+        slideLabel = stored.slideLabels?.[language] ?? slideLabel;
+        placeholder = stored.notesPlaceholders?.[language] ?? placeholder;
+      });
 
     // The player on screen: a copy may have taken over from Slides' own (see live-edits.js).
     const slideshow = () => globalThis.slidesCompanion.slideshowFrame()?.contentDocument ?? null;
@@ -122,7 +135,10 @@
     // During a slideshow, Slides labels the slide for screen readers: "Slide 3 of 9: Title". While
     // editing, it's the selected slide, in the slideshow's words.
     function slideName() {
-      const name = slideshow()?.querySelector('.punch-viewer-svgpage-a11yelement')?.getAttribute('aria-label')?.match(/^[^:]*/)[0];
+      const name = slideshow()
+        ?.querySelector('.punch-viewer-svgpage-a11yelement')
+        ?.getAttribute('aria-label')
+        ?.match(/^[^:]*/)[0];
       if (name) {
         const learnt = name.replace(/\d+/, '{n}').replace(/\d+/, '{total}');
         if (learnt !== slideLabel && learnt.includes('{total}')) {
@@ -132,9 +148,13 @@
         return name;
       }
       const selected = location.href.match(/slide=id\.([^&#]+)/)?.[1];
-      const slides = [...document.querySelectorAll('.punch-filmstrip-thumbnail[data-slide-page-id]')];
+      const slides = [
+        ...document.querySelectorAll('.punch-filmstrip-thumbnail[data-slide-page-id]'),
+      ];
       const index = slides.findIndex((slide) => slide.dataset.slidePageId === selected);
-      return index < 0 ? '' : slideLabel.replace('{n}', index + 1).replace('{total}', slides.length);
+      return index < 0
+        ? ''
+        : slideLabel.replace('{n}', index + 1).replace('{total}', slides.length);
     }
 
     // ----- Notes -----
@@ -145,7 +165,9 @@
     function notes(doc) {
       const fragment = doc.createDocumentFragment();
       if (showsPlaceholder()) return fragment;
-      for (const paragraph of document.querySelectorAll('#speakernotes-workspace g[id*="-paragraph-"]')) {
+      for (const paragraph of document.querySelectorAll(
+        '#speakernotes-workspace g[id*="-paragraph-"]',
+      )) {
         const words = paragraph.querySelectorAll('g.sketchy-text-content-text text');
         // Presenter view writes an empty paragraph as a line break.
         if (!words.length) {
@@ -184,7 +206,11 @@
       const text = words.map((word) => word.textContent).join(' ');
       if (!text) return false;
       const fresh = !workspace.querySelector('g[direction]')?.style.opacity;
-      if (fresh && workspace.querySelectorAll('g[id*="-paragraph-"]').length === 1 && text !== placeholder) {
+      if (
+        fresh &&
+        workspace.querySelectorAll('g[id*="-paragraph-"]').length === 1 &&
+        text !== placeholder
+      ) {
         placeholder = text;
         learn('notesPlaceholders', placeholder);
       }
@@ -223,7 +249,8 @@
       if (slide === shown.slide && written.innerHTML === shown.notes) return;
       doc.querySelector('.punch-viewer-speakernotes-text-header').textContent = slide;
       zoomable.replaceChildren(...written.childNodes);
-      if (slide !== shown.slide) doc.querySelector('.punch-viewer-speakernotes-text-body-scrollable').scrollTop = 0;
+      if (slide !== shown.slide)
+        doc.querySelector('.punch-viewer-speakernotes-text-body-scrollable').scrollTop = 0;
       shown = { slide, notes: zoomable.innerHTML };
     }
 
@@ -237,9 +264,15 @@
     const observer = new MutationObserver(renderSoon);
     function watch() {
       const notesPanel = document.querySelector('#speakernotes') ?? document.body;
-      observer.observe(notesPanel, { subtree: true, childList: true, characterData: true, attributes: true });
+      observer.observe(notesPanel, {
+        subtree: true,
+        childList: true,
+        characterData: true,
+        attributes: true,
+      });
       const filmstrip = document.querySelector('.punch-filmstrip-thumbnail')?.parentElement;
-      if (filmstrip) observer.observe(filmstrip, { subtree: true, childList: true, attributes: true });
+      if (filmstrip)
+        observer.observe(filmstrip, { subtree: true, childList: true, attributes: true });
     }
     document.addEventListener(SLIDE_EVENT, renderSoon);
 
@@ -269,7 +302,10 @@
       const state = (name, on) => button.classList.toggle(`jfk-button-${name}`, on);
       button.addEventListener('mouseenter', () => state('hover', true));
       button.addEventListener('mouseleave', () => (state('hover', false), state('active', false)));
-      button.addEventListener('mousedown', (event) => (event.preventDefault(), state('active', true)));
+      button.addEventListener(
+        'mousedown',
+        (event) => (event.preventDefault(), state('active', true)),
+      );
       button.addEventListener('mouseup', () => state('active', false));
       button.addEventListener('focus', () => state('focused', true));
       button.addEventListener('blur', () => state('focused', false));
@@ -297,7 +333,8 @@
     function keepSlideshowThroughOpening() {
       const fullScreen = document.fullscreenElement;
       if (!fullScreen) return () => {};
-      const stop = () => FULL_SCREEN_CHANGES.forEach((type) => window.removeEventListener(type, hide, true));
+      const stop = () =>
+        FULL_SCREEN_CHANGES.forEach((type) => window.removeEventListener(type, hide, true));
       function hide(event) {
         if (document.fullscreenElement) return;
         // Ahead of Slides, which listens further down.
@@ -315,7 +352,8 @@
 
     // The ways back to full screen show only while there's one to go back to.
     function showWindowed() {
-      if (!fullScreenToRestore?.isConnected || document.fullscreenElement) fullScreenToRestore = null;
+      if (!fullScreenToRestore?.isConnected || document.fullscreenElement)
+        fullScreenToRestore = null;
       document.documentElement.toggleAttribute(WINDOWED_ATTRIBUTE, Boolean(fullScreenToRestore));
       const button = floating?.document.querySelector('[data-full-screen]');
       if (button) button.style.display = fullScreenToRestore ? '' : 'none';
@@ -334,7 +372,9 @@
       const linked = slideshow()?.querySelector('link[rel="stylesheet"][href*="viewer_css"]')?.href;
       if (linked) return linked;
       const direction = globalThis.slidesCompanion.rightToLeft() ? 'rtl' : 'ltr';
-      const pattern = new RegExp(`/static/presentation/client/css/\\d+-viewer_css_${direction}\\.css`);
+      const pattern = new RegExp(
+        `/static/presentation/client/css/\\d+-viewer_css_${direction}\\.css`,
+      );
       for (const script of document.scripts) {
         const found = script.textContent.match(pattern)?.[0];
         if (found) return new URL(found, location.href).href;
@@ -374,7 +414,8 @@
       doc.body.dir = globalThis.slidesCompanion.rightToLeft() ? 'rtl' : 'ltr';
       doc.body.className = 'punch-viewer-speakernotes-body';
       doc.body.innerHTML = PANE_HTML;
-      for (const button of doc.querySelectorAll('[data-zoom]')) wireButton(button, () => zoomBy(Number(button.dataset.zoom)));
+      for (const button of doc.querySelectorAll('[data-zoom]'))
+        wireButton(button, () => zoomBy(Number(button.dataset.zoom)));
       wireButton(doc.querySelector('[data-full-screen]'), restoreFullScreen);
       applyZoom();
       shown = { slide: null, notes: null };
@@ -395,11 +436,27 @@
             return;
           }
           const show = slideshow();
-          if (!show || ['Escape', 'Tab'].includes(event.key) || event.metaKey || event.ctrlKey || event.altKey) return;
+          if (
+            !show ||
+            ['Escape', 'Tab'].includes(event.key) ||
+            event.metaKey ||
+            event.ctrlKey ||
+            event.altKey
+          )
+            return;
           event.preventDefault();
           const { key, code, keyCode, which, shiftKey, repeat } = event;
           (show.activeElement ?? show.body).dispatchEvent(
-            new KeyboardEvent(type, { key, code, keyCode, which, shiftKey, repeat, bubbles: true, cancelable: true }),
+            new KeyboardEvent(type, {
+              key,
+              code,
+              keyCode,
+              which,
+              shiftKey,
+              repeat,
+              bubbles: true,
+              cancelable: true,
+            }),
           );
         });
       }
@@ -452,7 +509,15 @@
     globalThis.slidesCompanion.menuItem(item, () => {
       const focused = document.activeElement;
       for (const type of ['keydown', 'keyup']) {
-        focused.dispatchEvent(new KeyboardEvent(type, { key: 'Escape', code: 'Escape', keyCode: 27, which: 27, bubbles: true }));
+        focused.dispatchEvent(
+          new KeyboardEvent(type, {
+            key: 'Escape',
+            code: 'Escape',
+            keyCode: 27,
+            which: 27,
+            bubbles: true,
+          }),
+        );
       }
       toggle();
     });
@@ -463,7 +528,11 @@
     // Slides builds the View menu when it first opens. Its item has no name but its words: the ones
     // Slides uses in this language, or else, should Slides reword it, those of the notes panel.
     keepInMenu(item, () => {
-      const options = [...document.querySelectorAll(`.shell-menu [role="menuitemcheckbox"]:not(.${MENU_ITEM_CLASS})`)];
+      const options = [
+        ...document.querySelectorAll(
+          `.shell-menu [role="menuitemcheckbox"]:not(.${MENU_ITEM_CLASS})`,
+        ),
+      ];
       // Its words, less its access key (Japanese "(N)").
       const words = (option) => {
         const label = option.querySelector('.goog-menuitem-label')?.cloneNode(true);
@@ -471,8 +540,14 @@
         return label?.textContent.trim().toLowerCase() ?? '';
       };
       const named = text('slidesShowSpeakerNotes').toLowerCase();
-      const panel = document.querySelector('#speakernotes')?.getAttribute('aria-label')?.toLowerCase();
-      return options.find((option) => words(option) === named) ?? (panel && options.find((option) => words(option).includes(panel)));
+      const panel = document
+        .querySelector('#speakernotes')
+        ?.getAttribute('aria-label')
+        ?.toLowerCase();
+      return (
+        options.find((option) => words(option) === named) ??
+        (panel && options.find((option) => words(option).includes(panel)))
+      );
     });
   }
 
@@ -487,7 +562,8 @@
       'keydown',
       (event) => {
         // Not a capital S typed in a search box (Slides' Keyboard shortcuts dialog).
-        if (!isToggleKey(event) || event.repeat || globalThis.slidesCompanion.isTyping(event)) return;
+        if (!isToggleKey(event) || event.repeat || globalThis.slidesCompanion.isTyping(event))
+          return;
         event.preventDefault();
         event.stopImmediatePropagation();
         tell(TOGGLE_EVENT);
@@ -509,11 +585,18 @@
     window.addEventListener('pagehide', () => tell(SLIDESHOW_GONE_EVENT));
     let slide = null;
     new MutationObserver(() => {
-      const name = document.querySelector('.punch-viewer-svgpage-a11yelement')?.getAttribute('aria-label');
+      const name = document
+        .querySelector('.punch-viewer-svgpage-a11yelement')
+        ?.getAttribute('aria-label');
       if (!name || name === slide) return;
       slide = name;
       tell(SLIDE_EVENT);
-    }).observe(document, { subtree: true, childList: true, attributes: true, attributeFilter: ['aria-label'] });
+    }).observe(document, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeFilter: ['aria-label'],
+    });
 
     // ----- The ⋮ menu -----
 
@@ -540,18 +623,31 @@
     });
     globalThis.slidesCompanion.menuItem(item, chooseNotes);
     const showState = () => {
-      item.querySelector('.goog-menuitem-label').textContent = label(editor.documentElement.hasAttribute(OPEN_ATTRIBUTE));
+      item.querySelector('.goog-menuitem-label').textContent = label(
+        editor.documentElement.hasAttribute(OPEN_ATTRIBUTE),
+      );
     };
     showState();
-    new MutationObserver(showState).observe(editor.documentElement, { attributes: true, attributeFilter: [OPEN_ATTRIBUTE] });
-    keepInMenu(item, () => document.querySelector('.punch-viewer-navbar-menu .docs-icon-notes')?.closest('.goog-menuitem'));
+    new MutationObserver(showState).observe(editor.documentElement, {
+      attributes: true,
+      attributeFilter: [OPEN_ATTRIBUTE],
+    });
+    keepInMenu(item, () =>
+      document
+        .querySelector('.punch-viewer-navbar-menu .docs-icon-notes')
+        ?.closest('.goog-menuitem'),
+    );
 
     // Out of full screen behind Slides' back, its menu still offers "Exit full screen". In its
     // place, Slides' own "Enter full screen" item, which it keeps hidden and switched off.
     let enter = null;
     function showFullScreenItem() {
-      const exit = document.querySelector('.punch-viewer-navbar-menu .docs-icon-fullscreen-exit')?.closest('.goog-menuitem');
-      const slidesEnter = document.querySelector('.punch-viewer-navbar-menu .docs-icon-fullscreen')?.closest('.goog-menuitem');
+      const exit = document
+        .querySelector('.punch-viewer-navbar-menu .docs-icon-fullscreen-exit')
+        ?.closest('.goog-menuitem');
+      const slidesEnter = document
+        .querySelector('.punch-viewer-navbar-menu .docs-icon-fullscreen')
+        ?.closest('.goog-menuitem');
       if (!exit || !slidesEnter) return;
       const windowed = isWindowed();
       globalThis.slidesCompanion.hideMenuItem(exit, windowed);
@@ -562,7 +658,8 @@
       }
       if (enter?.isConnected) return;
       enter = slidesEnter.cloneNode(true);
-      for (const element of [enter, ...enter.querySelectorAll('[id]')]) element.removeAttribute('id');
+      for (const element of [enter, ...enter.querySelectorAll('[id]')])
+        element.removeAttribute('id');
       enter.classList.remove('goog-menuitem-disabled');
       enter.removeAttribute('aria-disabled');
       enter.style.display = '';
@@ -579,14 +676,18 @@
       exit.after(enter);
     }
     showFullScreenItem();
-    new MutationObserver(showFullScreenItem).observe(editor.documentElement, { attributes: true, attributeFilter: [WINDOWED_ATTRIBUTE] });
+    new MutationObserver(showFullScreenItem).observe(editor.documentElement, {
+      attributes: true,
+      attributeFilter: [WINDOWED_ATTRIBUTE],
+    });
 
     // Pressing ⋮ again closes the menu, as Slides does. (Esc would end the slideshow.) Focus goes
     // back to the slideshow, as after Slides' own items, so Space goes on to the next slide.
     function closeMenu() {
       const more = document.querySelector('.punch-viewer-navbar-more');
       if (more?.getAttribute('aria-expanded') !== 'true') return;
-      for (const type of ['mousedown', 'mouseup']) more.dispatchEvent(new MouseEvent(type, { bubbles: true, button: 0 }));
+      for (const type of ['mousedown', 'mouseup'])
+        more.dispatchEvent(new MouseEvent(type, { bubbles: true, button: 0 }));
       more.blur();
     }
   }

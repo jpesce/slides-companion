@@ -11,7 +11,9 @@ test('companion sits first in the side toolbar', async ({ context }) => {
 
   const companion = page.locator('#docs-side-toolbar > .slides-companion-button');
   await expect(companion).toBeVisible();
-  await expect(page.locator('#docs-side-toolbar > :first-child')).toHaveClass(/slides-companion-button/);
+  await expect(page.locator('#docs-side-toolbar > :first-child')).toHaveClass(
+    /slides-companion-button/,
+  );
 });
 
 test('companion eyes follow the mouse', async ({ context }) => {
@@ -26,10 +28,12 @@ test('companion eyes follow the mouse', async ({ context }) => {
 
   // Mouse straight below: both irises look down.
   await page.mouse.move(box.x + box.width / 2, box.y + 400);
-  await expect.poll(() => irisPositions(page)).toEqual([
-    [expect.any(Number), expect.closeTo(eyeY + 60.8, 0)],
-    [expect.any(Number), expect.closeTo(eyeY + 60.8, 0)],
-  ]);
+  await expect
+    .poll(() => irisPositions(page))
+    .toEqual([
+      [expect.any(Number), expect.closeTo(eyeY + 60.8, 0)],
+      [expect.any(Number), expect.closeTo(eyeY + 60.8, 0)],
+    ]);
 
   // Mouse far left, level with the eyes: the left iris looks left.
   await page.mouse.move(0, box.y + box.height * (eyeY / 1080));

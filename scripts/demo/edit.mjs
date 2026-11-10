@@ -17,7 +17,10 @@ export const OUT_README = path.join(ROOT, 'slides-companion-demo-readme.mp4');
 const FPS = 30;
 const SIZE = { width: 1920, height: 1080 };
 
-const ffmpeg = (args) => execFileSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', ...args], { stdio: 'inherit' });
+const ffmpeg = (args) =>
+  execFileSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', ...args], {
+    stdio: 'inherit',
+  });
 
 // Where each window goes on screen, by how many windows the scene shows: as large as fits below the
 // captions, which sit above the windows rather than over them. At the top, where the eye starts and
@@ -33,15 +36,28 @@ function layout(streams, pip) {
   if (pip) {
     const [main] = layout(streams.filter((s) => s.name !== pip));
     const s = streams.find((s) => s.name === pip);
-    const width = PIP.width, height = even((s.height * PIP.width) / s.width);
-    const floating = { ...s, x: main.x + main.width - PIP.inset - width, y: main.y + main.height - PIP.inset - height, width, height, bar: PIP.bar };
-    return streams.map((st) => (st.name === pip ? floating : { ...main, ...st, x: main.x, y: main.y, width: main.width, height: main.height }));
+    const width = PIP.width,
+      height = even((s.height * PIP.width) / s.width);
+    const floating = {
+      ...s,
+      x: main.x + main.width - PIP.inset - width,
+      y: main.y + main.height - PIP.inset - height,
+      width,
+      height,
+      bar: PIP.bar,
+    };
+    return streams.map((st) =>
+      st.name === pip
+        ? floating
+        : { ...main, ...st, x: main.x, y: main.y, width: main.width, height: main.height },
+    );
   }
   const gap = 40;
   if (streams.length === 1) {
     const [s] = streams;
     const scale = Math.min(1600 / s.width, 864 / s.height);
-    const width = even(s.width * scale), height = even(s.height * scale);
+    const width = even(s.width * scale),
+      height = even(s.height * scale);
     return [{ ...s, x: (SIZE.width - width) / 2, y: top(height), width, height }];
   }
   // Side by side, the same height, centred.
@@ -64,7 +80,8 @@ const even = (n) => Math.round(n / 2) * 2;
 // The captured frames come when the page changes; this gives each its time on screen, at FPS, and
 // zooms in where the recording asked to.
 function streamClip(part, stream) {
-  const scene = part.name, duration = part.duration;
+  const scene = part.name,
+    duration = part.duration;
   const dir = path.join(RAW, scene, stream.name);
   // Chrome can hand frames over slightly out of order.
   const frames = JSON.parse(fs.readFileSync(`${dir}.json`, 'utf8')).sort((a, b) => a.t - b.t);
@@ -72,7 +89,10 @@ function streamClip(part, stream) {
   frames.forEach((frame, i) => {
     const next = i + 1 < frames.length ? frames[i + 1].t : duration;
     if (next <= frame.t) return;
-    lines.push(`file '${path.join(dir, frame.file)}'`, `duration ${(next - Math.max(0, frame.t)).toFixed(4)}`);
+    lines.push(
+      `file '${path.join(dir, frame.file)}'`,
+      `duration ${(next - Math.max(0, frame.t)).toFixed(4)}`,
+    );
   });
   lines.push(`file '${path.join(dir, frames.at(-1).file)}'`);
   const list = path.join(WORK, `${scene}-${stream.name}.txt`);
@@ -82,7 +102,25 @@ function streamClip(part, stream) {
   const fit = focus.length
     ? zoompan(focus, stream, part.scale ?? 1)
     : `scale=${stream.width}:${stream.height}:flags=lanczos`;
-  ffmpeg(['-f', 'concat', '-safe', '0', '-i', list, '-vf', `fps=${FPS},${fit},format=yuv420p`, '-t', String(duration), '-c:v', 'libx264', '-crf', '12', '-preset', 'medium', out]);
+  ffmpeg([
+    '-f',
+    'concat',
+    '-safe',
+    '0',
+    '-i',
+    list,
+    '-vf',
+    `fps=${FPS},${fit},format=yuv420p`,
+    '-t',
+    String(duration),
+    '-c:v',
+    'libx264',
+    '-crf',
+    '12',
+    '-preset',
+    'medium',
+    out,
+  ]);
   return out;
 }
 
@@ -96,9 +134,11 @@ function zoompan(focus, stream, scale) {
   const whole = { left: 0, top: 0, width: W };
   const target = (box) => {
     if (!box) return whole;
-    const bw = box.width * scale, bh = box.height * scale;
+    const bw = box.width * scale,
+      bh = box.height * scale;
     const z = Math.max(1, Math.min(2.4, W / bw, H / bh));
-    const width = W / z, height = H / z;
+    const width = W / z,
+      height = H / z;
     const clamp = (v, size, max) => Math.min(Math.max(v, 0), max - size);
     return {
       left: clamp((box.x + box.width / 2) * scale - width / 2, width, W),
@@ -132,7 +172,11 @@ async function drawOverlays(jobs) {
     await page.evaluate((job) => window.draw(job), job);
     await page.evaluate(() => document.fonts.ready);
     await page.waitForFunction(() => [...document.images].every((img) => img.complete));
-    await page.screenshot({ path: job.out, omitBackground: true, ...(job.clip && { clip: job.clip }) });
+    await page.screenshot({
+      path: job.out,
+      omitBackground: true,
+      ...(job.clip && { clip: job.clip }),
+    });
   }
   await browser.close();
 }
@@ -140,7 +184,23 @@ async function drawOverlays(jobs) {
 // A card of its own: the title at the start, the ending.
 function cardClip(name, png, duration) {
   const out = path.join(WORK, `${name}.mp4`);
-  ffmpeg(['-loop', '1', '-framerate', String(FPS), '-i', png, '-t', String(duration), '-vf', 'format=yuv420p', '-c:v', 'libx264', '-crf', '12', out]);
+  ffmpeg([
+    '-loop',
+    '1',
+    '-framerate',
+    String(FPS),
+    '-i',
+    png,
+    '-t',
+    String(duration),
+    '-vf',
+    'format=yuv420p',
+    '-c:v',
+    'libx264',
+    '-crf',
+    '12',
+    out,
+  ]);
   return out;
 }
 
@@ -162,7 +222,11 @@ function sceneClip(name, scene, windows, overlays) {
     inputs.push('-i', w.clip);
     const video = input++;
     const mask = still(overlays.masks[i]);
-    filters.push(`[${video}:v]format=rgba[v${i}]`, `[${mask}:v]format=gray[m${i}]`, `[v${i}][m${i}]alphamerge[w${i}]`);
+    filters.push(
+      `[${video}:v]format=rgba[v${i}]`,
+      `[${mask}:v]format=gray[m${i}]`,
+      `[v${i}][m${i}]alphamerge[w${i}]`,
+    );
     filters.push(`[${last}][w${i}]overlay=${w.x}:${w.y}:shortest=0[b${i}]`);
     last = `b${i}`;
   });
@@ -177,7 +241,24 @@ function sceneClip(name, scene, windows, overlays) {
     last = `o${i}`;
   });
   filters.push(`[${last}]format=yuv420p[out]`);
-  ffmpeg([...inputs, '-filter_complex', filters.join(';'), '-map', '[out]', '-t', String(scene.duration), '-r', String(FPS), '-c:v', 'libx264', '-crf', '14', '-preset', 'medium', out]);
+  ffmpeg([
+    ...inputs,
+    '-filter_complex',
+    filters.join(';'),
+    '-map',
+    '[out]',
+    '-t',
+    String(scene.duration),
+    '-r',
+    String(FPS),
+    '-c:v',
+    'libx264',
+    '-crf',
+    '14',
+    '-preset',
+    'medium',
+    out,
+  ]);
   return out;
 }
 
@@ -190,11 +271,30 @@ function join(clips, durations) {
   let offset = durations[0];
   for (let i = 1; i < clips.length; i++) {
     offset -= fade;
-    filters.push(`[${last}][${i}:v]xfade=transition=fade:duration=${fade}:offset=${offset.toFixed(3)}[x${i}]`);
+    filters.push(
+      `[${last}][${i}:v]xfade=transition=fade:duration=${fade}:offset=${offset.toFixed(3)}[x${i}]`,
+    );
     last = `x${i}`;
     offset += durations[i];
   }
-  ffmpeg([...inputs, '-filter_complex', filters.join(';') || 'null', '-map', clips.length > 1 ? `[${last}]` : '0:v', '-c:v', 'libx264', '-crf', '18', '-preset', 'slow', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', OUT]);
+  ffmpeg([
+    ...inputs,
+    '-filter_complex',
+    filters.join(';') || 'null',
+    '-map',
+    clips.length > 1 ? `[${last}]` : '0:v',
+    '-c:v',
+    'libx264',
+    '-crf',
+    '18',
+    '-preset',
+    'slow',
+    '-pix_fmt',
+    'yuv420p',
+    '-movflags',
+    '+faststart',
+    OUT,
+  ]);
 }
 
 export async function edit() {
@@ -210,12 +310,21 @@ export async function edit() {
       jobs.push({ kind: 'card', ...part.card, out: png });
       return { name, part, png };
     }
-    const windows = layout(part.streams, part.pip).map((w, i) => ({ ...w, sourceWidth: part.streams[i].width, sourceHeight: part.streams[i].height }));
+    const windows = layout(part.streams, part.pip).map((w, i) => ({
+      ...w,
+      sourceWidth: part.streams[i].width,
+      sourceHeight: part.streams[i].height,
+    }));
     const background = path.join(WORK, `${name}-background.png`);
     jobs.push({ kind: 'background', windows: windows.filter((w) => !w.bar), out: background });
     const masks = windows.map((w, i) => {
       const out = path.join(WORK, `${name}-mask${i}.png`);
-      jobs.push({ kind: 'mask', window: w, out, clip: { x: w.x, y: w.y, width: w.width, height: w.height } });
+      jobs.push({
+        kind: 'mask',
+        window: w,
+        out,
+        clip: { x: w.x, y: w.y, width: w.width, height: w.height },
+      });
       return out;
     });
     // A floating window's frame (its shadow and title bar) goes over the windows under it.
@@ -234,7 +343,8 @@ export async function edit() {
   });
   await drawOverlays(jobs);
 
-  const clips = [], durations = [];
+  const clips = [],
+    durations = [];
   for (const plan of plans) {
     if (plan.png) {
       clips.push(cardClip(plan.name, plan.png, plan.part.duration));
@@ -246,7 +356,23 @@ export async function edit() {
     console.log(`${plan.name}: ${plan.part.duration.toFixed(1)} s`);
   }
   join(clips, durations);
-  ffmpeg(['-i', OUT, '-c:v', 'libx264', '-crf', '26', '-preset', 'slow', '-tune', 'stillimage', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', OUT_README]);
+  ffmpeg([
+    '-i',
+    OUT,
+    '-c:v',
+    'libx264',
+    '-crf',
+    '26',
+    '-preset',
+    'slow',
+    '-tune',
+    'stillimage',
+    '-pix_fmt',
+    'yuv420p',
+    '-movflags',
+    '+faststart',
+    OUT_README,
+  ]);
   return OUT;
 }
 

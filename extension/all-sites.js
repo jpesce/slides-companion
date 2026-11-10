@@ -15,9 +15,11 @@
   banner.querySelector('.slides-companion-banner-text').textContent = text('allSitesLine');
   allow.textContent = text('allSitesAllow');
 
-  const tell = (message) => parent.postMessage({ source: 'slides-companion-all-sites', ...message }, DIALOG_ORIGIN);
+  const tell = (message) =>
+    parent.postMessage({ source: 'slides-companion-all-sites', ...message }, DIALOG_ORIGIN);
 
-  const showIfMissing = () => chrome.permissions.contains(ALL_SITES).then((has) => (banner.hidden = has));
+  const showIfMissing = () =>
+    chrome.permissions.contains(ALL_SITES).then((has) => (banner.hidden = has));
   showIfMissing();
   chrome.permissions.onAdded.addListener(showIfMissing);
   chrome.permissions.onRemoved.addListener(showIfMissing);
@@ -41,9 +43,15 @@
     event.preventDefault();
     tell({ type: 'key', key: event.key, shiftKey: event.shiftKey });
   });
-  window.addEventListener('mousedown', () => document.documentElement.classList.remove('slides-companion-tabbed'));
-  window.addEventListener('blur', () => document.documentElement.classList.remove('slides-companion-tabbed'));
+  window.addEventListener('mousedown', () =>
+    document.documentElement.classList.remove('slides-companion-tabbed'),
+  );
+  window.addEventListener('blur', () =>
+    document.documentElement.classList.remove('slides-companion-tabbed'),
+  );
 
   // The frame's height: the notice's, or none once it's gone.
-  new ResizeObserver(() => tell({ type: 'height', height: Math.ceil(document.body.getBoundingClientRect().height) })).observe(document.body);
+  new ResizeObserver(() =>
+    tell({ type: 'height', height: Math.ceil(document.body.getBoundingClientRect().height) }),
+  ).observe(document.body);
 }

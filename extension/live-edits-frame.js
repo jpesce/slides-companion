@@ -20,7 +20,10 @@
   let shift = 0;
   const now = Date.now;
   Date.now = () => now() + shift;
-  document.addEventListener('slides-companion-clock', (event) => (shift = isCopy() ? Number(event.detail) || 0 : 0));
+  document.addEventListener(
+    'slides-companion-clock',
+    (event) => (shift = isCopy() ? Number(event.detail) || 0 : 0),
+  );
 
   const open = window.open;
   window.open = function (url, name) {

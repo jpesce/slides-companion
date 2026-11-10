@@ -15,7 +15,10 @@ async function startSlideshow(context, viewport) {
 }
 
 const slideNumber = (show) =>
-  show.locator('.punch-viewer-svgpage-a11yelement').getAttribute('aria-label').then((label) => Number(label.match(/\d+/)[0]));
+  show
+    .locator('.punch-viewer-svgpage-a11yelement')
+    .getAttribute('aria-label')
+    .then((label) => Number(label.match(/\d+/)[0]));
 
 async function drawStroke(page, from, to) {
   await page.mouse.move(...from);
@@ -51,8 +54,14 @@ const strokes = (show, selector = KEPT) =>
       return {
         shape: stroke.nodeName,
         colour: stroke.getAttribute('stroke') ?? stroke.getAttribute('fill'),
-        thickness: Math.round(stroke.nodeName === 'circle' ? stroke.getBoundingClientRect().width : stroke.getAttribute('stroke-width') * stroke.getScreenCTM().a),
-        box: [x - slide.x, y - slide.y, right - slide.x, bottom - slide.y].map((value) => part(value / slide.width)),
+        thickness: Math.round(
+          stroke.nodeName === 'circle'
+            ? stroke.getBoundingClientRect().width
+            : stroke.getAttribute('stroke-width') * stroke.getScreenCTM().a,
+        ),
+        box: [x - slide.x, y - slide.y, right - slide.x, bottom - slide.y].map((value) =>
+          part(value / slide.width),
+        ),
       };
     });
   }, selector);
@@ -67,9 +76,12 @@ async function turnOffKeeping(context) {
   await page.close();
 }
 
-const near = (a, b) => a.every((stroke, i) => stroke.box.every((value, j) => Math.abs(value - b[i].box[j]) < 0.004));
+const near = (a, b) =>
+  a.every((stroke, i) => stroke.box.every((value, j) => Math.abs(value - b[i].box[j]) < 0.004));
 
-test('with keeping turned off in Settings, as in Slides, the pen’s ink goes when the slideshow ends', async ({ context }) => {
+test('with keeping turned off in Settings, as in Slides, the pen’s ink goes when the slideshow ends', async ({
+  context,
+}) => {
   await turnOffKeeping(context);
   await drawAndLeave(context, (page) => drawStroke(page, [400, 300], [600, 420]));
   const { page, show } = await startSlideshow(context);
@@ -78,7 +90,9 @@ test('with keeping turned off in Settings, as in Slides, the pen’s ink goes wh
 });
 
 test.describe('kept from the start', () => {
-  test('what the pen draws shows again the next time the deck is presented, as it was drawn', async ({ context }) => {
+  test('what the pen draws shows again the next time the deck is presented, as it was drawn', async ({
+    context,
+  }) => {
     const drawn = await drawAndLeave(context, (page) => drawStroke(page, [400, 300], [600, 420]));
     expect(drawn).toHaveLength(1);
 
@@ -90,7 +104,9 @@ test.describe('kept from the start', () => {
     expect(near(kept, drawn)).toBe(true);
   });
 
-  test('kept ink stays on its slide: changing slides and a new window size keep it in place', async ({ context }) => {
+  test('kept ink stays on its slide: changing slides and a new window size keep it in place', async ({
+    context,
+  }) => {
     const drawn = await drawAndLeave(context, (page) => drawStroke(page, [400, 300], [600, 420]));
 
     // Another window shape: the slide sits between bars, at another size.
@@ -105,10 +121,14 @@ test.describe('kept from the start', () => {
     await expect.poll(async () => near(await strokes(show), drawn)).toBe(true);
 
     await page.setViewportSize({ width: 1280, height: 600 });
-    await expect.poll(async () => (await strokes(show)).length === 1 && near(await strokes(show), drawn)).toBe(true);
+    await expect
+      .poll(async () => (await strokes(show)).length === 1 && near(await strokes(show), drawn))
+      .toBe(true);
   });
 
-  test('what’s drawn on top of kept ink is kept too, and a tap of the pen is kept as a dot', async ({ context }) => {
+  test('what’s drawn on top of kept ink is kept too, and a tap of the pen is kept as a dot', async ({
+    context,
+  }) => {
     await drawAndLeave(context, (page) => drawStroke(page, [400, 300], [600, 420]));
     const drawn = await drawAndLeave(context, async (page) => {
       await drawStroke(page, [400, 500], [600, 520]);
@@ -163,7 +183,9 @@ test.describe('kept from the start', () => {
     await show.locator('.punch-viewer-navbar-eraser-menu-button').click();
   }
 
-  test('a capital A typed in a search box (Slides’ Keyboard shortcuts) keeps the ink', async ({ context }) => {
+  test('a capital A typed in a search box (Slides’ Keyboard shortcuts) keeps the ink', async ({
+    context,
+  }) => {
     await drawAndLeave(context, (page) => drawStroke(page, [400, 300], [600, 420]));
     const { page, show } = await startSlideshow(context);
     await expect(show.locator(KEPT)).toHaveCount(1);

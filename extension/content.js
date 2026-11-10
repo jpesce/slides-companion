@@ -4,4 +4,5 @@ document.documentElement.dataset.slidesCompanion = chrome.runtime.getManifest().
 // Whether a key goes into something typed in (a search box, a comment), where our keys must leave it be.
 globalThis.slidesCompanion ??= {};
 globalThis.slidesCompanion.isTyping = (event) =>
-  event.target instanceof Element && (Boolean(event.target.closest('input, textarea, select')) || event.target.isContentEditable);
+  event.target instanceof Element &&
+  (Boolean(event.target.closest('input, textarea, select')) || event.target.isContentEditable);

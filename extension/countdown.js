@@ -24,7 +24,8 @@
   }
 
   // In words, each number with its unit: "20 min", "1h", "1 hour 30 min", "90 sec".
-  const IN_WORDS = /^(?:(\d+)\s*h(?:(?:ou)?rs?)?\.?\s*)?(?:(\d+)\s*m(?:in(?:ute)?s?)?\.?\s*)?(?:(\d+)\s*s(?:ec(?:ond)?s?)?\.?)?$/i;
+  const IN_WORDS =
+    /^(?:(\d+)\s*h(?:(?:ou)?rs?)?\.?\s*)?(?:(\d+)\s*m(?:in(?:ute)?s?)?\.?\s*)?(?:(\d+)\s*s(?:ec(?:ond)?s?)?\.?)?$/i;
   // Under 100 hours, as the timer shows hours in two digits.
   const LONGEST = 100 * 3600 - 1;
 
@@ -38,7 +39,8 @@
     let seconds = null;
     if (/^\d+(:\d{1,2}){1,2}$/.test(trimmed)) {
       const [first, ...rest] = trimmed.split(':').map(Number);
-      if (rest.every((part) => part < 60)) seconds = [first, ...rest].reduce((total, part) => total * 60 + part, 0);
+      if (rest.every((part) => part < 60))
+        seconds = [first, ...rest].reduce((total, part) => total * 60 + part, 0);
     } else {
       // A number on its own, or after hours, is minutes.
       const words = trimmed.replace(/^(\d+)$|(h\S*\s*\d+)$/i, '$1$2m').match(IN_WORDS);
@@ -52,20 +54,36 @@
 
   // As Slides shows time: 00:00:00.
   const format = (seconds) =>
-    [Math.floor(seconds / 3600), Math.floor(seconds / 60) % 60, seconds % 60].map((part) => String(part).padStart(2, '0')).join(':');
+    [Math.floor(seconds / 3600), Math.floor(seconds / 60) % 60, seconds % 60]
+      .map((part) => String(part).padStart(2, '0'))
+      .join(':');
   // As it's typed: 20:00, or 1:20:00.
-  const formatTyped = (seconds) => format(seconds).replace(/^00:/, '').replace(/^0(?=\d)/, '');
+  const formatTyped = (seconds) =>
+    format(seconds)
+      .replace(/^00:/, '')
+      .replace(/^0(?=\d)/, '');
 
   // As it's said, in the words' language: 20 minutes, 1 hour, 30 minutes. (As Intl.DurationFormat
   // says it, which needs Chrome 129.) In the digits Slides writes in every language, 0–9, whatever
   // Intl's default for the language.
   function spoken(seconds) {
     const locale = globalThis.slidesCompanion.locale();
-    const parts = [[Math.floor(seconds / 3600), 'hour'], [Math.floor(seconds / 60) % 60, 'minute'], [seconds % 60, 'second']];
+    const parts = [
+      [Math.floor(seconds / 3600), 'hour'],
+      [Math.floor(seconds / 60) % 60, 'minute'],
+      [seconds % 60, 'second'],
+    ];
     return new Intl.ListFormat(locale, { type: 'unit', style: 'long' }).format(
       parts
         .filter(([count]) => count)
-        .map(([count, unit]) => new Intl.NumberFormat(locale, { style: 'unit', unit, unitDisplay: 'long', numberingSystem: 'latn' }).format(count)),
+        .map(([count, unit]) =>
+          new Intl.NumberFormat(locale, {
+            style: 'unit',
+            unit,
+            unitDisplay: 'long',
+            numberingSystem: 'latn',
+          }).format(count),
+        ),
     );
   }
 
@@ -103,7 +121,8 @@
     // A fresh player taking over presenter view mid-slideshow (see live-edits.js) has Slides write it
     // afresh, and starts Slides' timer from nothing for a moment, before it catches up: what was shown
     // stays as it was, the countdown standing in for Slides' time.
-    if (document.documentElement.hasAttribute('data-slides-companion-taking-over')) return paint(shown, { standIn: true });
+    if (document.documentElement.hasAttribute('data-slides-companion-taking-over'))
+      return paint(shown, { standIn: true });
     // Reset starts the countdown over, from the time chosen.
     if (time < last) [start, added] = [0, 0];
     last = time;
@@ -177,9 +196,17 @@
     element.className = 'jfk-tooltip';
     element.id = 'slides-companion-countdown-hint';
     element.setAttribute('role', 'tooltip');
-    const text = Object.assign(document.createElement('div'), { className: 'jfk-tooltip-contentId' });
-    const arrow = Object.assign(document.createElement('div'), { className: 'jfk-tooltip-arrow jfk-tooltip-arrowup' });
-    arrow.append(...['before', 'after'].map((part) => Object.assign(document.createElement('div'), { className: `jfk-tooltip-arrowimpl${part}` })));
+    const text = Object.assign(document.createElement('div'), {
+      className: 'jfk-tooltip-contentId',
+    });
+    const arrow = Object.assign(document.createElement('div'), {
+      className: 'jfk-tooltip-arrow jfk-tooltip-arrowup',
+    });
+    arrow.append(
+      ...['before', 'after'].map((part) =>
+        Object.assign(document.createElement('div'), { className: `jfk-tooltip-arrowimpl${part}` }),
+      ),
+    );
     element.append(text, arrow);
     field.setAttribute('aria-describedby', element.id);
     document.body.append(element);
@@ -191,7 +218,13 @@
       element.style.left = '0px';
       const box = field.getBoundingClientRect();
       const middle = box.left + box.width / 2;
-      const left = Math.max(0, Math.min(Math.max(box.left, middle - element.offsetWidth / 2), innerWidth - element.offsetWidth));
+      const left = Math.max(
+        0,
+        Math.min(
+          Math.max(box.left, middle - element.offsetWidth / 2),
+          innerWidth - element.offsetWidth,
+        ),
+      );
       element.style.left = `${left + scrollX}px`;
       element.style.top = `${box.bottom + 8 + scrollY}px`;
       arrow.style.left = `${middle - left}px`;
@@ -235,7 +268,8 @@
       countDownFrom(chosen);
     };
     // Slides' presenter view listens on the page for keys (the arrows change slides, R resets).
-    for (const type of ['keydown', 'keyup', 'keypress']) editor.addEventListener(type, (event) => event.stopPropagation());
+    for (const type of ['keydown', 'keyup', 'keypress'])
+      editor.addEventListener(type, (event) => event.stopPropagation());
     editor.addEventListener('keydown', (event) => {
       // Enter also confirms what a Japanese or Chinese keyboard is composing.
       if (event.isComposing) return;
@@ -257,7 +291,8 @@
 
   // What the menu offers. Choosing how the timer counts ticks it, as the slide picker ticks the slide.
   function choices() {
-    const times = counting.typed && !PRESETS.includes(counting.typed) ? [...PRESETS, counting.typed] : PRESETS;
+    const times =
+      counting.typed && !PRESETS.includes(counting.typed) ? [...PRESETS, counting.typed] : PRESETS;
     return [
       { label: text('countUp'), checked: !counting.down, act: countUp },
       null,
@@ -297,7 +332,10 @@
       if (option) element.setAttribute('aria-checked', choice.checked);
       const content = document.createElement('div');
       content.className = 'goog-menuitem-content';
-      if (option) content.append(Object.assign(document.createElement('div'), { className: 'goog-menuitem-checkbox' }));
+      if (option)
+        content.append(
+          Object.assign(document.createElement('div'), { className: 'goog-menuitem-checkbox' }),
+        );
       content.append(choice.label);
       element.append(content);
       actions.set(element, choice.act);
@@ -331,7 +369,8 @@
     // Slides' presenter view listens on the page for keys. Enter picks as it goes down and Space as it
     // comes up, like the timer button, so the key that picks doesn't reach the button and open the menu
     // again.
-    for (const type of ['keydown', 'keyup', 'keypress']) menu.addEventListener(type, (event) => event.stopPropagation());
+    for (const type of ['keydown', 'keyup', 'keypress'])
+      menu.addEventListener(type, (event) => event.stopPropagation());
     menu.addEventListener('keydown', (event) => {
       const step = { ArrowDown: 1, ArrowUp: -1 }[event.key];
       const from = lit ? items.indexOf(lit) : step > 0 ? -1 : items.length;
@@ -357,7 +396,9 @@
     const left = fromEnd ? box.right - menu.offsetWidth : box.left;
     menu.style.left = `${Math.max(0, Math.min(left, innerWidth - menu.offsetWidth)) + scrollX}px`;
     menu.style.top = `${Math.max(0, Math.min(box.bottom, innerHeight - menu.offsetHeight)) + scrollY}px`;
-    anchor.classList.add(anchor === timerButton ? 'jfk-button-checked' : 'slides-companion-countdown-open');
+    anchor.classList.add(
+      anchor === timerButton ? 'jfk-button-checked' : 'slides-companion-countdown-open',
+    );
     timerButton.setAttribute('aria-expanded', 'true');
     menu.focus({ preventScroll: true });
     // Opened from the keyboard, the first choice is lit, as in Slides' menus.
@@ -386,7 +427,11 @@
     element.className = 'slides-companion-countdown-bar';
     element.setAttribute('aria-hidden', 'true');
     element.hidden = true;
-    element.append(Object.assign(document.createElement('div'), { className: 'slides-companion-countdown-bar-fill' }));
+    element.append(
+      Object.assign(document.createElement('div'), {
+        className: 'slides-companion-countdown-bar-fill',
+      }),
+    );
     return element;
   }
 
@@ -405,7 +450,8 @@
     element.setAttribute('aria-expanded', 'false');
     element.title = text('countdownTitle');
     element.tabIndex = 0;
-    element.className = 'jfk-button jfk-button-standard jfk-button-narrow punch-viewer-speakernotes-timer-button slides-companion-countdown-button';
+    element.className =
+      'jfk-button jfk-button-standard jfk-button-narrow punch-viewer-speakernotes-timer-button slides-companion-countdown-button';
     element.innerHTML = TIMER_ICON;
     const state = (name, on) => element.classList.toggle(`jfk-button-${name}`, on);
     element.addEventListener('mouseenter', () => state('hover', true));
@@ -425,7 +471,8 @@
         if (!['Enter', ' ', 'ArrowDown'].includes(event.key)) return;
         event.stopPropagation();
         event.preventDefault();
-        if (type === 'keydown' ? event.key !== ' ' : event.key === ' ') toggleMenu(element, { keyboard: true });
+        if (type === 'keydown' ? event.key !== ' ' : event.key === ' ')
+          toggleMenu(element, { keyboard: true });
       });
     }
     return element;
@@ -443,27 +490,43 @@
     const container = elapsed.parentElement;
     container.classList.add('slides-companion-countdown-container');
     container.title = text('countdownTitle');
-    container.addEventListener('mousedown', (event) => event.target !== editor && event.preventDefault());
+    container.addEventListener(
+      'mousedown',
+      (event) => event.target !== editor && event.preventDefault(),
+    );
     container.addEventListener('click', () => editor || toggleMenu(container));
     timerButton = button();
-    document.querySelector('.punch-viewer-speakernotes-timer-button-container')?.append(timerButton);
+    document
+      .querySelector('.punch-viewer-speakernotes-timer-button-container')
+      ?.append(timerButton);
     bar?.remove();
     bar = makeBar();
     elapsed.closest('.punch-viewer-speakernotes-timer-panel').append(bar);
-    new MutationObserver(show).observe(elapsed, { childList: true, characterData: true, subtree: true });
-    new MutationObserver(show).observe(document.documentElement, { attributes: true, attributeFilter: ['data-slides-companion-taking-over'] });
+    new MutationObserver(show).observe(elapsed, {
+      childList: true,
+      characterData: true,
+      subtree: true,
+    });
+    new MutationObserver(show).observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-slides-companion-taking-over'],
+    });
     show();
   }
 
   if (IN_PRESENTER_VIEW) {
     const key = deckKey();
-    Promise.all([key ? chrome.storage.local.get(key) : {}, globalThis.slidesCompanion.settings.ready]).then(([stored]) => {
+    Promise.all([
+      key ? chrome.storage.local.get(key) : {},
+      globalThis.slidesCompanion.settings.ready,
+    ]).then(([stored]) => {
       counting = { ...counting, ...stored[key] };
       attach();
       new MutationObserver(attach).observe(document, { subtree: true, childList: true });
     });
     chrome.storage.onChanged.addListener(
-      (changes, area) => area === 'sync' && ('countdownWarning' in changes || 'countdownBar' in changes) && show(),
+      (changes, area) =>
+        area === 'sync' && ('countdownWarning' in changes || 'countdownBar' in changes) && show(),
     );
   }
 }

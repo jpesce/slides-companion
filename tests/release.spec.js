@@ -45,11 +45,17 @@ test('a bump starts a section above the newest, once', () => {
   expect(started.indexOf('## v1.3.0 - Unreleased')).toBeLessThan(started.indexOf('## v1.2.0'));
   expect(started.startsWith('# Changelog\n\nIntro.\n\n## v1.3.0')).toBe(true);
   expect(withSection(started, '1.3.0')).toBe(started);
-  expect(withSection('# Changelog\n', '0.1.0')).toBe('# Changelog\n\n## v0.1.0 - Unreleased\n\n- \n\n');
+  expect(withSection('# Changelog\n', '0.1.0')).toBe(
+    '# Changelog\n\n## v0.1.0 - Unreleased\n\n- \n\n',
+  );
 });
 
 test("a bump changes only the manifest's version, and fails when it can't find it", () => {
   const manifest = '{\n  "name": "x",\n  "version": "1.2.0",\n  "other": "1.2.0"\n}\n';
-  expect(withVersion(manifest, '1.2.0', '1.3.0')).toBe('{\n  "name": "x",\n  "version": "1.3.0",\n  "other": "1.2.0"\n}\n');
-  expect(() => withVersion('{"version":"1.2.0"}', '1.2.0', '1.3.0')).toThrow('no "version": "1.2.0" line');
+  expect(withVersion(manifest, '1.2.0', '1.3.0')).toBe(
+    '{\n  "name": "x",\n  "version": "1.3.0",\n  "other": "1.2.0"\n}\n',
+  );
+  expect(() => withVersion('{"version":"1.2.0"}', '1.2.0', '1.3.0')).toThrow(
+    'no "version": "1.2.0" line',
+  );
 });

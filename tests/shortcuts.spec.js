@@ -11,15 +11,21 @@ const categories = (dialog) => dialog.locator(`.${SLIDES}CategoryLabel`);
 
 // Each row as [what it does, its keys], the keys as read: "→ or ↓", "Shift S".
 const rowsOf = (section) =>
-  section.locator(`tr:has(.${SLIDES}ShortcutName)`).evaluateAll((rows, SLIDES) =>
-    rows.map((row) => [
-      row.querySelector(`.${SLIDES}ShortcutName`).textContent,
-      [...row.querySelector(`.${SLIDES}KeySequenceList`).childNodes]
-        .map((node) => (node.nodeType === Node.TEXT_NODE ? node.textContent.trim() : [...node.querySelectorAll('kbd')].map((key) => key.textContent).join(' ')))
-        .filter(Boolean)
-        .join(' '),
-    ]),
-  SLIDES);
+  section.locator(`tr:has(.${SLIDES}ShortcutName)`).evaluateAll(
+    (rows, SLIDES) =>
+      rows.map((row) => [
+        row.querySelector(`.${SLIDES}ShortcutName`).textContent,
+        [...row.querySelector(`.${SLIDES}KeySequenceList`).childNodes]
+          .map((node) =>
+            node.nodeType === Node.TEXT_NODE
+              ? node.textContent.trim()
+              : [...node.querySelectorAll('kbd')].map((key) => key.textContent).join(' '),
+          )
+          .filter(Boolean)
+          .join(' '),
+      ]),
+    SLIDES,
+  );
 
 const IN_SPOTLIGHT_AND_SLIDESHOW = [
   ['Next image in Spotlight', '→ or ↓'],
@@ -50,7 +56,10 @@ async function startSlideshow(context) {
   await page.goto(slide);
   await page.locator('#punch-start-presentation-left').click();
   const show = page.frameLocator('iframe.punch-present-iframe');
-  await expect(show.locator('.punch-viewer-svgpage-a11yelement')).toHaveAttribute('aria-label', /3/);
+  await expect(show.locator('.punch-viewer-svgpage-a11yelement')).toHaveAttribute(
+    'aria-label',
+    /3/,
+  );
   return { page, show };
 }
 
@@ -66,16 +75,27 @@ const looks = (section, SLIDES_) =>
       headingCell: style('thead th', ['height', 'padding']),
       name: style(`.${SLIDES}ShortcutName`, ['font', 'color']),
       cell: style(`tbody th:has(.${SLIDES}ShortcutName)`, ['padding', 'borderBottom', 'width']),
-      keys: style(`.${SLIDES}KeySequenceList`, ['display', 'gap', 'padding', 'justifyContent', 'font']),
+      keys: style(`.${SLIDES}KeySequenceList`, [
+        'display',
+        'gap',
+        'padding',
+        'justifyContent',
+        'font',
+      ]),
       key: style('kbd', ['font', 'color', 'border', 'borderRadius', 'padding']),
     };
   }, SLIDES_);
 
-test('Slides’ Keyboard shortcuts dialog lists our keys in a section like its own, after Slides’', async ({ context }) => {
+test('Slides’ Keyboard shortcuts dialog lists our keys in a section like its own, after Slides’', async ({
+  context,
+}) => {
   const { page, dialog, errors } = await openEditorDialog(context);
   await expect(categories(dialog).last()).toHaveText('Slides Companion');
   expect(await categories(dialog).count()).toBeGreaterThan(1);
-  expect(await rowsOf(ours(dialog))).toEqual([['Spotlight the selected image', 'Space'], ...IN_SPOTLIGHT_AND_SLIDESHOW]);
+  expect(await rowsOf(ours(dialog))).toEqual([
+    ['Spotlight the selected image', 'Space'],
+    ...IN_SPOTLIGHT_AND_SLIDESHOW,
+  ]);
 
   // Made from one of Slides' sections: the same type, keys and lines, and none under the last row.
   const slides = dialog.locator(`.${SLIDES}ShortcutTable:not(.slides-companion-shortcuts)`).first();
@@ -96,16 +116,22 @@ test('Slides’ Keyboard shortcuts dialog lists our keys in a section like its o
   expect(errors).toEqual([]);
 });
 
-test('the dialog’s search finds our keys as it finds Slides’ own, from the start of a word', async ({ context }) => {
+test('the dialog’s search finds our keys as it finds Slides’ own, from the start of a word', async ({
+  context,
+}) => {
   const { dialog } = await openEditorDialog(context);
   const notice = dialog.locator(`.${SLIDES}NoResultsNotice`);
-  const highlighted = (section) => section.locator(`.${SLIDES}ShortcutNameHighlight`).allTextContents();
+  const highlighted = (section) =>
+    section.locator(`.${SLIDES}ShortcutNameHighlight`).allTextContents();
 
   // Slides' zoom and ours.
   await search(dialog).fill('zoom');
   await expect(categories(dialog)).toHaveCount(2);
   await expect(categories(dialog).last()).toHaveText('Slides Companion');
-  expect((await rowsOf(ours(dialog))).map(([name]) => name)).toEqual(['Zoom in on the slide while presenting', 'Zoom out while presenting']);
+  expect((await rowsOf(ours(dialog))).map(([name]) => name)).toEqual([
+    'Zoom in on the slide while presenting',
+    'Zoom out while presenting',
+  ]);
   expect(await highlighted(ours(dialog))).toEqual(['Zoom', 'Zoom']);
 
   // Only ours: Slides' "No results" doesn't show.
@@ -125,7 +151,9 @@ test('the dialog’s search finds our keys as it finds Slides’ own, from the s
   expect(await rowsOf(ours(dialog))).toHaveLength(10);
 });
 
-test('during a slideshow, the dialog lists the keys that work there, and typing a capital S searches', async ({ context }) => {
+test('during a slideshow, the dialog lists the keys that work there, and typing a capital S searches', async ({
+  context,
+}) => {
   const { page, show } = await startSlideshow(context);
   const dialog = await openSlideshowDialog(page, show);
   // Space is Slides' there, and a click spotlights an image.
@@ -147,7 +175,9 @@ test.describe('with links opening in a new tab', () => {
 
   test('the dialog doesn’t say Esc closes a page over the slide', async ({ context }) => {
     const { dialog } = await openEditorDialog(context);
-    expect((await rowsOf(ours(dialog))).map(([name]) => name)).not.toContain('Close a page opened over the slide');
+    expect((await rowsOf(ours(dialog))).map(([name]) => name)).not.toContain(
+      'Close a page opened over the slide',
+    );
   });
 });
 
@@ -164,7 +194,9 @@ async function openSlideshowDialog(page, show) {
 test.describe('with Spotlight off during a slideshow', () => {
   test.use({ settings: { liveEdits: 'off', spotlightOnClick: false } });
 
-  test('the slideshow’s dialog leaves out Spotlight’s keys, which can’t do anything there', async ({ context }) => {
+  test('the slideshow’s dialog leaves out Spotlight’s keys, which can’t do anything there', async ({
+    context,
+  }) => {
     const { page, show } = await startSlideshow(context);
     const dialog = await openSlideshowDialog(page, show);
     expect((await rowsOf(ours(dialog))).map(([name]) => name)).toEqual([
@@ -176,10 +208,15 @@ test.describe('with Spotlight off during a slideshow', () => {
   });
 });
 
-test('a slideshow in a tab of its own, without floating notes, doesn’t list their key', async ({ context }) => {
+test('a slideshow in a tab of its own, without floating notes, doesn’t list their key', async ({
+  context,
+}) => {
   const page = await context.newPage();
   await page.goto(`${deckUrl.replace(/\/edit.*$/, '/present')}?slide=id.g35a1872bb6d_1_0`);
-  await expect(page.locator('.punch-viewer-svgpage-a11yelement')).toHaveAttribute('aria-label', /3/);
+  await expect(page.locator('.punch-viewer-svgpage-a11yelement')).toHaveAttribute(
+    'aria-label',
+    /3/,
+  );
   const dialog = await openSlideshowDialog(page, page);
   const names = (await rowsOf(ours(dialog))).map(([name]) => name);
   expect(names).toContain('Zoom in on the slide while presenting');

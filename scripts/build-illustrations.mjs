@@ -8,7 +8,8 @@ import fs from 'node:fs';
 const OUT = new URL('../extension/illustrations.js', import.meta.url);
 // The frame is 176 tall, cropped 2px off the top and bottom of a 180 drawing, so the tallest page
 // fits a dialog as tall as Meet's Settings (650px).
-const W = 495, H = 180;
+const W = 495,
+  H = 180;
 // The loop's length in seconds; a scene can set its own.
 let T = 6;
 
@@ -25,7 +26,9 @@ const DISSOLVE = '0.4 0 0.2 1'; // the live edit's dissolve
 
 // A curve, as CSS's cubic-bezier: the progress at a fraction of the time.
 const ease = (x1, y1, x2, y2) => (x) => {
-  let lo = 0, hi = 1, t = x;
+  let lo = 0,
+    hi = 1,
+    t = x;
   for (let i = 0; i < 30; i++) {
     t = (lo + hi) / 2;
     if (3 * (1 - t) ** 2 * t * x1 + 3 * (1 - t) * t * t * x2 + t ** 3 < x) lo = t;
@@ -47,10 +50,15 @@ const motion = (path, points, times, curves) =>
   `<animateMotion path="${path}" keyPoints="${points.join(';')}" keyTimes="${kt(times)}" calcMode="spline" keySplines="${curves.join(';')}" ${loop()}/>`;
 // Shown from one time to another, and hidden the rest of the loop.
 const during = (from, to) =>
-  from > 0 ? step('visibility', ['hidden', 'visible', 'hidden'], [0, from, to]) : step('visibility', ['visible', 'hidden'], [0, to]);
+  from > 0
+    ? step('visibility', ['hidden', 'visible', 'hidden'], [0, from, to])
+    : step('visibility', ['visible', 'hidden'], [0, to]);
 
 // Android Settings' illustration frame (28dp corners), in Slides' surface colour.
-const frame = (id, body) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 2 ${W} 176" width="${W}" height="176" class="slides-companion-dialog-illustration" aria-hidden="true">
+const frame = (
+  id,
+  body,
+) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 2 ${W} 176" width="${W}" height="176" class="slides-companion-dialog-illustration" aria-hidden="true">
   <defs><clipPath id="${id}-frame"><rect y="2" width="${W}" height="176" rx="28"/></clipPath></defs>
   <g clip-path="url(#${id}-frame)">
     <rect y="2" width="${W}" height="176" fill="#f0f4f9"/>
@@ -62,34 +70,64 @@ const frame = (id, body) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 
 // at any size, and simple blocks.
 const outline = () =>
   '<rect width="241" height="135" rx="12" fill="#fff" stroke="#c4c7c5" stroke-width="2" vector-effect="non-scaling-stroke"/>';
-const bar = (x, y, w, h, fill) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${h / 2}" fill="${fill}"/>`;
+const bar = (x, y, w, h, fill) =>
+  `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${h / 2}" fill="${fill}"/>`;
 const title = bar(129, 23, 90, 10, '#c4c7c5');
 const line = (n, w) => bar(129, 53 + 12 * n, w, 6, '#e3e3e3');
 // The photo: a sun over rounded hills, 96 × 104.
-const photo = (id, rx = 8) => `<clipPath id="${id}"><rect width="96" height="104" rx="${rx}"/></clipPath>
+const photo = (
+  id,
+  rx = 8,
+) => `<clipPath id="${id}"><rect width="96" height="104" rx="${rx}"/></clipPath>
     <g clip-path="url(#${id})"><rect width="96" height="104" fill="#d3e3fd"/><circle cx="68" cy="26" r="9" fill="#a8c7fa"/>
     <path d="M-8 112L32 62Q36 57 40 62L61 87L72 74Q76 69 80 74L104 104V112Z" fill="#a8c7fa"/></g>`;
 // A wide photo: a sun over a rolling hill, 90 × 40.
-const wide = (id, rx = 6) => `<clipPath id="${id}"><rect width="90" height="40" rx="${rx}"/></clipPath>
+const wide = (
+  id,
+  rx = 6,
+) => `<clipPath id="${id}"><rect width="90" height="40" rx="${rx}"/></clipPath>
     <g clip-path="url(#${id})"><rect width="90" height="40" fill="#d3e3fd"/><circle cx="18" cy="13" r="6" fill="#a8c7fa"/>
     <path d="M0 40V30Q20 16 44 27Q66 37 90 22V40Z" fill="#a8c7fa"/></g>`;
-const at = (x, y, s, body) => `<g transform="translate(${x} ${y})${s === 1 ? '' : ` scale(${s})`}">${body}</g>`;
-const slide = (id, ...lines) => `${outline()}${at(15, 15, 1, photo(id))}${title}${lines.map((w, n) => line(n, w)).join('')}`;
+const at = (x, y, s, body) =>
+  `<g transform="translate(${x} ${y})${s === 1 ? '' : ` scale(${s})`}">${body}</g>`;
+const slide = (id, ...lines) =>
+  `${outline()}${at(15, 15, 1, photo(id))}${title}${lines.map((w, n) => line(n, w)).join('')}`;
 
 // The length of a path of absolute M, Q and C commands, measured along 64 points of each curve.
 const pathLength = (d) => {
-  const numbers = (text) => text.trim().split(/[\s,]+/).map(Number);
-  let length = 0, x = 0, y = 0;
+  const numbers = (text) =>
+    text
+      .trim()
+      .split(/[\s,]+/)
+      .map(Number);
+  let length = 0,
+    x = 0,
+    y = 0;
   for (const [, command, args] of d.matchAll(/([MQC])([^MQC]*)/g)) {
     const n = numbers(args);
     if (command === 'M') {
       [x, y] = n;
       continue;
     }
-    const points = command === 'Q' ? [[x, y], [n[0], n[1]], [n[2], n[3]]] : [[x, y], [n[0], n[1]], [n[2], n[3]], [n[4], n[5]]];
+    const points =
+      command === 'Q'
+        ? [
+            [x, y],
+            [n[0], n[1]],
+            [n[2], n[3]],
+          ]
+        : [
+            [x, y],
+            [n[0], n[1]],
+            [n[2], n[3]],
+            [n[4], n[5]],
+          ];
     const at = (t) => {
       let p = points;
-      while (p.length > 1) p = p.slice(1).map(([px, py], i) => [p[i][0] + (px - p[i][0]) * t, p[i][1] + (py - p[i][1]) * t]);
+      while (p.length > 1)
+        p = p
+          .slice(1)
+          .map(([px, py], i) => [p[i][0] + (px - p[i][0]) * t, p[i][1] + (py - p[i][1]) * t]);
       return p[0];
     };
     let [px, py] = [x, y];
@@ -121,14 +159,18 @@ const cursor = (stops, shapes = [], clicks = [], beside = '') => {
   let d = `M${stops[0][0]} ${stops[0][1]}`;
   const lengths = [0];
   for (let i = 1; i < stops.length; i++) {
-    const [x0, y0] = stops[i - 1], [x1, y1, , , how] = stops[i];
+    const [x0, y0] = stops[i - 1],
+      [x1, y1, , , how] = stops[i];
     const bend = how === 'line' ? 0 : 0.15;
-    const cx = (x0 + x1) / 2 - (y1 - y0) * bend, cy = (y0 + y1) / 2 + (x1 - x0) * bend;
+    const cx = (x0 + x1) / 2 - (y1 - y0) * bend,
+      cy = (y0 + y1) / 2 + (x1 - x0) * bend;
     const move = `M${x0} ${y0}Q${cx} ${cy} ${x1} ${y1}`;
     d += move.slice(move.indexOf('Q'));
     lengths.push(lengths.at(-1) + pathLength(move));
   }
-  const points = [], times = [], curves = [];
+  const points = [],
+    times = [],
+    curves = [];
   stops.forEach(([, , arrive, leave], i) => {
     const p = (lengths[i] / lengths.at(-1)).toFixed(4);
     points.push(p, p);
@@ -138,12 +180,17 @@ const cursor = (stops, shapes = [], clicks = [], beside = '') => {
   });
   const arrow = { values: ['visible'], times: [0] };
   for (const [, from, to] of shapes) {
-    if (from > 0) arrow.values.push('hidden'), arrow.times.push(from);
+    if (from > 0) (arrow.values.push('hidden'), arrow.times.push(from));
     else arrow.values[0] = 'hidden';
-    if (to < T) arrow.values.push('visible'), arrow.times.push(to);
+    if (to < T) (arrow.values.push('visible'), arrow.times.push(to));
   }
   const press = clicks.length
-    ? tf('scale', [1, ...clicks.flatMap(() => [1, 0.85, 1]), 1], [0, ...clicks.flatMap((c) => [c, c + 0.08, c + 0.2]), T], [HOLD, ...clicks.flatMap(() => [EASY, EASY, HOLD])])
+    ? tf(
+        'scale',
+        [1, ...clicks.flatMap(() => [1, 0.85, 1]), 1],
+        [0, ...clicks.flatMap((c) => [c, c + 0.08, c + 0.2]), T],
+        [HOLD, ...clicks.flatMap(() => [EASY, EASY, HOLD])],
+      )
     : '';
   return `<g>
       ${motion(d, points, times, curves)}
@@ -177,23 +224,48 @@ const scenes = {};
 // Spotlight: the pointer, on Close where the last loop left it, clicks a photo on the slide, which
 // shows full screen on black. Next goes to the slide's other photo, and Close back to the slide.
 {
-  const open = 1.1, next = 2.5, close = 3.9;
-  scenes.spotlight = { still: 1.8, svg: frame('spotlight', `
+  const open = 1.1,
+    next = 2.5,
+    close = 3.9;
+  scenes.spotlight = {
+    still: 1.8,
+    svg: frame(
+      'spotlight',
+      `
     <!-- The slide in the slideshow: a photo, a title, two lines and a wide photo. -->
     ${at(127, 23, 1, `${slide('spotlight-a', 84, 72)}${at(129, 81, 1, wide('spotlight-b'))}`)}
     <!-- The stage, with the photo fitted, and the bar to go from one photo to the next. -->
-    ${stage(open, close, `<g visibility="hidden">${during(open, next)}${at(190.25, 22, 1.1923, photo('spotlight-a-stage', 8 / 1.1923))}</g>
+    ${stage(
+      open,
+      close,
+      `<g visibility="hidden">${during(open, next)}${at(190.25, 22, 1.1923, photo('spotlight-a-stage', 8 / 1.1923))}</g>
       <g visibility="hidden">${during(next, T)}${at(108, 22, 3.1, wide('spotlight-b-stage', 8 / 3.1))}</g>
       <rect x="217.5" y="154" width="60" height="20" rx="10" fill="#1f1f1f"/>
-      ${chevron(231, 1)}${chevron(264, -1)}${bar(240, 162, 15, 4, '#e3e3e3')}`)}
-    ${cursor([[458, 28, 0, 0.25], [196, 96, 0.85, 1.35], [264, 164, 2.05, 2.6], [458, 28, 3.35, T]],
-      [[HAND, 0.8, 1.15], [HAND, 2.0, 2.65], [HAND, 3.3, 3.95]], [open - 0.1, next - 0.1, close - 0.1])}`) };
+      ${chevron(231, 1)}${chevron(264, -1)}${bar(240, 162, 15, 4, '#e3e3e3')}`,
+    )}
+    ${cursor(
+      [
+        [458, 28, 0, 0.25],
+        [196, 96, 0.85, 1.35],
+        [264, 164, 2.05, 2.6],
+        [458, 28, 3.35, T],
+      ],
+      [
+        [HAND, 0.8, 1.15],
+        [HAND, 2.0, 2.65],
+        [HAND, 3.3, 3.95],
+      ],
+      [open - 0.1, next - 0.1, close - 0.1],
+    )}`,
+    ),
+  };
 }
 
 // Links: the pointer, on Close where the last loop left it, clicks a link on the slide. Its page
 // opens over the slide, on the stage, and scrolls under the pointer; Close comes back to the slide.
 {
-  const open = 1.1, close = 4.0;
+  const open = 1.1,
+    close = 4.0;
   const page = `<clipPath id="links-page"><rect x="92" y="18" width="311" height="128" rx="8"/></clipPath>
       <rect x="92" y="18" width="311" height="128" rx="8" fill="#fff"/>
       <g clip-path="url(#links-page)"><g>
@@ -205,25 +277,51 @@ const scenes = {};
         <circle cx="342" cy="78" r="10" fill="#a8c7fa"/>
         ${bar(104, 148, 287, 6, '#e3e3e3')}${bar(104, 160, 260, 6, '#e3e3e3')}${bar(104, 172, 274, 6, '#e3e3e3')}${bar(104, 184, 200, 6, '#e3e3e3')}
       </g></g>`;
-  scenes.links = { still: 1.6, svg: frame('links', `
+  scenes.links = {
+    still: 1.6,
+    svg: frame(
+      'links',
+      `
     <!-- The slide, with a link in Slides' link blue. -->
     ${at(127, 23, 1, `${slide('links-a', 84)}${bar(129, 65, 58, 6, '#0b57d0')}${line(2, 80)}`)}
     <!-- The stage: the page, the bar naming its site (and Open in new tab), and Close. -->
-    ${stage(open, close, `${page}
+    ${stage(
+      open,
+      close,
+      `${page}
       <rect x="197.5" y="154" width="100" height="20" rx="10" fill="#1f1f1f"/>
       <circle cx="210" cy="164" r="4" fill="#a8c7fa"/>${bar(219, 162, 46, 4, '#e3e3e3')}
-      <path d="M281 160H277.5Q276 160 276 161.5V168.5Q276 170 277.5 170H284.5Q286 170 286 168.5V165M283 159H287V163M287 159L281.5 164.5" fill="none" stroke="#e3e3e3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`)}
-    ${cursor([[458, 28, 0, 0.25], [278, 91, 0.85, 1.35], [300, 100, 1.7, 3.05], [458, 28, 3.55, T]],
-      [[HAND, 0.8, 1.15], [HAND, 3.5, 4.05]], [open - 0.1, close - 0.1])}`) };
+      <path d="M281 160H277.5Q276 160 276 161.5V168.5Q276 170 277.5 170H284.5Q286 170 286 168.5V165M283 159H287V163M287 159L281.5 164.5" fill="none" stroke="#e3e3e3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>`,
+    )}
+    ${cursor(
+      [
+        [458, 28, 0, 0.25],
+        [278, 91, 0.85, 1.35],
+        [300, 100, 1.7, 3.05],
+        [458, 28, 3.55, T],
+      ],
+      [
+        [HAND, 0.8, 1.15],
+        [HAND, 3.5, 4.05],
+      ],
+      [open - 0.1, close - 0.1],
+    )}`,
+    ),
+  };
 }
 
 // Zoom & scroll: a mouse wheel beside the pointer rolls forward and the slide zooms in smoothly
 // around the pointer; the hand drags the slide along to the title; the wheel rolls back and it
 // zooms out.
 {
-  const IN = [1.2, 2.1], PAN = [2.5, 3.3], OUT = [3.6, 4.4], HELD = [2.35, 3.45];
-  const standard = ease(0.2, 0, 0, 1), easy = ease(0.33, 0, 0.67, 1);
-  const progress = (t, [from, to], curve) => curve(Math.min(1, Math.max(0, (t - from) / (to - from))));
+  const IN = [1.2, 2.1],
+    PAN = [2.5, 3.3],
+    OUT = [3.6, 4.4],
+    HELD = [2.35, 3.45];
+  const standard = ease(0.2, 0, 0, 1),
+    easy = ease(0.33, 0, 0.67, 1);
+  const progress = (t, [from, to], curve) =>
+    curve(Math.min(1, Math.max(0, (t - from) / (to - from))));
   // The zoom at a time: in about the point under the pointer, (218, 72), which stays put; along
   // by the drag; out about the pointer's new place, (158, 72), kept within the slide as the real
   // zoom keeps it.
@@ -255,17 +353,40 @@ const scenes = {};
         <path d="M-4 -12L0 -16L4 -12" fill="none" stroke="#0b57d0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" visibility="hidden">${during(IN[0] - 0.15, IN[1] + 0.15)}</path>
         <path d="M-4 12L0 16L4 12" fill="none" stroke="#0b57d0" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" visibility="hidden">${during(OUT[0] - 0.15, OUT[1] + 0.15)}</path>
       </g>`;
-  scenes.zoom = { still: 2.3, svg: frame('zoom', `
+  scenes.zoom = {
+    still: 2.3,
+    svg: frame(
+      'zoom',
+      `
     <!-- The slide, zoomed inside the screen's outline. -->
     <clipPath id="zoom-screen"><rect x="127" y="23" width="241" height="135" rx="12"/></clipPath>
     <rect x="127" y="23" width="241" height="135" rx="12" fill="#fff"/>
     <g clip-path="url(#zoom-screen)"><g>
-      ${sampled('translate', zooms.map(({ x, y }) => `${x.toFixed(2)} ${y.toFixed(2)}`))}
-      ${sampled('scale', zooms.map(({ scale }) => scale.toFixed(4)), true)}
+      ${sampled(
+        'translate',
+        zooms.map(({ x, y }) => `${x.toFixed(2)} ${y.toFixed(2)}`),
+      )}
+      ${sampled(
+        'scale',
+        zooms.map(({ scale }) => scale.toFixed(4)),
+        true,
+      )}
       ${at(127, 23, 1, slide('zoom-a', 84, 72, 80))}
     </g></g>
     <rect x="127" y="23" width="241" height="135" rx="12" fill="none" stroke="#c4c7c5" stroke-width="2"/>
-    ${cursor([[...REST, 0, 0.3], [218, 72, 1.0, PAN[0]], [158, 72, PAN[1], 4.6, 'line'], [...REST, 5.3, T]], [[GRAB, ...HELD]], [], wheel)}`) };
+    ${cursor(
+      [
+        [...REST, 0, 0.3],
+        [218, 72, 1.0, PAN[0]],
+        [158, 72, PAN[1], 4.6, 'line'],
+        [...REST, 5.3, T],
+      ],
+      [[GRAB, ...HELD]],
+      [],
+      wheel,
+    )}`,
+    ),
+  };
 }
 
 // Pen: the pen's red dot appears, glides over to the picture, draws a loop round the sun, lifts and
@@ -275,7 +396,8 @@ const scenes = {};
   // The pen's strokes and its moves between them, on arcs as Material moves things. The dot rests
   // on the slide's lower right before and after, so the loop starts where it ends.
   const ENTRY = 'M352 128Q300 130 230 52';
-  const P1 = 'M230 52C220 43 196 44 189 57C182 70 192 82 209 83C226 84 235 74 233 61C231 51 223 46 214 46';
+  const P1 =
+    'M230 52C220 43 196 44 189 57C182 70 192 82 209 83C226 84 235 74 233 61C231 51 223 46 214 46';
   const TRAVEL = 'M214 46Q240 30 254 64';
   const P2 = 'M254 64C278 67 318 64 348 61';
   const ASIDE = 'M348 61Q370 96 352 128';
@@ -284,14 +406,42 @@ const scenes = {};
   const total = lengths.reduce((a, b) => a + b);
   let sum = 0;
   const k = lengths.slice(0, -1).map((x) => ((sum += x) / total).toFixed(4));
-  const dot = ENTRY + parts.slice(1).map((d) => d.replace(/^M[\d.]+ [\d.]+/, '')).join('');
-  const t = { dotIn: 0.3, dotFull: 0.5, glide: 0.7, arrive: 1.5, s1: 1.6, e1: 2.7, s2: 3.15, e2: 3.6, aside: 3.7, rest: 4.2, erase: 5.0, erased: 5.2, dotOut: 5.3, dotGone: 5.5 };
+  const dot =
+    ENTRY +
+    parts
+      .slice(1)
+      .map((d) => d.replace(/^M[\d.]+ [\d.]+/, ''))
+      .join('');
+  const t = {
+    dotIn: 0.3,
+    dotFull: 0.5,
+    glide: 0.7,
+    arrive: 1.5,
+    s1: 1.6,
+    e1: 2.7,
+    s2: 3.15,
+    e2: 3.6,
+    aside: 3.7,
+    rest: 4.2,
+    erase: 5.0,
+    erased: 5.2,
+    dotOut: 5.3,
+    dotGone: 5.5,
+  };
   // A stroke shows only once it starts: undrawn, its round cap would leave a dot at its start.
-  const stroke = (d, start, end) => `<path d="${d}" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1" visibility="hidden">
+  const stroke = (
+    d,
+    start,
+    end,
+  ) => `<path d="${d}" pathLength="1" stroke-dasharray="1" stroke-dashoffset="1" visibility="hidden">
         ${step('visibility', ['hidden', 'visible'], [0, start])}
         ${anim('stroke-dashoffset', [1, 1, 0, 0], [0, start, end, T], [HOLD, EASY, HOLD])}
       </path>`;
-  scenes.pen = { still: 4.6, svg: frame('pen', `
+  scenes.pen = {
+    still: 4.6,
+    svg: frame(
+      'pen',
+      `
     <!-- A slide in a slideshow. -->
     ${at(127, 23, 1, slide('pen-a', 84, 72, 80))}
     <!-- What the pen draws, in the colour and with the round ends of Slides' pen. -->
@@ -306,7 +456,9 @@ const scenes = {};
       <circle r="4.5" fill="#fe5252" transform="scale(0)">
         ${tf('scale', [0, 0, 1, 1, 0, 0], [0, t.dotIn, t.dotFull, t.dotOut, t.dotGone, T], [HOLD, DECEL, HOLD, ACCEL, HOLD])}
       </circle>
-    </g>`) };
+    </g>`,
+    ),
+  };
 }
 
 // Timer: presenter view's timer counts down from 15 minutes, its bar filling up under it. Time lapses
@@ -316,26 +468,55 @@ const scenes = {};
   T = 8;
   const easy = ease(0.33, 0, 0.67, 1);
   // A time lapse: the seconds race from one time to another, slow, fast, slow, 24 frames a second.
-  const lapse = (from, to, start, end) => Array.from({ length: Math.round((end - start) * 24) }, (_, i) =>
-    [Math.round(from - (from - to) * easy(i / ((end - start) * 24))), start + i / 24]);
+  const lapse = (from, to, start, end) =>
+    Array.from({ length: Math.round((end - start) * 24) }, (_, i) => [
+      Math.round(from - (from - to) * easy(i / ((end - start) * 24))),
+      start + i / 24,
+    ]);
   const RESET = 7.55;
-  const ticks = [[900, 0], [899, 1.0], ...lapse(898, 121, 1.6, 3.0), [121, 3.0], [120, 3.6], [119, 4.6],
-    ...lapse(118, 0, 5.4, 6.4), [0, 6.4], [900, RESET]].filter(([left], i, all) => i === 0 || left !== all[i - 1][0]);
-  const format = (left) => [Math.floor(left / 3600), Math.floor(left / 60) % 60, left % 60].map((part) => String(part).padStart(2, '0')).join(':');
+  const ticks = [
+    [900, 0],
+    [899, 1.0],
+    ...lapse(898, 121, 1.6, 3.0),
+    [121, 3.0],
+    [120, 3.6],
+    [119, 4.6],
+    ...lapse(118, 0, 5.4, 6.4),
+    [0, 6.4],
+    [900, RESET],
+  ].filter(([left], i, all) => i === 0 || left !== all[i - 1][0]);
+  const format = (left) =>
+    [Math.floor(left / 3600), Math.floor(left / 60) % 60, left % 60]
+      .map((part) => String(part).padStart(2, '0'))
+      .join(':');
   const font = `font-family="'Google Sans Flex','Google Sans',Roboto,Arial,sans-serif" font-size="18" font-weight="500"`;
   // In Google's orange (the timer's own) from two minutes left, the timer's default.
-  const time = ticks.map(([left, from], i) => {
-    const to = ticks[i + 1]?.[1] ?? T;
-    return `<text x="105" y="42" ${font} fill="${left <= 120 ? '#e37400' : '#1f1f1f'}" visibility="hidden">${during(from, to)}${format(left)}</text>`;
-  }).join('\n    ');
+  const time = ticks
+    .map(([left, from], i) => {
+      const to = ticks[i + 1]?.[1] ?? T;
+      return `<text x="105" y="42" ${font} fill="${left <= 120 ? '#e37400' : '#1f1f1f'}" visibility="hidden">${during(from, to)}${format(left)}</text>`;
+    })
+    .join('\n    ');
   // The bar under the time (countdown.css): Slides' recording studio's, filling up as the time goes.
   const BAR = 190;
   const times = ticks.map(([, from]) => from);
   const fill = `<rect x="105" y="46" height="4" rx="2">
-      ${step('width', ticks.map(([left]) => Math.round((BAR * (900 - left)) / 900)), times)}
-      ${step('fill', ticks.map(([left]) => (left <= 120 ? '#e37400' : '#747775')), times)}
+      ${step(
+        'width',
+        ticks.map(([left]) => Math.round((BAR * (900 - left)) / 900)),
+        times,
+      )}
+      ${step(
+        'fill',
+        ticks.map(([left]) => (left <= 120 ? '#e37400' : '#747775')),
+        times,
+      )}
     </rect>`;
-  scenes.timer = { still: 4.0, svg: frame('timer', `
+  scenes.timer = {
+    still: 4.0,
+    svg: frame(
+      'timer',
+      `
     <!-- Presenter view: the timer and its buttons along the top, the slide and its notes below. -->
     <rect x="87" y="14" width="321" height="152" rx="12" fill="#fff" stroke="#c4c7c5" stroke-width="2"/>
     ${time}
@@ -350,15 +531,30 @@ const scenes = {};
     ${at(103, 68, 0.55, slide('timer-a', 84, 72, 80))}
     ${bar(252, 72, 140, 6, '#e3e3e3')}${bar(252, 84, 128, 6, '#e3e3e3')}${bar(252, 96, 136, 6, '#e3e3e3')}${bar(252, 108, 92, 6, '#e3e3e3')}
     <!-- The pointer, on Reset from the last loop, moves aside and comes back for it. -->
-    ${cursor([[253, 35, 0, 0.6], [372, 140, 1.3, 6.6], [253, 35, 7.3, T]], [[HAND, 0, 0.65], [HAND, 7.25, T]], [RESET - 0.1])}`) };
+    ${cursor(
+      [
+        [253, 35, 0, 0.6],
+        [372, 140, 1.3, 6.6],
+        [253, 35, 7.3, T],
+      ],
+      [
+        [HAND, 0, 0.65],
+        [HAND, 7.25, T],
+      ],
+      [RESET - 0.1],
+    )}`,
+    ),
+  };
   T = 6;
 }
 
 // Edits during a slideshow: a line is typed on the slide in the editor, and a moment later the
 // slideshow's slide dissolves into its new version.
 {
-  const typed = [1.0, 1.2, 1.4, 1.6, 1.8], widths = [0, 16, 32, 48, 64, 80];
-  const shown = 2.9, reset = 5.4;
+  const typed = [1.0, 1.2, 1.4, 1.6, 1.8],
+    widths = [0, 16, 32, 48, 64, 80];
+  const shown = 2.9,
+    reset = 5.4;
   const typing = `<rect x="129" y="77" height="6" rx="3" fill="#c4c7c5" width="0">
         ${step('width', [...widths, 0], [0, ...typed, reset + 0.3])}
         ${anim('opacity', [1, 1, 0, 0], [0, reset, reset + 0.3, T], [HOLD, STD_ACCEL, HOLD])}
@@ -368,7 +564,11 @@ const scenes = {};
         ${step('x', [...widths.map((w) => 129 + w + 1), 129], [0, ...typed, reset])}
         ${step('visibility', ['hidden', 'visible', 'hidden', 'visible', 'hidden', 'visible', 'hidden'], [0, 0.6, 2.3, 2.8, 3.3, 3.8, 4.3])}
       </rect>`;
-  scenes['live-edits'] = { still: 4.0, svg: frame('edits', `
+  scenes['live-edits'] = {
+    still: 4.0,
+    svg: frame(
+      'edits',
+      `
     <!-- The editor: a toolbar, the slides down the side, and the slide being edited. -->
     <rect x="30" y="28" width="205" height="124" rx="12" fill="#fff" stroke="#c4c7c5" stroke-width="2"/>
     <path d="M31 46H234" stroke="#e3e3e3"/>
@@ -378,22 +578,37 @@ const scenes = {};
     <rect x="40" y="96" width="22" height="13" rx="2" fill="#fff" stroke="#c4c7c5"/>
     ${at(72, 61, 0.6473, `${slide('edits-a', 84, 72)}${typing}`)}
     <!-- The slideshow, drawn as the other scenes draw one: it dissolves into the new version. -->
-    ${at(256, 33.5, 0.8714, `${slide('edits-b', 84, 72)}<g opacity="0">
+    ${at(
+      256,
+      33.5,
+      0.8714,
+      `${slide('edits-b', 84, 72)}<g opacity="0">
       ${anim('opacity', [0, 0, 1, 1, 0, 0], [0, shown, shown + 0.5, reset, reset + 0.3, T], [HOLD, DISSOLVE, HOLD, STD_ACCEL, HOLD])}
       ${bar(129, 77, 80, 6, '#c4c7c5')}
-    </g>`)}`) };
+    </g>`,
+    )}`,
+    ),
+  };
 }
 
 const quote = (svg) => `\`${svg.replace(/[`\\$]/g, (c) => `\\${c}`)}\``;
 // Ids live in the page's document, so each takes the extension's name.
-const named = (svg) => svg.replace(/id="([^"]+)"/g, 'id="slides-companion-illustration-$1"').replace(/url\(#([^)]+)\)/g, 'url(#slides-companion-illustration-$1)');
+const named = (svg) =>
+  svg
+    .replace(/id="([^"]+)"/g, 'id="slides-companion-illustration-$1"')
+    .replace(/url\(#([^)]+)\)/g, 'url(#slides-companion-illustration-$1)');
 // The moment to hold still on goes with each, as data-still.
 const markup = (svg, still) => named(svg).replace('<svg ', `<svg data-still="${still}" `);
-fs.writeFileSync(OUT, `// Made by scripts/build-illustrations.mjs (npm run illustrations): change that, not this.
+fs.writeFileSync(
+  OUT,
+  `// Made by scripts/build-illustrations.mjs (npm run illustrations): change that, not this.
 // The illustration at the top of each feature's page in Settings (settings-dialog.js), by feature.
 globalThis.slidesCompanion ??= {};
 globalThis.slidesCompanion.illustrations = {
-${Object.entries(scenes).map(([id, { still, svg }]) => `  '${id}': ${quote(markup(svg, still))},`).join('\n')}
+${Object.entries(scenes)
+  .map(([id, { still, svg }]) => `  '${id}': ${quote(markup(svg, still))},`)
+  .join('\n')}
 };
-`);
+`,
+);
 console.log(`Wrote ${Object.keys(scenes).join(', ')} to extension/illustrations.js`);

@@ -15,7 +15,10 @@ async function startSlideshow(context, viewport) {
 }
 
 const slideNumber = (show) =>
-  show.locator('.punch-viewer-svgpage-a11yelement').getAttribute('aria-label').then((label) => Number(label.match(/\d+/)[0]));
+  show
+    .locator('.punch-viewer-svgpage-a11yelement')
+    .getAttribute('aria-label')
+    .then((label) => Number(label.match(/\d+/)[0]));
 
 // The slide's zoom and shift, from its transform.
 const zoom = (show) =>
@@ -28,12 +31,15 @@ const zoom = (show) =>
 async function settled(show) {
   let last;
   await expect
-    .poll(async () => {
-      const now = JSON.stringify(await zoom(show));
-      const still = now === last;
-      last = now;
-      return still;
-    }, { intervals: [100] })
+    .poll(
+      async () => {
+        const now = JSON.stringify(await zoom(show));
+        const still = now === last;
+        last = now;
+        return still;
+      },
+      { intervals: [100] },
+    )
     .toBe(true);
 }
 
@@ -44,7 +50,9 @@ async function zoomIn(page, show, x, y) {
   await settled(show);
 }
 
-test('scrolling zooms in where the pointer is, and back out to the whole slide', async ({ context }) => {
+test('scrolling zooms in where the pointer is, and back out to the whole slide', async ({
+  context,
+}) => {
   const { page, show } = await startSlideshow(context);
   const { width, height } = page.viewportSize();
   await zoomIn(page, show, width * 0.75, height * 0.25);
@@ -98,7 +106,9 @@ test('while scrolling eases in, the point under the pointer stays put', async ({
   }
 });
 
-test('dragging while zoomed looks around without changing slides or spotlighting', async ({ context }) => {
+test('dragging while zoomed looks around without changing slides or spotlighting', async ({
+  context,
+}) => {
   const { page, show } = await startSlideshow(context);
   const box = await show.locator(`[id="${LEFT}"] image`).boundingBox();
   const [cx, cy] = [box.x + box.width / 2, box.y + box.height / 2];
@@ -156,7 +166,9 @@ test('while zoomed, clicking an image spotlights it', async ({ context }) => {
 });
 
 // With the spotlight off for clicks, there's no hand over images, and the click does nothing.
-test('while zoomed, with clicking to spotlight turned off, clicking an image does nothing', async ({ context }) => {
+test('while zoomed, with clicking to spotlight turned off, clicking an image does nothing', async ({
+  context,
+}) => {
   const page = await context.newPage();
   await page.goto(slide);
   await openSettings(page, 'Spotlight');
@@ -183,21 +195,30 @@ test('while zoomed, the laser pointer stays under the pointer', async ({ context
   await page.mouse.move(width * 0.4, height * 0.3);
   await page.mouse.move(width * 0.4 + 10, height * 0.3 + 5);
   const laser = show.locator('.punch-slide-markup-surface circle[cx]');
-  await expect.poll(async () => {
-    const box = await laser.boundingBox();
-    return Math.hypot(box.x + box.width / 2 - (width * 0.4 + 10), box.y + box.height / 2 - (height * 0.3 + 5));
-  }).toBeLessThan(3);
+  await expect
+    .poll(async () => {
+      const box = await laser.boundingBox();
+      return Math.hypot(
+        box.x + box.width / 2 - (width * 0.4 + 10),
+        box.y + box.height / 2 - (height * 0.3 + 5),
+      );
+    })
+    .toBeLessThan(3);
   // And at its usual size.
   expect((await laser.boundingBox()).width).toBeLessThan(15);
 });
 
 // The pen's ink sits on the slide: drawn at any zoom, it stays on what it marks as the zoom changes.
 const ink = (show) =>
-  show.locator('.punch-slide-markup-surface path[stroke-width]').first().evaluate((path) => {
-    const { x, y, right, bottom } = path.getBoundingClientRect();
-    return { x, y, right, bottom };
-  });
-const near = (a, b) => Math.max(...['x', 'y', 'right', 'bottom'].map((k) => Math.abs(a[k] - b[k]))) < 3;
+  show
+    .locator('.punch-slide-markup-surface path[stroke-width]')
+    .first()
+    .evaluate((path) => {
+      const { x, y, right, bottom } = path.getBoundingClientRect();
+      return { x, y, right, bottom };
+    });
+const near = (a, b) =>
+  Math.max(...['x', 'y', 'right', 'bottom'].map((k) => Math.abs(a[k] - b[k]))) < 3;
 
 async function drawStroke(page, from, to) {
   await page.mouse.move(...from);
@@ -220,7 +241,12 @@ test('ink drawn while zoomed stays on the slide when zooming out', async ({ cont
 
   for (let i = 0; i < 6; i++) await page.mouse.wheel(0, 300);
   await expect.poll(() => zoom(show).then((z) => z.scale)).toBe(1);
-  const whole = { x: (drawn.x - x) / scale, y: (drawn.y - y) / scale, right: (drawn.right - x) / scale, bottom: (drawn.bottom - y) / scale };
+  const whole = {
+    x: (drawn.x - x) / scale,
+    y: (drawn.y - y) / scale,
+    right: (drawn.right - x) / scale,
+    bottom: (drawn.bottom - y) / scale,
+  };
   await expect.poll(async () => near(await ink(show), whole)).toBe(true);
 });
 
@@ -232,7 +258,12 @@ test('ink drawn on the whole slide zooms with it', async ({ context }) => {
   const { width, height } = page.viewportSize();
   await zoomIn(page, show, width / 2, height / 2);
   const { scale, x, y } = await zoom(show);
-  const zoomed = { x: drawn.x * scale + x, y: drawn.y * scale + y, right: drawn.right * scale + x, bottom: drawn.bottom * scale + y };
+  const zoomed = {
+    x: drawn.x * scale + x,
+    y: drawn.y * scale + y,
+    right: drawn.right * scale + x,
+    bottom: drawn.bottom * scale + y,
+  };
   await expect.poll(async () => near(await ink(show), zoomed)).toBe(true);
 });
 
@@ -243,9 +274,14 @@ test('lines drawn at any zoom are equally thick on the slide', async ({ context 
   const lines = () =>
     show
       .locator('.punch-slide-markup-surface path[stroke-width]')
-      .evaluateAll((paths) => paths.map((path) => Math.round(path.getAttribute('stroke-width') * path.getScreenCTM().a)));
+      .evaluateAll((paths) =>
+        paths.map((path) => Math.round(path.getAttribute('stroke-width') * path.getScreenCTM().a)),
+      );
   const dot = () =>
-    show.locator('.punch-slide-markup-surface > circle').first().evaluate((circle) => Math.round(parseFloat(getComputedStyle(circle).r) * 2));
+    show
+      .locator('.punch-slide-markup-surface > circle')
+      .first()
+      .evaluate((circle) => Math.round(parseFloat(getComputedStyle(circle).r) * 2));
   await page.keyboard.press('Shift+L');
   await drawStroke(page, [300, 200], [400, 260]);
   const [width] = await lines();
@@ -277,11 +313,18 @@ test('ink drawn while zoomed is in place after coming back to the slide', async 
   await expect.poll(() => slideNumber(show)).toBe(2);
   await page.keyboard.press('ArrowRight');
   await expect.poll(() => slideNumber(show)).toBe(3);
-  const whole = { x: (drawn.x - x) / scale, y: (drawn.y - y) / scale, right: (drawn.right - x) / scale, bottom: (drawn.bottom - y) / scale };
+  const whole = {
+    x: (drawn.x - x) / scale,
+    y: (drawn.y - y) / scale,
+    right: (drawn.right - x) / scale,
+    bottom: (drawn.bottom - y) / scale,
+  };
   await expect.poll(async () => near(await ink(show), whole)).toBe(true);
 });
 
-test('a dot tapped with the pen while zoomed lands under the pen, and stays on the slide', async ({ context }) => {
+test('a dot tapped with the pen while zoomed lands under the pen, and stays on the slide', async ({
+  context,
+}) => {
   const { page, show } = await startSlideshow(context);
   const { width, height } = page.viewportSize();
   await zoomIn(page, show, width / 2, height / 2);
@@ -306,15 +349,23 @@ test('a dot tapped with the pen while zoomed lands under the pen, and stays on t
 
 // Where the first stroke's middle is on the slide, as parts of the slide's width and height.
 const inkOnSlide = (show) =>
-  show.locator('.punch-slide-markup-surface path[stroke-width]').first().evaluate((path) => {
-    const slide = document.querySelector('.sketchyViewerContent').getBoundingClientRect();
-    const ink = path.getBoundingClientRect();
-    return [(ink.x + ink.width / 2 - slide.x) / slide.width, (ink.y + ink.height / 2 - slide.y) / slide.height];
-  });
+  show
+    .locator('.punch-slide-markup-surface path[stroke-width]')
+    .first()
+    .evaluate((path) => {
+      const slide = document.querySelector('.sketchyViewerContent').getBoundingClientRect();
+      const ink = path.getBoundingClientRect();
+      return [
+        (ink.x + ink.width / 2 - slide.x) / slide.width,
+        (ink.y + ink.height / 2 - slide.y) / slide.height,
+      ];
+    });
 const samePlace = (a, b) => Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1])) < 0.003;
 
 // A 16:10 screen shows the slide between bars at the top and bottom.
-test('on a screen that isn’t the slide’s shape, ink stays on the slide at any zoom', async ({ context }) => {
+test('on a screen that isn’t the slide’s shape, ink stays on the slide at any zoom', async ({
+  context,
+}) => {
   const { page, show } = await startSlideshow(context, { width: 1280, height: 800 });
   await page.keyboard.press('Shift+L');
   await drawStroke(page, [400, 300], [600, 420]);
@@ -352,7 +403,9 @@ test('a new window size keeps the zoomed-in view and the ink in place', async ({
   expect(samePlace(await inkOnSlide(show), drawn)).toBe(true);
 });
 
-test('scrolling or changing slides mid-drag isn’t undone by the rest of the drag', async ({ context }) => {
+test('scrolling or changing slides mid-drag isn’t undone by the rest of the drag', async ({
+  context,
+}) => {
   const { page, show } = await startSlideshow(context);
   const [x, y] = [640, 360];
   await zoomIn(page, show, x, y);
@@ -372,7 +425,9 @@ test('scrolling or changing slides mid-drag isn’t undone by the rest of the dr
 
 // Trackpads can send a move that says no button is held in the middle of a drag, and the window
 // can lose focus. Neither may hand the rest of the press (its release and click) to Slides.
-test('a press stays the zoom’s until its click, whatever happens in between', async ({ context }) => {
+test('a press stays the zoom’s until its click, whatever happens in between', async ({
+  context,
+}) => {
   const { page, show } = await startSlideshow(context);
   const { width, height } = page.viewportSize();
   const [x, y] = [width * 0.9, height * 0.9];
@@ -382,7 +437,13 @@ test('a press stays the zoom’s until its click, whatever happens in between', 
   await page.mouse.move(x, y);
   await page.mouse.down();
   await page.mouse.move(x - 40, y - 20, { steps: 3 });
-  await input.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: x - 50, y: y - 25, button: 'none', buttons: 0 });
+  await input.send('Input.dispatchMouseEvent', {
+    type: 'mouseMoved',
+    x: x - 50,
+    y: y - 25,
+    button: 'none',
+    buttons: 0,
+  });
   await show.locator('html').evaluate(() => window.dispatchEvent(new Event('blur')));
   await page.mouse.move(x - 60, y - 30, { steps: 2 });
   await page.mouse.up();
@@ -439,7 +500,9 @@ test('with the pointer hidden, + zooms into the middle of the slide', async ({ c
   const { width, height } = page.viewportSize();
   await page.mouse.move(width * 0.75, height * 0.25);
   // Slides hides the pointer when it's left still.
-  await expect.poll(() => show.locator('body').evaluate((body) => body.style.cursor), { timeout: 15_000 }).toBe('none');
+  await expect
+    .poll(() => show.locator('body').evaluate((body) => body.style.cursor), { timeout: 15_000 })
+    .toBe('none');
   await page.keyboard.press('+');
   await expect.poll(() => zoom(show).then(({ scale }) => scale)).toBe(1.5);
   await settled(show);
@@ -448,7 +511,9 @@ test('with the pointer hidden, + zooms into the middle of the slide', async ({ c
   expect(Math.abs(y - (height / 2) * (1 - scale))).toBeLessThan(2);
 });
 
-test('with the pointer gone from the window, + zooms into the middle of the slide', async ({ context }) => {
+test('with the pointer gone from the window, + zooms into the middle of the slide', async ({
+  context,
+}) => {
   const { page, show } = await startSlideshow(context);
   const { width, height } = page.viewportSize();
   await page.mouse.move(width * 0.75, height * 0.25);
@@ -462,13 +527,17 @@ test('with the pointer gone from the window, + zooms into the middle of the slid
 });
 
 // Even once Slides has hidden the pointer, the hand that holds the slide is where it was.
-test('mid-drag, + zooms around the pointer, and the drag goes on from there', async ({ context }) => {
+test('mid-drag, + zooms around the pointer, and the drag goes on from there', async ({
+  context,
+}) => {
   const { page, show } = await startSlideshow(context);
   const [x, y] = [600, 340];
   await zoomIn(page, show, 640, 360);
   await page.mouse.down();
   await page.mouse.move(x, y, { steps: 4 });
-  await expect.poll(() => show.locator('body').evaluate((body) => body.style.cursor), { timeout: 15_000 }).toBe('none');
+  await expect
+    .poll(() => show.locator('body').evaluate((body) => body.style.cursor), { timeout: 15_000 })
+    .toBe('none');
   const before = await zoom(show);
   await page.keyboard.press('+');
   await settled(show);
@@ -482,7 +551,9 @@ test('mid-drag, + zooms around the pointer, and the drag goes on from there', as
 
 // Only choosing something else for scrolling zooms back out, not what the extension saves as it
 // goes (the pen's ink, kept for the next slideshow, after each line).
-test('with scrolling set to do nothing, + still zooms, and drawing keeps the zoom', async ({ context }) => {
+test('with scrolling set to do nothing, + still zooms, and drawing keeps the zoom', async ({
+  context,
+}) => {
   await chooseSlideshowScroll(context, /Do nothing/);
   const editor = await context.newPage();
   await editor.goto(slide);
@@ -526,7 +597,10 @@ async function chooseSlideshowScroll(context, choice) {
   const page = await context.newPage();
   await page.goto(slide);
   await openSettings(page, 'Zoom & scroll');
-  await page.getByRole('group', { name: 'When you scroll during a slideshow' }).getByRole('radio', { name: choice }).check();
+  await page
+    .getByRole('group', { name: 'When you scroll during a slideshow' })
+    .getByRole('radio', { name: choice })
+    .check();
   await page.getByRole('button', { name: 'OK' }).click();
   await expect(page.locator('.slides-companion-dialog-root')).toHaveCount(0);
   await page.close();
@@ -542,7 +616,9 @@ test('set to change slides in Settings, scrolling changes slides', async ({ cont
   expect((await zoom(show)).scale).toBe(1);
 });
 
-test('set to do nothing in Settings, scrolling neither zooms nor changes slides', async ({ context }) => {
+test('set to do nothing in Settings, scrolling neither zooms nor changes slides', async ({
+  context,
+}) => {
   await chooseSlideshowScroll(context, /Do nothing/);
   const { page: presenting, show } = await startSlideshow(context);
   const { width, height } = presenting.viewportSize();

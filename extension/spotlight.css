@@ -38,7 +38,10 @@
 
 .slides-companion-spotlight-picture svg {
   display: block;
-  width: min(100%, (100vh - 2 * var(--slides-companion-safe-area)) * var(--slides-companion-ratio, 1));
+  width: min(
+    100%,
+    (100vh - 2 * var(--slides-companion-safe-area)) * var(--slides-companion-ratio, 1)
+  );
   aspect-ratio: var(--slides-companion-ratio, 1);
   max-height: 100%;
 }
@@ -79,7 +82,8 @@
 
 /* Sections are split like Slides' toolbar: a 1px line, 20px tall, 4px from the buttons beside it,
    in Material's outline variant (#c4c7c5 there, #444746 in the dark theme). */
-.slides-companion-spotlight-group:not([hidden]) ~ .slides-companion-spotlight-group:not([hidden])::before {
+.slides-companion-spotlight-group:not([hidden])
+  ~ .slides-companion-spotlight-group:not([hidden])::before {
   content: '';
   width: 1px;
   height: 20px;
@@ -130,7 +134,13 @@
   border-radius: 4px;
   background: #e3e3e3;
   color: #303030;
-  font: 400 12px/16px 'Google Sans', Roboto, RobotoDraft, Helvetica, Arial, sans-serif;
+  font:
+    400 12px/16px 'Google Sans',
+    Roboto,
+    RobotoDraft,
+    Helvetica,
+    Arial,
+    sans-serif;
   letter-spacing: 0.1px;
   white-space: pre-wrap;
   overflow-wrap: break-word;
@@ -159,7 +169,14 @@
 }
 
 /* Right to left, the arrows point the other way, as in Slides' slideshow bar. */
-.slides-companion-spotlight[dir='rtl'] :is(.slides-companion-spotlight-previous, .slides-companion-spotlight-next, .slides-companion-spotlight-back, .slides-companion-spotlight-forward) svg {
+.slides-companion-spotlight[dir='rtl']
+  :is(
+    .slides-companion-spotlight-previous,
+    .slides-companion-spotlight-next,
+    .slides-companion-spotlight-back,
+    .slides-companion-spotlight-forward
+  )
+  svg {
   scale: -1 1;
 }
 
@@ -201,7 +218,10 @@
   margin: 0 4px;
   padding: 0 9px;
   color: #e3e3e3;
-  font: 500 16px/28px Roboto, Arial, sans-serif;
+  font:
+    500 16px/28px Roboto,
+    Arial,
+    sans-serif;
   text-align: center;
 }
 
@@ -231,6 +251,9 @@
 /* During a slideshow, images can be clicked to spotlight them. Not while Slides hides the cursor
    when the mouse rests (an inline `cursor: none` on body). With the laser pointer on, the hand still
    shows, as it does over Slides' links and videos. */
-.slides-companion-over-image body:not([style*="cursor: none"]) .punch-viewer-svgpage-svgcontainer image {
+.slides-companion-over-image
+  body:not([style*='cursor: none'])
+  .punch-viewer-svgpage-svgcontainer
+  image {
   cursor: pointer;
 }

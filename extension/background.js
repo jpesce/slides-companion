@@ -7,17 +7,27 @@ importScripts('dev-reload.js');
 // headers sites use to refuse being shown inside another page. page.js runs in that page to hand
 // Esc back to the slideshow and say where it is.
 const ALL_SITES = { origins: ['*://*/*'] };
-const PAGE_SCRIPT = { id: 'page', matches: ['*://*/*'], js: ['page.js'], allFrames: true, runAt: 'document_start' };
+const PAGE_SCRIPT = {
+  id: 'page',
+  matches: ['*://*/*'],
+  js: ['page.js'],
+  allFrames: true,
+  runAt: 'document_start',
+};
 
 // One at a time: registering the same script twice fails.
 let pageScriptSync = Promise.resolve();
 function syncPageScript() {
-  pageScriptSync = pageScriptSync.then(async () => {
-    const granted = await chrome.permissions.contains(ALL_SITES);
-    const registered = (await chrome.scripting.getRegisteredContentScripts({ ids: [PAGE_SCRIPT.id] })).length > 0;
-    if (granted && !registered) await chrome.scripting.registerContentScripts([PAGE_SCRIPT]);
-    if (!granted && registered) await chrome.scripting.unregisterContentScripts({ ids: [PAGE_SCRIPT.id] });
-  }).catch(() => {});
+  pageScriptSync = pageScriptSync
+    .then(async () => {
+      const granted = await chrome.permissions.contains(ALL_SITES);
+      const registered =
+        (await chrome.scripting.getRegisteredContentScripts({ ids: [PAGE_SCRIPT.id] })).length > 0;
+      if (granted && !registered) await chrome.scripting.registerContentScripts([PAGE_SCRIPT]);
+      if (!granted && registered)
+        await chrome.scripting.unregisterContentScripts({ ids: [PAGE_SCRIPT.id] });
+    })
+    .catch(() => {});
   return pageScriptSync;
 }
 syncPageScript();
@@ -30,7 +40,10 @@ chrome.permissions.onRemoved.addListener(syncPageScript);
 // have their own ids, apart from the tabs' session rules below.
 const CHECK_PAGE_RULE = {
   id: 1,
-  action: { type: 'modifyHeaders', responseHeaders: [{ header: 'content-security-policy', operation: 'remove' }] },
+  action: {
+    type: 'modifyHeaders',
+    responseHeaders: [{ header: 'content-security-policy', operation: 'remove' }],
+  },
   // Only that address (nothing in it can be chosen by a page), and only in Slides' own pages.
   condition: {
     urlFilter: '|https://docs.google.com/presentation/slides-companion-check|',
@@ -53,9 +66,14 @@ const frameHeadersRule = (tabId) => ({
     ],
   },
   // Slides' own frames (the slideshow) keep theirs.
-  condition: { tabIds: [tabId], resourceTypes: ['sub_frame'], excludedRequestDomains: ['docs.google.com'] },
+  condition: {
+    tabIds: [tabId],
+    resourceTypes: ['sub_frame'],
+    excludedRequestDomains: ['docs.google.com'],
+  },
 });
-const dropFrameHeadersRule = (tabId) => chrome.declarativeNetRequest.updateSessionRules({ removeRuleIds: [tabId] });
+const dropFrameHeadersRule = (tabId) =>
+  chrome.declarativeNetRequest.updateSessionRules({ removeRuleIds: [tabId] });
 chrome.tabs.onRemoved.addListener((tabId) => dropFrameHeadersRule(tabId).catch(() => {}));
 
 // Whether an address is a PDF, asked of its site, for spotlight.js to show it in Google's
@@ -82,7 +100,12 @@ async function isPdf(href) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), TYPE_WAIT_MS);
     try {
-      const response = await fetch(url, { method, credentials: 'omit', cache: 'no-store', signal: controller.signal });
+      const response = await fetch(url, {
+        method,
+        credentials: 'omit',
+        cache: 'no-store',
+        signal: controller.signal,
+      });
       return response.ok ? (response.headers.get('content-type') ?? '') : null;
     } catch {
       return undefined;
@@ -112,20 +135,27 @@ const SLIDES_ORIGIN = 'https://docs.google.com';
 chrome.runtime.onMessage.addListener((message, sender, respond) => {
   const tabId = sender.tab?.id;
   if (tabId === undefined) return;
-  if (FROM_SLIDES.has(message?.type) ? sender.origin !== SLIDES_ORIGIN : !FROM_PAGE.has(message?.type) || sender.frameId === 0) return;
+  if (
+    FROM_SLIDES.has(message?.type)
+      ? sender.origin !== SLIDES_ORIGIN
+      : !FROM_PAGE.has(message?.type) || sender.frameId === 0
+  )
+    return;
   switch (message.type) {
     // spotlight.js is about to show a page: it waits for the answer (whether every site can be
     // shown) so the page loads with the rules in place (this tab's, or the check's), and page.js in
     // it, if every site was only just allowed.
     case 'page-open':
-      Promise.all([syncPageScript(), checkPageRule]).then(() => chrome.permissions.contains(ALL_SITES)).then(async (allSites) => {
-        if (allSites) {
-          await chrome.declarativeNetRequest
-            .updateSessionRules({ removeRuleIds: [tabId], addRules: [frameHeadersRule(tabId)] })
-            .catch(() => {});
-        }
-        respond({ allSites });
-      });
+      Promise.all([syncPageScript(), checkPageRule])
+        .then(() => chrome.permissions.contains(ALL_SITES))
+        .then(async (allSites) => {
+          if (allSites) {
+            await chrome.declarativeNetRequest
+              .updateSessionRules({ removeRuleIds: [tabId], addRules: [frameHeadersRule(tabId)] })
+              .catch(() => {});
+          }
+          respond({ allSites });
+        });
       return true;
     case 'page-type':
       isPdf(message.href).then((pdf) => respond({ pdf }));

@@ -5,7 +5,10 @@
 // Open in new tab, and Back and Forward.
 {
   const NAME = 'slides-companion-page';
-  if (window.name.split(' ')[0] === NAME && location.ancestorOrigins?.[0] === 'https://docs.google.com') {
+  if (
+    window.name.split(' ')[0] === NAME &&
+    location.ancestorOrigins?.[0] === 'https://docs.google.com'
+  ) {
     // Which Back or Forward brought it here, if one did: the frame's name keeps it across the move,
     // made in place. A page arriving otherwise (a link clicked before Back's page came) isn't theirs.
     const arrived = window.navigation?.activation?.navigationType ?? 'push';

@@ -19,7 +19,9 @@
   // The pointer hides after resting this long; the controls also show this long when the gallery opens.
   const IDLE_MS = 2000;
   const icon = (path) => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${path}"/></svg>`;
-  const CLOSE_ICON = icon('M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z');
+  const CLOSE_ICON = icon(
+    'M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z',
+  );
   const PREVIOUS_ICON = icon('M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z');
   const NEXT_ICON = icon('M10 6 8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z');
   const BACK_ICON = icon('M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z');
@@ -27,7 +29,9 @@
   // Material Symbols' outlined download, as light as the chevrons beside it.
   const DOWNLOAD_ICON =
     '<svg viewBox="0 -960 960 960" aria-hidden="true"><path d="M480-320 280-520l56-58 104 104v-326h80v326l104-104 56 58-200 200ZM240-160q-33 0-56.5-23.5T160-240v-120h80v120h480v-120h80v120q0 33-23.5 56.5T720-160H240Z"/></svg>';
-  const NEW_TAB_ICON = icon('M19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2v-7h-2zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3z');
+  const NEW_TAB_ICON = icon(
+    'M19 19H5V5h7V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2v-7h-2zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3z',
+  );
 
   let gallery = null;
   // The last key pressed while the gallery was open, while it's held down.
@@ -42,7 +46,11 @@
   }
 
   function parentObject(element) {
-    for (let node = element.parentElement?.closest(OBJECT); node; node = node.parentElement?.closest(OBJECT)) {
+    for (
+      let node = element.parentElement?.closest(OBJECT);
+      node;
+      node = node.parentElement?.closest(OBJECT)
+    ) {
       if (isObject(node)) return node;
     }
     return null;
@@ -70,16 +78,24 @@
 
   // A video shows its first frame with a play button over it: neither is an image to spotlight.
   const VIDEO_MARK = 'image[*|href*="/presentations/images/play-overlay"]';
-  const picturesIn = (object) => [...object.querySelectorAll('image')].filter((image) => !parentObject(image)?.querySelector(VIDEO_MARK));
+  const picturesIn = (object) =>
+    [...object.querySelectorAll('image')].filter(
+      (image) => !parentObject(image)?.querySelector(VIDEO_MARK),
+    );
   const hasImage = (object) => picturesIn(object).length > 0;
   // In a slideshow, objects waiting for their animation are on the slide but not shown yet.
-  const isShowing = (object) => object.checkVisibility({ opacityProperty: true, visibilityProperty: true });
+  const isShowing = (object) =>
+    object.checkVisibility({ opacityProperty: true, visibilityProperty: true });
 
   // ----- Selection -----
 
   function selectedObjects() {
     const outlines = document.querySelectorAll(`#workspace ${SELECTION_OUTLINE}`);
-    return [...new Set([...outlines].map((outline) => outline.closest('[id^="editor-"]')).filter(Boolean))];
+    return [
+      ...new Set(
+        [...outlines].map((outline) => outline.closest('[id^="editor-"]')).filter(Boolean),
+      ),
+    ];
   }
 
   // Space only spotlights when no text is being edited (the font menu shows whenever text is in
@@ -122,7 +138,9 @@
     const apart = globalThis.slidesCompanion.settings.get('groupedImages') === 'apart';
     return childObjects(container)
       .filter((object) => hasImage(object) && isShowing(object))
-      .flatMap((object) => (apart && childObjects(object).some(hasImage) ? stopsIn(object) : [object]));
+      .flatMap((object) =>
+        apart && childObjects(object).some(hasImage) ? stopsIn(object) : [object],
+      );
   }
 
   // Top to bottom, then left to right; objects that overlap vertically share a row.
@@ -141,7 +159,9 @@
         rows.push({ top: item.bounds.y, height: item.bounds.height, items: [item] });
       }
     }
-    return rows.flatMap((row) => row.items.sort((a, b) => a.bounds.x - b.bounds.x)).map(({ object }) => object);
+    return rows
+      .flatMap((row) => row.items.sort((a, b) => a.bounds.x - b.bounds.x))
+      .map(({ object }) => object);
   }
 
   // ----- Geometry -----
@@ -159,7 +179,12 @@
       const ctm = element.getCTM();
       if (!ctm || !(local.width || local.height)) return;
       const matrix = toSlide.multiply(ctm);
-      for (const [x, y] of [[local.x, local.y], [local.x + local.width, local.y], [local.x, local.y + local.height], [local.x + local.width, local.y + local.height]]) {
+      for (const [x, y] of [
+        [local.x, local.y],
+        [local.x + local.width, local.y],
+        [local.x, local.y + local.height],
+        [local.x + local.width, local.y + local.height],
+      ]) {
         const point = new DOMPoint(x, y).matrixTransform(matrix);
         box.minX = Math.min(box.minX, point.x);
         box.minY = Math.min(box.minY, point.y);
@@ -177,7 +202,10 @@
       if (clipId) {
         const clipPath = document.getElementById(clipId);
         for (const shape of clipPath?.children ?? []) add(element, shape.getBBox());
-      } else if (element.matches('image, path, rect, circle, ellipse, line, polyline, polygon, text') && isPainted(element)) {
+      } else if (
+        element.matches('image, path, rect, circle, ellipse, line, polyline, polygon, text') &&
+        isPainted(element)
+      ) {
         add(element, element.getBBox());
       }
     }
@@ -231,7 +259,9 @@
     root.querySelectorAll('*').forEach((element) => {
       for (const attribute of element.attributes) {
         const value = attribute.value
-          .replace(/url\(#([^)]+)\)/g, (match, id) => (renamed.has(id) ? `url(#${renamed.get(id)})` : match))
+          .replace(/url\(#([^)]+)\)/g, (match, id) =>
+            renamed.has(id) ? `url(#${renamed.get(id)})` : match,
+          )
           .replace(/^#(.+)$/, (match, id) => (renamed.has(id) ? `#${renamed.get(id)}` : match));
         if (value !== attribute.value) attribute.value = value;
       }
@@ -293,8 +323,23 @@
     // returnFocusTo: where keys went before, for them to go there again once it closes.
     const returnFocusTo = document.activeElement;
     // tip: the control the pointer is on, and whether its tooltip shows (see Tooltips).
-    const tip = { element: stage.querySelector('.slides-companion-spotlight-tooltip'), over: null, shown: false, timer: 0 };
-    gallery = { stage, items, index: -1, idleTimer: 0, flashTimer: 0, pointer: null, pressed: false, returnFocusTo, tip };
+    const tip = {
+      element: stage.querySelector('.slides-companion-spotlight-tooltip'),
+      over: null,
+      shown: false,
+      timer: 0,
+    };
+    gallery = {
+      stage,
+      items,
+      index: -1,
+      idleTimer: 0,
+      flashTimer: 0,
+      pointer: null,
+      pressed: false,
+      returnFocusTo,
+      tip,
+    };
 
     // Keep the pointer to ourselves so Slides doesn't react to it behind the stage.
     for (const type of ['mousedown', 'mouseup', 'click', 'contextmenu']) {
@@ -315,7 +360,9 @@
       if (event.detail === 1) gallery.pressed = true;
       hideTip();
     });
-    stage.addEventListener('mouseover', (event) => pointAt(event.target.closest('[data-slides-companion-tip]')));
+    stage.addEventListener('mouseover', (event) =>
+      pointAt(event.target.closest('[data-slides-companion-tip]')),
+    );
     stage.addEventListener('click', onClick);
     stage.addEventListener('mousemove', onMouseMove);
     // Leaving the stage, or going over a page, where the stage no longer hears the pointer.
@@ -327,7 +374,10 @@
       updateBars();
     };
     stage.addEventListener('mouseleave', pointerGone);
-    stage.addEventListener('mouseout', (event) => event.relatedTarget?.matches?.('iframe') && pointerGone());
+    stage.addEventListener(
+      'mouseout',
+      (event) => event.relatedTarget?.matches?.('iframe') && pointerGone(),
+    );
 
     document.body.append(stage);
     if (!show(start)) {
@@ -348,7 +398,8 @@
   }
 
   function show(index) {
-    if (!gallery || index < 0 || index >= gallery.items.length || index === gallery.index) return false;
+    if (!gallery || index < 0 || index >= gallery.items.length || index === gallery.index)
+      return false;
     const item = gallery.items[index];
     const picture = isPage(item) ? pageFrame(item) : render(item);
     if (!picture) return false;
@@ -370,7 +421,10 @@
     // How page.js knows it's in this frame.
     frame.name = 'slides-companion-page';
     frame.title = address.hostname;
-    frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-downloads allow-presentation');
+    frame.setAttribute(
+      'sandbox',
+      'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-downloads allow-presentation',
+    );
     frame.allow = 'autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture';
     frame.src = shown;
     // Pages can take the keys as they open (a search box), and the slideshow can't hear keys there,
@@ -411,7 +465,10 @@
     // A click on a button or into a page took the keys onto the stage.
     if (stage.contains(document.activeElement)) returnFocusTo?.focus({ preventScroll: true });
     stage.classList.remove('slides-companion-spotlight-open');
-    setTimeout(() => stage.remove(), matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : EXIT_MS);
+    setTimeout(
+      () => stage.remove(),
+      matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : EXIT_MS,
+    );
   }
 
   // ----- Controls -----
@@ -424,7 +481,9 @@
     const count = items.length;
     const page = isPage(items[index]) ? items[index] : null;
     stage.querySelector('.slides-companion-spotlight-sitebar').hidden = !page;
-    stage.querySelector('.slides-companion-spotlight-site').textContent = page ? siteName(page) : '';
+    stage.querySelector('.slides-companion-spotlight-site').textContent = page
+      ? siteName(page)
+      : '';
     // Only once page.js says where the page is.
     const back = stage.querySelector('.slides-companion-spotlight-back');
     const forward = stage.querySelector('.slides-companion-spotlight-forward');
@@ -446,15 +505,21 @@
   function updateBars() {
     const { stage, pointer, flashTimer } = gallery;
     const area = stage.querySelector('.slides-companion-spotlight-picture').getBoundingClientRect();
-    const shown = Boolean(flashTimer) || Boolean(pointer && (pointer.y < area.top || pointer.y > area.bottom));
-    stage.querySelector('.slides-companion-spotlight-bar').classList.toggle('slides-companion-spotlight-bar-shown', shown);
+    const shown =
+      Boolean(flashTimer) || Boolean(pointer && (pointer.y < area.top || pointer.y > area.bottom));
+    stage
+      .querySelector('.slides-companion-spotlight-bar')
+      .classList.toggle('slides-companion-spotlight-bar-shown', shown);
   }
 
   // The pointer shows while it moves and hides when it rests, like in the slideshow.
   function revealPointer() {
     gallery.stage.classList.add('slides-companion-spotlight-pointer');
     clearTimeout(gallery.idleTimer);
-    gallery.idleTimer = setTimeout(() => gallery?.stage.classList.remove('slides-companion-spotlight-pointer'), IDLE_MS);
+    gallery.idleTimer = setTimeout(
+      () => gallery?.stage.classList.remove('slides-companion-spotlight-pointer'),
+      IDLE_MS,
+    );
   }
 
   function onMouseMove(event) {
@@ -471,7 +536,8 @@
     if (bar) {
       if (event.target.closest('.slides-companion-spotlight-close')) closeStage();
       else if (event.target.closest('.slides-companion-spotlight-new-tab')) openInNewTab();
-      else if (event.target.closest('.slides-companion-spotlight-download')) downloadImage(gallery.items[gallery.index]);
+      else if (event.target.closest('.slides-companion-spotlight-download'))
+        downloadImage(gallery.items[gallery.index]);
       else if (event.target.closest('.slides-companion-spotlight-back')) goInPage(-1);
       else if (event.target.closest('.slides-companion-spotlight-forward')) goInPage(1);
       else if (event.target.closest('.slides-companion-spotlight-previous')) step(-1);
@@ -545,15 +611,25 @@
     if (!frame) return;
     gallery.restingAt ??= { x: event.clientX, y: event.clientY };
     const area = frame.getBoundingClientRect();
-    const over = event.clientX >= area.left && event.clientX <= area.right && event.clientY >= area.top && event.clientY <= area.bottom;
-    if (over && Math.hypot(event.clientX - gallery.restingAt.x, event.clientY - gallery.restingAt.y) > 4) frame.inert = false;
+    const over =
+      event.clientX >= area.left &&
+      event.clientX <= area.right &&
+      event.clientY >= area.top &&
+      event.clientY <= area.bottom;
+    if (
+      over &&
+      Math.hypot(event.clientX - gallery.restingAt.x, event.clientY - gallery.restingAt.y) > 4
+    )
+      frame.inert = false;
   }
 
   // From page.js, through background.js to each of the tab's frames: the one showing the
   // page acts. Esc's release comes after the page has gone.
   chrome.runtime.onMessage.addListener((message) => {
-    if (message?.type === 'page-key' && message.phase === 'keyup') return onKeyUp({ type: 'keyup', key: message.key });
-    const page = gallery && isPage(gallery.items[gallery.index]) ? gallery.items[gallery.index] : null;
+    if (message?.type === 'page-key' && message.phase === 'keyup')
+      return onKeyUp({ type: 'keyup', key: message.key });
+    const page =
+      gallery && isPage(gallery.items[gallery.index]) ? gallery.items[gallery.index] : null;
     if (!page) return;
     if (message?.type === 'page-key') {
       heldKey = message.key;
@@ -590,12 +666,20 @@
     if (at < 0 || at >= page.visited.length) return;
     page.at = at;
     page.goes = (page.goes ?? 0) + 1;
-    askBackground({ type: 'page-go', frameId: page.frameId, href: page.visited[at], go: page.goes });
+    askBackground({
+      type: 'page-go',
+      frameId: page.frameId,
+      href: page.visited[at],
+      go: page.goes,
+    });
     updateNavbar();
   }
 
   // The slideshow ending with the page open, or the tab going elsewhere.
-  window.addEventListener('pagehide', () => gallery && isPage(gallery.items[0]) && askBackground({ type: 'page-closed' }));
+  window.addEventListener(
+    'pagehide',
+    () => gallery && isPage(gallery.items[0]) && askBackground({ type: 'page-closed' }),
+  );
 
   async function askBackground(message) {
     try {
@@ -682,7 +766,12 @@
         // every site would seem to refuse, so it's better to say nothing).
         load(
           'data:text/html,',
-          () => load(item.shown, () => decided(false), () => decided(true)),
+          () =>
+            load(
+              item.shown,
+              () => decided(false),
+              () => decided(true),
+            ),
           () => decided(false),
         );
       },
@@ -699,9 +788,14 @@
     const message = document.createElement('iframe');
     message.className = 'slides-companion-spotlight-refused';
     message.title = text('refusedTitle', site);
-    message.src = chrome.runtime.getURL(`refused.html?${new URLSearchParams({ hl: globalThis.slidesCompanion.locale(), site })}`);
+    message.src = chrome.runtime.getURL(
+      `refused.html?${new URLSearchParams({ hl: globalThis.slidesCompanion.locale(), site })}`,
+    );
     gallery.stage.querySelector('.slides-companion-spotlight-picture').replaceChildren(message);
-    gallery.stage.querySelector('.slides-companion-spotlight-status').textContent = text('refusedTitle', site);
+    gallery.stage.querySelector('.slides-companion-spotlight-status').textContent = text(
+      'refusedTitle',
+      site,
+    );
   }
 
   // Every site allowed from the message: the page shows, now that it can.
@@ -711,7 +805,9 @@
     item.allSites = Boolean((await askBackground({ type: 'page-open' }))?.allSites);
     if (gallery?.items[gallery.index] !== item) return;
     gallery.stage.querySelector('.slides-companion-spotlight-status').textContent = '';
-    gallery.stage.querySelector('.slides-companion-spotlight-picture').replaceChildren(pageFrame(item));
+    gallery.stage
+      .querySelector('.slides-companion-spotlight-picture')
+      .replaceChildren(pageFrame(item));
     checkPage(item);
   }
 
@@ -727,7 +823,8 @@
   // What the message asks the stage to do.
   window.addEventListener('message', (event) => {
     const message = gallery?.stage.querySelector('.slides-companion-spotlight-refused');
-    if (!message || event.source !== message.contentWindow || event.origin !== EXTENSION_ORIGIN) return;
+    if (!message || event.source !== message.contentWindow || event.origin !== EXTENSION_ORIGIN)
+      return;
     if (event.data?.source !== 'slides-companion-refused') return;
     const item = gallery.items[gallery.index];
     if (event.data.type === 'open') openInNewTab();
@@ -781,7 +878,15 @@
       onKeyUp(); // A new press: its release went unheard.
     }
     if (IN_SLIDESHOW) return;
-    if (event.key !== ' ' || event.repeat || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
+    if (
+      event.key !== ' ' ||
+      event.repeat ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.altKey ||
+      event.shiftKey
+    )
+      return;
     if (isInteractiveTarget(event.target)) return;
     const selection = spotlightableSelection();
     if (!selection) return;
@@ -795,7 +900,9 @@
   function isInteractiveTarget(target) {
     if (!(target instanceof Element) || target.ownerDocument !== document) return false;
     return Boolean(
-      target.closest('input, textarea, select, button, a[href], [role="button"], [role="dialog"], [contenteditable=""], [contenteditable="true"]'),
+      target.closest(
+        'input, textarea, select, button, a[href], [role="button"], [role="dialog"], [contenteditable=""], [contenteditable="true"]',
+      ),
     );
   }
 
@@ -811,7 +918,12 @@
     const added = () => requestAnimationFrame(() => addToContextMenu());
     target.addEventListener('contextmenu', added, true);
     // Slides opens it on these keys itself, without the browser's contextmenu event.
-    target.addEventListener('keydown', (event) => (event.key === 'ContextMenu' || (event.key === 'F10' && event.shiftKey)) && added(), true);
+    target.addEventListener(
+      'keydown',
+      (event) =>
+        (event.key === 'ContextMenu' || (event.key === 'F10' && event.shiftKey)) && added(),
+      true,
+    );
   }
 
   // Registered at document_start in the slideshow, so it hears keys before Slides does.
@@ -893,7 +1005,15 @@
     const chosen = () => {
       const menu = item.parentElement;
       // Escape closes the menu through Slides itself, which also returns focus to the slide.
-      menu.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, which: 27, bubbles: true }));
+      menu.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          key: 'Escape',
+          code: 'Escape',
+          keyCode: 27,
+          which: 27,
+          bubbles: true,
+        }),
+      );
       choose();
     };
     item.addEventListener('click', (event) => {
@@ -906,11 +1026,22 @@
   // Spotlight image, and Download image for one picture.
   function menuItems(selection) {
     const items = [
-      createMenuItem({ icon: 'docs-icon-editors-ia-fullscreen', label: html('spotlightMenuItem'), key: html('spaceKey'), choose: () => openGallery(selection) }),
+      createMenuItem({
+        icon: 'docs-icon-editors-ia-fullscreen',
+        label: html('spotlightMenuItem'),
+        key: html('spaceKey'),
+        choose: () => openGallery(selection),
+      }),
     ];
     const objects = selectedObjects();
     if (objects.length === 1 && imageFile(objects[0])) {
-      items.push(createMenuItem({ icon: 'docs-icon-download', label: html('downloadImage'), choose: () => downloadImage(objects[0]) }));
+      items.push(
+        createMenuItem({
+          icon: 'docs-icon-download',
+          label: html('downloadImage'),
+          choose: () => downloadImage(objects[0]),
+        }),
+      );
     }
     return items;
   }
@@ -938,7 +1069,9 @@
         if (crop.previousElementSibling !== last) crop.before(...items);
         return;
       }
-      const slidesSeparator = [...menu.querySelectorAll(`.goog-menuseparator:not(.${MENU_ITEM_CLASS})`)].find(isShown);
+      const slidesSeparator = [
+        ...menu.querySelectorAll(`.goog-menuseparator:not(.${MENU_ITEM_CLASS})`),
+      ].find(isShown);
       if (!separator && slidesSeparator) {
         separator = slidesSeparator.cloneNode(true);
         separator.removeAttribute('id');
@@ -950,18 +1083,29 @@
     }
     place();
     // Opened with Shift+F10, Slides fills the menu after this, below what's there.
-    new MutationObserver((_, watching) => (last.isConnected ? place() : watching.disconnect())).observe(menu, { childList: true });
+    new MutationObserver((_, watching) =>
+      last.isConnected ? place() : watching.disconnect(),
+    ).observe(menu, { childList: true });
   }
-
 
   // ----- Slideshow -----
 
   // A plain click on the slide, with the stage closed. With the pen on, clicks draw. (The laser
   // pointer keeps clicks, like links and videos do.)
   function plainClickOnSlide(event, selector) {
-    if (gallery || event.button !== 0 || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return null;
+    if (
+      gallery ||
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.altKey ||
+      event.shiftKey
+    )
+      return null;
     if (document.querySelector('.sketchyViewerContent.disable-pointer-events')) return null;
-    return event.target instanceof Element ? event.target.closest(`.punch-viewer-svgpage-svgcontainer ${selector}`) : null;
+    return event.target instanceof Element
+      ? event.target.closest(`.punch-viewer-svgpage-svgcontainer ${selector}`)
+      : null;
   }
 
   // During a slideshow a click goes to the next slide; on an image, it spotlights the image
@@ -998,7 +1142,10 @@
   const VIEWER_WAIT_MS = 5000;
   const inPdfViewer = (item) => item.shown.startsWith(`${PDF_VIEWER}?`);
   // Not known yet, and not shown in a player (YouTube's, Drive's: another path), which never is.
-  const mayBePdf = (item) => item.pdf === undefined && !inPdfViewer(item) && new URL(item.shown).pathname === item.address.pathname;
+  const mayBePdf = (item) =>
+    item.pdf === undefined &&
+    !inPdfViewer(item) &&
+    new URL(item.shown).pathname === item.address.pathname;
 
   function viewerAddress(address) {
     const viewer = new URL(`${PDF_VIEWER}?embedded=true`);
@@ -1013,7 +1160,9 @@
   // (Google changed its page).
   function viewerGot(frame) {
     try {
-      const scripts = [...frame.contentDocument.scripts].map((script) => script.textContent).join('\n');
+      const scripts = [...frame.contentDocument.scripts]
+        .map((script) => script.textContent)
+        .join('\n');
       if (scripts.includes('"application/pdf"')) return 'pdf';
       if (scripts.includes('"text/html"')) return 'page';
     } catch {}
@@ -1027,7 +1176,9 @@
     item.visited = [shown];
     item.at = 0;
     if (gallery?.items[gallery.index] !== item) return;
-    gallery.stage.querySelector('.slides-companion-spotlight-picture').replaceChildren(pageFrame(item));
+    gallery.stage
+      .querySelector('.slides-companion-spotlight-picture')
+      .replaceChildren(pageFrame(item));
     checkPage(item);
   }
 
@@ -1067,11 +1218,15 @@
   // for a moment at most.
   async function askType(item) {
     if (!mayBePdf(item)) return;
-    const reveal = hideWhileChecking(gallery.stage.querySelector('.slides-companion-spotlight-website'), CHECK_HIDES_MS);
+    const reveal = hideWhileChecking(
+      gallery.stage.querySelector('.slides-companion-spotlight-website'),
+      CHECK_HIDES_MS,
+    );
     const answer = await askBackground({ type: 'page-type', href: item.address.href });
     reveal();
     if (typeof answer?.pdf === 'boolean') item.pdf = answer.pdf;
-    if (item.pdf && gallery?.items[gallery.index] === item && !inPdfViewer(item)) showAt(item, viewerAddress(item.address));
+    if (item.pdf && gallery?.items[gallery.index] === item && !inPdfViewer(item))
+      showAt(item, viewerAddress(item.address));
   }
 
   // Slides sends links through Google's redirect (google.com/url?q=<address>). Links to a slide of
@@ -1081,7 +1236,8 @@
     if (href.startsWith('#')) return null;
     try {
       let address = new URL(href, location.href);
-      if (address.hostname === 'www.google.com' && address.pathname === '/url') address = new URL(address.searchParams.get('q'));
+      if (address.hostname === 'www.google.com' && address.pathname === '/url')
+        address = new URL(address.searchParams.get('q'));
       if (!['http:', 'https:'].includes(address.protocol)) return null;
       if (address.origin === location.origin && address.pathname === location.pathname) return null;
       return address;
@@ -1097,15 +1253,24 @@
     const host = address.hostname.replace(/^(www|m)\./, '');
     const [, first, second, third] = address.pathname.split('/');
     if (host === 'drive.google.com') {
-      const file = first === 'file' && second === 'd' ? third : first === 'open' ? address.searchParams.get('id') : null;
+      const file =
+        first === 'file' && second === 'd'
+          ? third
+          : first === 'open'
+            ? address.searchParams.get('id')
+            : null;
       if (file) return `https://drive.google.com/file/d/${encodeURIComponent(file)}/preview`;
     }
     const video =
-      host === 'youtu.be' ? first
-      : host !== 'youtube.com' ? null
-      : first === 'watch' ? address.searchParams.get('v')
-      : ['shorts', 'live'].includes(first) ? second
-      : null;
+      host === 'youtu.be'
+        ? first
+        : host !== 'youtube.com'
+          ? null
+          : first === 'watch'
+            ? address.searchParams.get('v')
+            : ['shorts', 'live'].includes(first)
+              ? second
+              : null;
     if (!video) {
       const secure = new URL(address);
       secure.protocol = 'https:';
@@ -1113,7 +1278,8 @@
     }
     const player = new URL(`https://www.youtube.com/embed/${encodeURIComponent(video)}`);
     player.searchParams.set('autoplay', '1');
-    const [, hours = 0, minutes = 0, seconds = 0] = (address.searchParams.get('t') ?? '').match(/^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s?)?$/) ?? [];
+    const [, hours = 0, minutes = 0, seconds = 0] =
+      (address.searchParams.get('t') ?? '').match(/^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s?)?$/) ?? [];
     const start = hours * 3600 + minutes * 60 + Number(seconds);
     if (start) player.searchParams.set('start', start);
     return player.href;
@@ -1154,15 +1320,26 @@
     // view): the gallery was about the slide that's gone. Slides labels the slide ("Slide 3 of 9").
     let slideName = null;
     new MutationObserver(() => {
-      const name = document.querySelector('.punch-viewer-svgpage-a11yelement')?.getAttribute('aria-label');
+      const name = document
+        .querySelector('.punch-viewer-svgpage-a11yelement')
+        ?.getAttribute('aria-label');
       if (!name || name === slideName) return;
       slideName = name;
       closeStage();
-    }).observe(document, { subtree: true, childList: true, attributes: true, attributeFilter: ['aria-label'] });
+    }).observe(document, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeFilter: ['aria-label'],
+    });
     // A pointing hand over images says they can be clicked.
     window.addEventListener(
       'mousemove',
-      (event) => document.documentElement.classList.toggle('slides-companion-over-image', Boolean(clickedImage(event))),
+      (event) =>
+        document.documentElement.classList.toggle(
+          'slides-companion-over-image',
+          Boolean(clickedImage(event)),
+        ),
       { capture: true, passive: true },
     );
   }
@@ -1186,12 +1363,20 @@
   window.addEventListener('blur', onKeyUp);
   if (window === window.top) {
     window.addEventListener('message', (event) => {
-      if (event.origin !== location.origin || event.data?.type !== ESCAPE_MESSAGE || !navigator.keyboard) return;
+      if (
+        event.origin !== location.origin ||
+        event.data?.type !== ESCAPE_MESSAGE ||
+        !navigator.keyboard
+      )
+        return;
       if (event.data.keep) navigator.keyboard.lock(['Escape']).catch(() => {});
       else navigator.keyboard.unlock();
     });
     // Leaving full screen another way (the green button, a gesture) ends the slideshow with the
     // gallery open, and Esc goes back to the browser for the next one.
-    document.addEventListener('fullscreenchange', () => document.fullscreenElement || navigator.keyboard?.unlock());
+    document.addEventListener(
+      'fullscreenchange',
+      () => document.fullscreenElement || navigator.keyboard?.unlock(),
+    );
   }
 }

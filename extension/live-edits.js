@@ -36,14 +36,21 @@
   const state = (frame) => frame.dataset.slidesCompanionPlayer ?? 'shown';
   const players = () => [...document.querySelectorAll(PLAYER)];
   const shownPlayer = () => players().find((frame) => state(frame) === 'shown') ?? null;
-  const slidesPlayer = () => players().find((frame) => !('slidesCompanionCopy' in frame.dataset)) ?? null;
+  const slidesPlayer = () =>
+    players().find((frame) => !('slidesCompanionCopy' in frame.dataset)) ?? null;
   const running = () => Boolean(slidesPlayer()?.getBoundingClientRect().width);
 
   // The slide a player shows, by its page id, and its number ("Slide 3 of 9").
   const slideOf = (doc) =>
     doc?.querySelector('.punch-viewer-svgpage-svgcontainer > svg > g[id]')?.id ??
     new URLSearchParams(doc?.defaultView?.location.search).get('slide')?.replace(/^id\./, '');
-  const numberOf = (doc) => Number(doc.querySelector('.punch-viewer-svgpage-a11yelement')?.getAttribute('aria-label')?.match(/\d+/)?.[0]);
+  const numberOf = (doc) =>
+    Number(
+      doc
+        .querySelector('.punch-viewer-svgpage-a11yelement')
+        ?.getAttribute('aria-label')
+        ?.match(/\d+/)?.[0],
+    );
 
   // Keys, as Slides reads them.
   function press(doc, key, shiftKey = false) {
@@ -53,7 +60,17 @@
     for (const type of ['keydown', 'keypress', 'keyup']) {
       if (type === 'keypress' && !char) continue;
       const which = type === 'keypress' ? char : code;
-      target.dispatchEvent(new KeyboardEvent(type, { key, keyCode: which, which, charCode: type === 'keypress' ? char : 0, shiftKey, bubbles: true, cancelable: true }));
+      target.dispatchEvent(
+        new KeyboardEvent(type, {
+          key,
+          keyCode: which,
+          which,
+          charCode: type === 'keypress' ? char : 0,
+          shiftKey,
+          bubbles: true,
+          cancelable: true,
+        }),
+      );
     }
   }
 
@@ -79,7 +96,9 @@
     return new Promise((resolve) => {
       replies.set(id, resolve);
       setTimeout(() => replies.delete(id) && resolve(null), 5000);
-      document.dispatchEvent(new CustomEvent(CHECK_EVENT, { detail: JSON.stringify({ id, pages }) }));
+      document.dispatchEvent(
+        new CustomEvent(CHECK_EVENT, { detail: JSON.stringify({ id, pages }) }),
+      );
     });
   }
 
@@ -124,11 +143,21 @@
   const filmstrip = new MutationObserver((records) => {
     let structure = false;
     for (const record of records) {
-      const target = record.target.nodeType === Node.ELEMENT_NODE ? record.target : record.target.parentElement;
+      const target =
+        record.target.nodeType === Node.ELEMENT_NODE ? record.target : record.target.parentElement;
       if (!target || target.closest('.punch-full-screen-element')) continue;
       const thumbnail = target.closest('.punch-filmstrip-thumbnail[data-slide-page-id]');
       if (thumbnail) hinted.add(thumbnail.dataset.slidePageId);
-      else if (record.type === 'childList' && [...record.addedNodes, ...record.removedNodes].some((node) => node.nodeType === Node.ELEMENT_NODE && (node.matches('.punch-filmstrip-thumbnail') || node.querySelector('.punch-filmstrip-thumbnail')))) structure = true;
+      else if (
+        record.type === 'childList' &&
+        [...record.addedNodes, ...record.removedNodes].some(
+          (node) =>
+            node.nodeType === Node.ELEMENT_NODE &&
+            (node.matches('.punch-filmstrip-thumbnail') ||
+              node.querySelector('.punch-filmstrip-thumbnail')),
+        )
+      )
+        structure = true;
     }
     if (hinted.size || structure) scheduleCheck();
   });
@@ -161,7 +190,16 @@
       frame.src = url;
       frame.dataset.slidesCompanionAutoPlay = JSON.stringify(autoPlay);
     }
-    Object.assign(frame.style, { position: 'absolute', inset: '0', width: '100%', height: '100%', visibility: 'visible', opacity: '0', pointerEvents: 'none', transition: '' });
+    Object.assign(frame.style, {
+      position: 'absolute',
+      inset: '0',
+      width: '100%',
+      height: '100%',
+      visibility: 'visible',
+      opacity: '0',
+      pointerEvents: 'none',
+      transition: '',
+    });
     // Should it take the keyboard anyway, it goes back to the slideshow on screen.
     frame.addEventListener('focus', () => state(frame) === 'loading' && shownPlayer()?.focus());
     own.parentElement.append(frame);
@@ -187,20 +225,31 @@
     if (!doc) return discard();
     tickTimer = setTimeout(tick, TICK_MS);
     const copyDoc = copy.frame.contentDocument;
-    if (!('slidesCompanionLoaded' in copy.frame.dataset) || !copyDoc?.body || copyDoc.fonts.status !== 'loaded') return;
+    if (
+      !('slidesCompanionLoaded' in copy.frame.dataset) ||
+      !copyDoc?.body ||
+      copyDoc.fonts.status !== 'loaded'
+    )
+      return;
     // The copy is out of sight: its transitions and animations needn't play out.
     finishAnimations(copyDoc);
     const target = slideOf(doc);
     const at = slideOf(copyDoc);
-    if (!target || !at || copy.stuck === target || performance.now() < copy.until || !calm(doc)) return;
+    if (!target || !at || copy.stuck === target || performance.now() < copy.until || !calm(doc))
+      return;
     if (at !== target) {
       // The copy starts where the slideshow started. It's taken to the slide on screen as you can
       // in any slideshow, typing its number and Enter: the number on screen, or, if slides were
       // moved, its place in the filmstrip.
       const tries = copy.tries.get(target) ?? 0;
       copy.tries.set(target, tries + 1);
-      const thumbnails = [...document.querySelectorAll('.punch-filmstrip-thumbnail[data-slide-page-id]')];
-      const number = [numberOf(doc), thumbnails.findIndex((thumbnail) => thumbnail.dataset.slidePageId === target) + 1][tries];
+      const thumbnails = [
+        ...document.querySelectorAll('.punch-filmstrip-thumbnail[data-slide-page-id]'),
+      ];
+      const number = [
+        numberOf(doc),
+        thumbnails.findIndex((thumbnail) => thumbnail.dataset.slidePageId === target) + 1,
+      ][tries];
       if (!number) copy.stuck = target;
       else for (const key of [...String(number), 'Enter']) press(copyDoc, key);
       copy.until = performance.now() + GOING_MS;
@@ -223,7 +272,11 @@
   function finishAnimations(doc) {
     for (const animation of doc.getAnimations()) {
       try {
-        if (animation.playState === 'running' && Number.isFinite(animation.effect?.getComputedTiming().endTime)) animation.finish();
+        if (
+          animation.playState === 'running' &&
+          Number.isFinite(animation.effect?.getComputedTiming().endTime)
+        )
+          animation.finish();
       } catch {}
     }
   }
@@ -231,8 +284,18 @@
   // A calm moment: not mid-transition or animation, not zoomed in or with an image spotlit, no menu
   // open, no video on the slide, no button held (drawing with the pen, say).
   function calm(doc) {
-    if (doc.documentElement.classList.contains('slides-companion-zoomed') || doc.querySelector('.slides-companion-spotlight, :active')) return false;
-    const moving = doc.getAnimations().some((animation) => animation.playState === 'running' && Number.isFinite(animation.effect?.getComputedTiming().endTime));
+    if (
+      doc.documentElement.classList.contains('slides-companion-zoomed') ||
+      doc.querySelector('.slides-companion-spotlight, :active')
+    )
+      return false;
+    const moving = doc
+      .getAnimations()
+      .some(
+        (animation) =>
+          animation.playState === 'running' &&
+          Number.isFinite(animation.effect?.getComputedTiming().endTime),
+      );
     const shows = (element) => element.getBoundingClientRect().width > 0;
     return !moving && ![...doc.querySelectorAll('[role="menu"], iframe, video')].some(shows);
   }
@@ -245,9 +308,14 @@
     const hidden = new Map();
     for (const object of page?.querySelectorAll('g[id]') ?? []) {
       let shows = true;
-      for (let element = object; element && element !== page && shows; element = element.parentElement) {
+      for (
+        let element = object;
+        element && element !== page && shows;
+        element = element.parentElement
+      ) {
         const style = view.getComputedStyle(element);
-        shows = style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity) > 0;
+        shows =
+          style.display !== 'none' && style.visibility !== 'hidden' && Number(style.opacity) > 0;
       }
       hidden.set(object.id, !shows);
     }
@@ -263,13 +331,23 @@
   // it's been opened; a copy started playing remembers it.
   function autoPlayOf(frame) {
     const doc = frame.contentDocument;
-    const menu = [...doc.querySelectorAll('[role="menu"]')].find((element) => element.querySelectorAll('.goog-option').length === AUTO_PLAY_SECONDS.length + 1);
-    if (!menu) return frame.dataset.slidesCompanionAutoPlay ? JSON.parse(frame.dataset.slidesCompanionAutoPlay) : null;
+    const menu = [...doc.querySelectorAll('[role="menu"]')].find(
+      (element) => element.querySelectorAll('.goog-option').length === AUTO_PLAY_SECONDS.length + 1,
+    );
+    if (!menu)
+      return frame.dataset.slidesCompanionAutoPlay
+        ? JSON.parse(frame.dataset.slidesCompanionAutoPlay)
+        : null;
     const pause = menu.querySelectorAll('.goog-menuitem:not(.goog-option)')[1];
     if (!pause || pause.classList.contains('goog-menuitem-disabled')) return null;
     const options = [...menu.querySelectorAll('.goog-option')];
-    const chosen = options.slice(0, -1).findIndex((option) => option.getAttribute('aria-checked') === 'true');
-    return { delay: (AUTO_PLAY_SECONDS[chosen] ?? 2) * 1000, loop: options.at(-1).getAttribute('aria-checked') === 'true' };
+    const chosen = options
+      .slice(0, -1)
+      .findIndex((option) => option.getAttribute('aria-checked') === 'true');
+    return {
+      delay: (AUTO_PLAY_SECONDS[chosen] ?? 2) * 1000,
+      loop: options.at(-1).getAttribute('aria-checked') === 'true',
+    };
   }
 
   // Presenter view, opened from a player or the editor, and the time on its timer (see
@@ -361,7 +439,8 @@
         media.muted = true;
         media.pause();
       }
-      for (const embed of doc.querySelectorAll('iframe:not([src="about:blank"])')) embed.src = 'about:blank';
+      for (const embed of doc.querySelectorAll('iframe:not([src="about:blank"])'))
+        embed.src = 'about:blank';
     };
     hush();
     const observer = new MutationObserver(hush);
@@ -376,7 +455,13 @@
     const now = running() && updates() !== 'off';
     if (now === watching) return;
     watching = now;
-    if (watching) filmstrip.observe(document.body, { subtree: true, childList: true, attributes: true, characterData: true });
+    if (watching)
+      filmstrip.observe(document.body, {
+        subtree: true,
+        childList: true,
+        attributes: true,
+        characterData: true,
+      });
     else {
       filmstrip.disconnect();
       clearTimeout(checkTimer);
@@ -392,7 +477,8 @@
   function ended() {
     clearTimeout(tickTimer);
     copy = null;
-    for (const frame of document.querySelectorAll(`${PLAYER}[data-slides-companion-copy]`)) frame.remove();
+    for (const frame of document.querySelectorAll(`${PLAYER}[data-slides-companion-copy]`))
+      frame.remove();
     for (const frame of players()) {
       hushed.get(frame)?.disconnect();
       hushed.delete(frame);

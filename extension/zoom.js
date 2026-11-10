@@ -34,12 +34,14 @@
   const slideView = () => document.querySelector('.sketchyViewerContent');
   // The pen's ink: the strokes group in the first of those layers (the second is the laser's).
   const inkLayer = () => document.querySelector('.punch-slide-markup-surface > g');
-  const slideName = () => document.querySelector('.punch-viewer-svgpage-a11yelement')?.getAttribute('aria-label');
+  const slideName = () =>
+    document.querySelector('.punch-viewer-svgpage-a11yelement')?.getAttribute('aria-label');
   // What scrolling does: 'zoom', 'nothing' or 'slides' (see settings.js).
   const scrolling = () => globalThis.slidesCompanion.settings.get('slideshowScroll');
   const galleryOpen = () => Boolean(document.querySelector('.slides-companion-spotlight'));
   // With the pen on, dragging draws.
-  const penOn = () => Boolean(document.querySelector('.sketchyViewerContent.disable-pointer-events'));
+  const penOn = () =>
+    Boolean(document.querySelector('.sketchyViewerContent.disable-pointer-events'));
   const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
   // Where the slide sits before scaling: its offset inside its (unscaled) offset parent.
@@ -107,7 +109,10 @@
       x: zoom.x + (target.x - zoom.x) * t,
       y: zoom.y + (target.y - zoom.y) * t,
     };
-    const arrived = Math.abs(target.scale - next.scale) < 0.001 && Math.abs(target.x - next.x) < 0.5 && Math.abs(target.y - next.y) < 0.5;
+    const arrived =
+      Math.abs(target.scale - next.scale) < 0.001 &&
+      Math.abs(target.x - next.x) < 0.5 &&
+      Math.abs(target.y - next.y) < 0.5;
     show(arrived ? target : next);
     easing.frame = arrived ? 0 : requestAnimationFrame(easeStep);
   }
@@ -160,18 +165,25 @@
     const start =
       stroke.nodeName === 'circle'
         ? [stroke.getAttribute('cx'), stroke.getAttribute('cy')]
-        : stroke.getAttribute('d')?.match(/^M\s*([-\d.e]+)[\s,]+([-\d.e]+)/)?.slice(1);
+        : stroke
+            .getAttribute('d')
+            ?.match(/^M\s*([-\d.e]+)[\s,]+([-\d.e]+)/)
+            ?.slice(1);
     if (!start) return;
     // Kept as parts of the slide's width, which a new window size doesn't change.
     const space = inkSpace(stroke);
     const onSlide = (value, offset) => (value / space.unit - offset) / space.width;
     const key = `${slideName()} ${onSlide(start[0], space.left).toFixed(4)} ${onSlide(start[1], space.top).toFixed(4)}`;
-    if (!strokeZooms.has(key)) strokeZooms.set(key, { scale: zoom.scale, x: zoom.x / space.width, y: zoom.y / space.width });
+    if (!strokeZooms.has(key))
+      strokeZooms.set(key, { scale: zoom.scale, x: zoom.x / space.width, y: zoom.y / space.width });
     const drawn = strokeZooms.get(key);
     if (drawn.scale === 1) return;
     const { scale } = drawn;
     const { x, y } = inkZoom({ scale, x: drawn.x * space.width, y: drawn.y * space.width }, space);
-    stroke.setAttribute('transform', `matrix(${1 / scale} 0 0 ${1 / scale} ${-x / scale} ${-y / scale})`);
+    stroke.setAttribute(
+      'transform',
+      `matrix(${1 / scale} 0 0 ${1 / scale} ${-x / scale} ${-y / scale})`,
+    );
     // Undoing the zoom thins the line too, so it's drawn that much thicker. (Slides' own width is
     // kept, in case the same line is placed again.)
     const size = stroke.nodeName === 'circle' ? 'r' : 'stroke-width';
@@ -191,10 +203,16 @@
     const observer = new MutationObserver((mutations) => {
       for (const { type, target: changed, addedNodes } of mutations) {
         const strokes = type === 'attributes' ? [changed] : addedNodes;
-        for (const node of strokes) if (node instanceof Element && node.matches(STROKES)) placeStroke(node);
+        for (const node of strokes)
+          if (node instanceof Element && node.matches(STROKES)) placeStroke(node);
       }
     });
-    observer.observe(ink, { childList: true, subtree: true, attributes: true, attributeFilter: ['d', 'cx', 'cy'] });
+    observer.observe(ink, {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['d', 'cx', 'cy'],
+    });
     inkWatch = { layer: ink, observer };
   }
 
@@ -225,9 +243,17 @@
     const origin = layoutOrigin(element);
     const px = clientX - origin.left;
     const py = clientY - origin.top;
-    easeTo(fitted(element, scale, px - ((px - from.x) * scale) / from.scale, py - ((py - from.y) * scale) / from.scale));
+    easeTo(
+      fitted(
+        element,
+        scale,
+        px - ((px - from.x) * scale) / from.scale,
+        py - ((py - from.y) * scale) / from.scale,
+      ),
+    );
     // Zooming mid-drag: the drag goes on from the new zoom.
-    if (press && !press.released) Object.assign(press, { startX: clientX, startY: clientY, from: target });
+    if (press && !press.released)
+      Object.assign(press, { startX: clientX, startY: clientY, from: target });
   }
 
   // ----- Keys to zoom -----
@@ -250,13 +276,21 @@
       if (!event.relatedTarget) pointer = null;
       return;
     }
-    const frame = event.target instanceof HTMLIFrameElement && slideView()?.contains(event.target) ? event.target : null;
+    const frame =
+      event.target instanceof HTMLIFrameElement && slideView()?.contains(event.target)
+        ? event.target
+        : null;
     pointer = { x: event.clientX, y: event.clientY, buttons: event.buttons, frame };
   }
 
   function zoomPoint(element) {
     const origin = layoutOrigin(element);
-    const area = { left: origin.left, top: origin.top, right: origin.left + element.offsetWidth, bottom: origin.top + element.offsetHeight };
+    const area = {
+      left: origin.left,
+      top: origin.top,
+      right: origin.left + element.offsetWidth,
+      bottom: origin.top + element.offsetHeight,
+    };
     // Holding the slide, it's the pointer, which is where the drag goes on from.
     if (pointer && press && !press.released) return [pointer.x, pointer.y];
     // The middle of what shows of the video, when zooming has taken part of it off the screen.
@@ -264,7 +298,10 @@
       const box = pointer.frame.getBoundingClientRect();
       const left = Math.max(box.left, area.left);
       const top = Math.max(box.top, area.top);
-      return [(left + Math.min(box.right, area.right)) / 2, (top + Math.min(box.bottom, area.bottom)) / 2];
+      return [
+        (left + Math.min(box.right, area.right)) / 2,
+        (top + Math.min(box.bottom, area.bottom)) / 2,
+      ];
     }
     // Slides hides the pointer (and the laser's and the pen's dot) when it's left still.
     if (pointer && document.body.style.cursor !== 'none') return [pointer.x, pointer.y];
@@ -273,9 +310,22 @@
 
   function onKeydown(event) {
     const direction = ZOOM_KEYS[event.key];
-    if (!direction || event.metaKey || event.ctrlKey || event.altKey || event.isComposing || galleryOpen()) return;
+    if (
+      !direction ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.altKey ||
+      event.isComposing ||
+      galleryOpen()
+    )
+      return;
     if (globalThis.slidesCompanion.isTyping(event)) return;
-    if ([...document.querySelectorAll('.punch-viewer-interruption')].some((screen) => screen.checkVisibility())) return;
+    if (
+      [...document.querySelectorAll('.punch-viewer-interruption')].some((screen) =>
+        screen.checkVisibility(),
+      )
+    )
+      return;
     const element = slideView();
     if (element) zoomAround(element, KEY_FACTOR ** direction, ...zoomPoint(element));
   }
@@ -288,7 +338,10 @@
   // a plain click on an image still spotlights it (see onClick).
   function ownsPress(event) {
     if (target.scale === 1 || penOn() || galleryOpen()) return false;
-    return !(event.target instanceof Element && event.target.closest('.punch-viewer-navbar, .punch-viewer-navbar-menu, a'));
+    return !(
+      event.target instanceof Element &&
+      event.target.closest('.punch-viewer-navbar, .punch-viewer-navbar-menu, a')
+    );
   }
 
   const swallow = (event) => {
@@ -300,7 +353,9 @@
   // between hands the rest of it to Slides. (Trackpads can send moves that say no button is held
   // mid-drag; if that ended the press, its release and click went on to change slides.)
   function startPress(event) {
-    press = ownsPress(event) ? { startX: event.clientX, startY: event.clientY, from: target, released: false } : null;
+    press = ownsPress(event)
+      ? { startX: event.clientX, startY: event.clientY, from: target, released: false }
+      : null;
     // Grabbing the slide takes it straight to where scrolling was taking it.
     if (press) jumpTo(target);
     return press;
@@ -393,7 +448,8 @@
     // for a click on it.
     window.addEventListener('wheel', onWheel, { capture: true, passive: false });
     // Ahead of the presses the zoom keeps from everything else.
-    for (const type of ['mousemove', 'mouseover', 'mouseout', 'mousedown', 'mouseup']) window.addEventListener(type, trackPointer, { capture: true, passive: true });
+    for (const type of ['mousemove', 'mouseover', 'mouseout', 'mousedown', 'mouseup'])
+      window.addEventListener(type, trackPointer, { capture: true, passive: true });
     window.addEventListener('pointerdown', onPointerDown, true);
     window.addEventListener('mousedown', onMouseDown, true);
     window.addEventListener('mousemove', onMouseMove, { capture: true, passive: true });
@@ -415,6 +471,9 @@
     });
     // Choosing something else mid-slideshow leaves nothing zoomed. (Only that choice: the extension
     // saves other things as it goes, such as the pen's ink after each line.)
-    chrome.storage.onChanged.addListener((changes, area) => area === 'sync' && 'slideshowScroll' in changes && scrolling() !== 'zoom' && reset());
+    chrome.storage.onChanged.addListener(
+      (changes, area) =>
+        area === 'sync' && 'slideshowScroll' in changes && scrolling() !== 'zoom' && reset(),
+    );
   }
 }

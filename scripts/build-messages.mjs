@@ -19,16 +19,22 @@ export function readLocales() {
       .readdirSync(LOCALES)
       .filter((locale) => fs.existsSync(new URL(`${locale}/messages.json`, LOCALES)))
       .sort((a, b) => (a === DEFAULT_LOCALE ? -1 : b === DEFAULT_LOCALE ? 1 : a.localeCompare(b)))
-      .map((locale) => [locale, JSON.parse(fs.readFileSync(new URL(`${locale}/messages.json`, LOCALES), 'utf8'))]),
+      .map((locale) => [
+        locale,
+        JSON.parse(fs.readFileSync(new URL(`${locale}/messages.json`, LOCALES), 'utf8')),
+      ]),
   );
 }
 
 // A message as Chrome gives it, its placeholders put in.
 export function resolve({ message, placeholders = {} }) {
-  const named = Object.fromEntries(Object.entries(placeholders).map(([name, { content }]) => [name.toLowerCase(), content]));
+  const named = Object.fromEntries(
+    Object.entries(placeholders).map(([name, { content }]) => [name.toLowerCase(), content]),
+  );
   return message
     .replace(/\$([a-z_@][a-z0-9_@]*)\$/gi, (whole, name) => {
-      if (!(name.toLowerCase() in named)) throw new Error(`No placeholder ${whole} in "${message}"`);
+      if (!(name.toLowerCase() in named))
+        throw new Error(`No placeholder ${whole} in "${message}"`);
       return named[name.toLowerCase()];
     })
     .replaceAll('$$', '$');
@@ -43,7 +49,10 @@ export function render(locales = readLocales()) {
   );
   // A language a line, each read with JSON.parse: every Slides frame loads all of them, and a string
   // of JSON is quicker to read in than the same object written as code.
-  const lines = Object.entries(messages).map(([locale, words]) => `  ${JSON.stringify(locale)}: JSON.parse(${JSON.stringify(JSON.stringify(words))}),`);
+  const lines = Object.entries(messages).map(
+    ([locale, words]) =>
+      `  ${JSON.stringify(locale)}: JSON.parse(${JSON.stringify(JSON.stringify(words))}),`,
+  );
   return `// Made by scripts/build-messages.mjs (npm run messages) from _locales: change those, not this.
 // Our words in each language, by message (see i18n.js).
 globalThis.slidesCompanion ??= {};

@@ -12,7 +12,7 @@ body {
   place-items: center;
   overflow: hidden;
   background: transparent;
-  font-family: "Google Sans", Roboto, Arial, sans-serif;
+  font-family: 'Google Sans', Roboto, Arial, sans-serif;
 }
 
 .slides-companion-refused {
@@ -34,12 +34,20 @@ body {
 .slides-companion-refused-title {
   margin: 16px 0 0;
   color: #e3e3e3;
-  font: 400 24px/32px "Google Sans", Roboto, Arial, sans-serif;
+  font:
+    400 24px/32px 'Google Sans',
+    Roboto,
+    Arial,
+    sans-serif;
 }
 
 .slides-companion-refused-text {
   margin: 16px 0 0;
-  font: 400 14px/20px "Google Sans", Roboto, Arial, sans-serif;
+  font:
+    400 14px/20px 'Google Sans',
+    Roboto,
+    Arial,
+    sans-serif;
 }
 
 /* As the dialog's Cancel and OK: a text button, then the filled one. */
@@ -57,7 +65,11 @@ body {
   margin: 0;
   border: 0;
   border-radius: 20px;
-  font: 500 14px "Google Sans", Roboto, Arial, sans-serif;
+  font:
+    500 14px 'Google Sans',
+    Roboto,
+    Arial,
+    sans-serif;
   cursor: pointer;
 }
 

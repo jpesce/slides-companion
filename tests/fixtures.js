@@ -5,7 +5,11 @@ import path from 'node:path';
 
 // The extension the tests load: extension/, or the release build with
 // EXTENSION_PATH=build/slides-companion (`npm run test:build`).
-export const extensionPath = path.resolve(import.meta.dirname, '..', process.env.EXTENSION_PATH ?? 'extension');
+export const extensionPath = path.resolve(
+  import.meta.dirname,
+  '..',
+  process.env.EXTENSION_PATH ?? 'extension',
+);
 
 // Our test deck. The test browser is signed out, so it must be shared as "Anyone with the link".
 // Override with TEST_DECK_URL.
@@ -32,14 +36,18 @@ function extensionCopy({ allSites, englishOnly }) {
     fs.writeFileSync(manifestPath, JSON.stringify(manifest));
   }
   if (englishOnly) {
-    fs.appendFileSync(path.join(copy, 'messages.js'), '\nglobalThis.slidesCompanion.messages = { en: globalThis.slidesCompanion.messages.en };\n');
+    fs.appendFileSync(
+      path.join(copy, 'messages.js'),
+      '\nglobalThis.slidesCompanion.messages = { en: globalThis.slidesCompanion.messages.en };\n',
+    );
   }
   copies.set(kind, copy);
   return copy;
 }
 
 // Slides' pages: the editor, and the slideshow, in its frame or a tab of its own.
-const SLIDES_PAGE = /^https:\/\/docs\.google\.com\/presentation\/d\/[^/]+\/(edit|present|localpresent)\b/;
+const SLIDES_PAGE =
+  /^https:\/\/docs\.google\.com\/presentation\/d\/[^/]+\/(edit|present|localpresent)\b/;
 
 // Branded Chrome ignores --load-extension since v137, so this uses Playwright's Chromium.
 export const test = base.extend({
@@ -87,7 +95,10 @@ export const expect = test.expect;
 // Opens Settings from the companion, on a feature's page.
 export async function openSettings(page, feature) {
   await page.locator('.slides-companion-button').click();
-  await page.getByRole('dialog', { name: 'Slides Companion settings' }).getByRole('tab', { name: feature }).click();
+  await page
+    .getByRole('dialog', { name: 'Slides Companion settings' })
+    .getByRole('tab', { name: feature })
+    .click();
 }
 
 // The Spotlight gallery's bar shows only as the pointer comes near, or for a moment as the gallery

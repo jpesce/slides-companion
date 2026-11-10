@@ -7,7 +7,17 @@
   const ours = Object.keys(messages);
   const chosen = new Map();
   // Google names some languages by their old codes, or by region where Chrome names the script.
-  const ALSO = { iw: 'he', ji: 'yi', in: 'id', tl: 'fil', nb: 'no', zh_hk: 'zh_tw', zh_mo: 'zh_tw', zh_hant: 'zh_tw', zh_hans: 'zh_cn' };
+  const ALSO = {
+    iw: 'he',
+    ji: 'yi',
+    in: 'id',
+    tl: 'fil',
+    nb: 'no',
+    zh_hk: 'zh_tw',
+    zh_mo: 'zh_tw',
+    zh_hant: 'zh_tw',
+    zh_hans: 'zh_cn',
+  };
   // Presenter view's language, once known: its opener can close or move on while it stays open.
   let borrowed = '';
 
@@ -18,7 +28,8 @@
     if (own || borrowed) return own || borrowed;
     try {
       const opener = window.opener.document;
-      const slideshow = opener.querySelector('iframe.punch-present-iframe')?.contentDocument?.documentElement.lang;
+      const slideshow = opener.querySelector('iframe.punch-present-iframe')?.contentDocument
+        ?.documentElement.lang;
       borrowed = slideshow || opener.documentElement.lang;
     } catch {}
     return borrowed;
@@ -28,13 +39,18 @@
   function ourLocale(language) {
     if (!chosen.has(language)) {
       let wanted = language.toLowerCase().replaceAll('-', '_');
-      const also = Object.keys(ALSO).find((code) => wanted === code || wanted.startsWith(`${code}_`));
+      const also = Object.keys(ALSO).find(
+        (code) => wanted === code || wanted.startsWith(`${code}_`),
+      );
       if (also) wanted = ALSO[also];
       const base = wanted.split('_')[0];
       const find = (matches) => ours.find((locale) => matches(locale.toLowerCase()));
       chosen.set(
         language,
-        find((locale) => locale === wanted) ?? find((locale) => locale === base) ?? find((locale) => locale.startsWith(`${base}_`)) ?? FALLBACK,
+        find((locale) => locale === wanted) ??
+          find((locale) => locale === base) ??
+          find((locale) => locale.startsWith(`${base}_`)) ??
+          FALLBACK,
       );
     }
     return chosen.get(language);
@@ -49,9 +65,13 @@
   const RIGHT_TO_LEFT = /^(ar|iw|he|fa|ur|yi|ji|ps|sd|ug|ckb|dv)\b/i;
   globalThis.slidesCompanion.rightToLeft = () => RIGHT_TO_LEFT.test(slidesLanguage());
   // The arrow keys that go forward and back, as Slides has them, for the words that name them.
-  globalThis.slidesCompanion.arrows = () => (globalThis.slidesCompanion.rightToLeft() ? { forward: '←', back: '→' } : { forward: '→', back: '←' });
+  globalThis.slidesCompanion.arrows = () =>
+    globalThis.slidesCompanion.rightToLeft()
+      ? { forward: '←', back: '→' }
+      : { forward: '→', back: '←' };
   // The direction of our words, for the pages and panels we write ourselves.
-  globalThis.slidesCompanion.dir = () => (RIGHT_TO_LEFT.test(globalThis.slidesCompanion.locale()) ? 'rtl' : 'ltr');
+  globalThis.slidesCompanion.dir = () =>
+    RIGHT_TO_LEFT.test(globalThis.slidesCompanion.locale()) ? 'rtl' : 'ltr';
 
   // A message, with what goes in its places ($1, $2…) in order.
   const text = (key, ...values) => {

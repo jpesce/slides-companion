@@ -12,8 +12,10 @@
   const keeping = () => globalThis.slidesCompanion.settings.get('keepInk');
   const inkLayer = () => document.querySelector('.punch-slide-markup-surface > g');
   // The slide's page id, which stays the same when slides are moved around in the deck.
-  const slideId = () => document.querySelector('.punch-viewer-svgpage-svgcontainer > svg > g[id]')?.id;
-  const penOn = () => Boolean(document.querySelector('.sketchyViewerContent.disable-pointer-events'));
+  const slideId = () =>
+    document.querySelector('.punch-viewer-svgpage-svgcontainer > svg > g[id]')?.id;
+  const penOn = () =>
+    Boolean(document.querySelector('.sketchyViewerContent.disable-pointer-events'));
 
   // Strokes kept from earlier slideshows, by slide: { color, width, points: [x, y, x, y, …], dot },
   // the points as parts of the slide's width from its top left corner, and the width in pixels, as
@@ -40,17 +42,30 @@
     const scale = (matrix?.a ?? 1) / space.unit;
     const onSlide = (x, y) => {
       const point = matrix ? new DOMPoint(x, y).matrixTransform(matrix) : { x, y };
-      return [round((point.x / space.unit - space.left) / space.width), round((point.y / space.unit - space.top) / space.width)];
+      return [
+        round((point.x / space.unit - space.left) / space.width),
+        round((point.y / space.unit - space.top) / space.width),
+      ];
     };
     if (stroke.nodeName === 'circle') {
       const at = onSlide(Number(stroke.getAttribute('cx')), Number(stroke.getAttribute('cy')));
-      return { color: stroke.getAttribute('fill'), width: round(2 * Number(stroke.getAttribute('r')) * scale), points: at, dot: true };
+      return {
+        color: stroke.getAttribute('fill'),
+        width: round(2 * Number(stroke.getAttribute('r')) * scale),
+        points: at,
+        dot: true,
+      };
     }
     // Slides draws a stroke as a line through the pointer's places: "M x y L x y x y …".
     const numbers = (stroke.getAttribute('d').match(/-?[\d.]+(?:e[-+]?\d+)?/g) ?? []).map(Number);
     const points = [];
-    for (let i = 0; i + 1 < numbers.length; i += 2) points.push(...onSlide(numbers[i], numbers[i + 1]));
-    return { color: stroke.getAttribute('stroke'), width: round(Number(stroke.getAttribute('stroke-width')) * scale), points };
+    for (let i = 0; i + 1 < numbers.length; i += 2)
+      points.push(...onSlide(numbers[i], numbers[i + 1]));
+    return {
+      color: stroke.getAttribute('stroke'),
+      width: round(Number(stroke.getAttribute('stroke-width')) * scale),
+      points,
+    };
   }
 
   // One write each time, so it's done even if the slideshow ends right after.
@@ -108,7 +123,13 @@
     for (let i = 0; i + 1 < points.length; i += 2) places.push(`${at(i)} ${at(i + 1)}`);
     const attributes = dot
       ? { fill: color, r: (width / 2) * space.unit, cx: at(0), cy: at(1) }
-      : { stroke: color, 'stroke-width': width * space.unit, 'stroke-linejoin': 'round', 'stroke-linecap': 'round', d: `M ${places[0]} L ${places.slice(1).join(' ') || places[0]}` };
+      : {
+          stroke: color,
+          'stroke-width': width * space.unit,
+          'stroke-linejoin': 'round',
+          'stroke-linecap': 'round',
+          d: `M ${places[0]} L ${places.slice(1).join(' ') || places[0]}`,
+        };
     for (const [name, value] of Object.entries(attributes)) element.setAttribute(name, value);
     element.classList.add(KEPT_CLASS);
     return element;
@@ -140,15 +161,28 @@
   }
 
   function onKeydown(event) {
-    if (event.repeat || event.ctrlKey || event.metaKey || event.altKey || globalThis.slidesCompanion.isTyping(event)) return;
+    if (
+      event.repeat ||
+      event.ctrlKey ||
+      event.metaKey ||
+      event.altKey ||
+      globalThis.slidesCompanion.isTyping(event)
+    )
+      return;
     // Erase all is Shift + A, or Enter or Space on it in the eraser's menu.
-    const menuItem = document.querySelector('.punch-viewer-navbar-eraser-menu .goog-menuitem-highlight');
+    const menuItem = document.querySelector(
+      '.punch-viewer-navbar-eraser-menu .goog-menuitem-highlight',
+    );
     const fromMenu = menuItem?.offsetParent && (event.key === 'Enter' || event.key === ' ');
     if (fromMenu || (event.shiftKey && event.key.toLowerCase() === 'a')) eraseAll();
   }
 
   function onMouseUp(event) {
-    if (event.target instanceof Element && event.target.closest('.punch-viewer-navbar-eraser-menu [role="menuitem"]')) eraseAll();
+    if (
+      event.target instanceof Element &&
+      event.target.closest('.punch-viewer-navbar-eraser-menu [role="menuitem"]')
+    )
+      eraseAll();
   }
 
   if (IN_SLIDESHOW) {
@@ -169,6 +203,8 @@
     window.addEventListener('keydown', onKeydown, true);
     window.addEventListener('mouseup', onMouseUp, true);
     window.addEventListener('resize', () => requestAnimationFrame(render));
-    chrome.storage.onChanged.addListener((changes, area) => area === 'sync' && 'keepInk' in changes && render());
+    chrome.storage.onChanged.addListener(
+      (changes, area) => area === 'sync' && 'keepInk' in changes && render(),
+    );
   }
 }

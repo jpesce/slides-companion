@@ -29,7 +29,10 @@
       spotlight && ['shortcutCloseSpotlight', [named('dialogKeyEsc')]],
       ['shortcutZoomIn', [['+'], ['=']]],
       ['shortcutZoomOut', [['-']]],
-      globalThis.slidesCompanion.floatingNotesHere() && ['shortcutFloatingNotes', [[...named('dialogKeyShift'), 'S']]],
+      globalThis.slidesCompanion.floatingNotesHere() && [
+        'shortcutFloatingNotes',
+        [[...named('dialogKeyShift'), 'S']],
+      ],
       // Only while links open over the slide (in Settings, Links).
       settings.get('slideshowLinks') === 'here' && ['shortcutClosePage', [named('dialogKeyEsc')]],
     ]
@@ -58,7 +61,8 @@
     if (!table?.querySelector(`.${SLIDES}ShortcutName`)) return;
     model = table.cloneNode(true);
     for (const element of [model, ...model.querySelectorAll('*')]) {
-      for (const name of ['jsaction', 'jscontroller', 'jsname', 'jslog', 'id', 'aria-live']) element.removeAttribute(name);
+      for (const name of ['jsaction', 'jscontroller', 'jsname', 'jslog', 'id', 'aria-live'])
+        element.removeAttribute(name);
     }
   }
 
@@ -80,7 +84,9 @@
     mark.textContent = name.slice(found.at, found.at + found.length);
     const before = name.slice(0, found.at);
     const after = name.slice(found.at + found.length);
-    row.querySelector(`.${SLIDES}ShortcutName`).replaceChildren(...[before, mark, after].filter((part) => part !== ''));
+    row
+      .querySelector(`.${SLIDES}ShortcutName`)
+      .replaceChildren(...[before, mark, after].filter((part) => part !== ''));
     const keys = [];
     ways.forEach((pressed, index) => {
       if (index) keys.push(text('shortcutOr'));
@@ -104,7 +110,11 @@
     table.classList.add(OURS);
     table.querySelector(`.${SLIDES}CategoryLabel`).textContent = text('extensionName');
     const row = table.querySelector(`tr:has(.${SLIDES}ShortcutName)`);
-    row.parentElement.replaceChildren(...found.map((shortcut, index) => fillRow(row.cloneNode(true), shortcut, index === found.length - 1)));
+    row.parentElement.replaceChildren(
+      ...found.map((shortcut, index) =>
+        fillRow(row.cloneNode(true), shortcut, index === found.length - 1),
+      ),
+    );
     return table;
   }
 

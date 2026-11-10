@@ -9,7 +9,12 @@ const object = (id) => `#workspace [id="${id}"]`;
 
 const stage = (page) => page.locator('.slides-companion-spotlight');
 // The bar's buttons that show, by the names screen readers hear.
-const buttonsIn = (bar) => bar.locator('button').evaluateAll((buttons) => buttons.filter((button) => button.checkVisibility()).map((button) => button.ariaLabel));
+const buttonsIn = (bar) =>
+  bar
+    .locator('button')
+    .evaluateAll((buttons) =>
+      buttons.filter((button) => button.checkVisibility()).map((button) => button.ariaLabel),
+    );
 const selected = (page) =>
   page.$$eval('#workspace path[stroke="#8ab4f8"]', (outlines) => [
     ...new Set(outlines.map((outline) => outline.closest('[id^="editor-"]').id)),
@@ -17,7 +22,9 @@ const selected = (page) =>
 // Which object the spotlight shows, and the position it announces.
 const showing = (page) =>
   page.evaluate(() => ({
-    id: document.querySelector('.slides-companion-spotlight-picture svg > g:last-child > g')?.id.replace('slides-companion-', ''),
+    id: document
+      .querySelector('.slides-companion-spotlight-picture svg > g:last-child > g')
+      ?.id.replace('slides-companion-', ''),
     status: document.querySelector('.slides-companion-spotlight-status')?.textContent,
   }));
 
@@ -46,8 +53,12 @@ test('Space spotlights the selected image and Escape closes it', async ({ contex
   // The picture fills the space inside the side margins and the safe areas above and below,
   // along one side.
   const viewport = page.viewportSize();
-  const picture = await stage(page).locator('.slides-companion-spotlight-picture svg').boundingBox();
-  expect(Math.max(picture.width / (viewport.width - 96), picture.height / (viewport.height - 160))).toBeCloseTo(1, 2);
+  const picture = await stage(page)
+    .locator('.slides-companion-spotlight-picture svg')
+    .boundingBox();
+  expect(
+    Math.max(picture.width / (viewport.width - 96), picture.height / (viewport.height - 160)),
+  ).toBeCloseTo(1, 2);
 
   await page.keyboard.press('Escape');
   await expect(stage(page)).toHaveCount(0);
@@ -55,7 +66,9 @@ test('Space spotlights the selected image and Escape closes it', async ({ contex
   expect(await selected(page)).toEqual([RIGHT]);
 });
 
-test('arrow keys go through the slide in reading order and stop at the ends', async ({ context }) => {
+test('arrow keys go through the slide in reading order and stop at the ends', async ({
+  context,
+}) => {
   const page = await openSlide(context);
   await clickCentre(page, `${object(RIGHT)} image`);
   await page.keyboard.press('Space');
@@ -71,16 +84,21 @@ test('arrow keys go through the slide in reading order and stop at the ends', as
   await expect(stage(page).locator('.slides-companion-spotlight-page')).toHaveText('2/2');
 });
 
-test('a click on the picture does nothing, and a click on the black around it closes', async ({ context }) => {
+test('a click on the picture does nothing, and a click on the black around it closes', async ({
+  context,
+}) => {
   const page = await openSlide(context);
   await clickCentre(page, `${object(LEFT)} image`);
   await page.keyboard.press('Space');
-  const picture = await stage(page).locator('.slides-companion-spotlight-picture svg').boundingBox();
+  const picture = await stage(page)
+    .locator('.slides-companion-spotlight-picture svg')
+    .boundingBox();
   const { width } = page.viewportSize();
 
   // Anywhere on the picture, its sides too, and on the bar between its buttons.
   const middle = picture.y + picture.height / 2;
-  for (const x of [picture.x + 5, picture.x + picture.width / 2, picture.x + picture.width - 5]) await page.mouse.click(x, middle);
+  for (const x of [picture.x + 5, picture.x + picture.width / 2, picture.x + picture.width - 5])
+    await page.mouse.click(x, middle);
   const bar = await stage(page).locator('.slides-companion-spotlight-bar').boundingBox();
   await page.mouse.click(bar.x + 2, bar.y + bar.height / 2);
   await expect(stage(page)).toBeVisible();
@@ -92,7 +110,9 @@ test('a click on the picture does nothing, and a click on the black around it cl
   expect(await selected(page)).toEqual([LEFT]);
 });
 
-test('the bar shows when the gallery opens, then only when the pointer is above or below the picture', async ({ context }) => {
+test('the bar shows when the gallery opens, then only when the pointer is above or below the picture', async ({
+  context,
+}) => {
   const page = await openSlide(context);
   await clickCentre(page, `${object(LEFT)} image`);
   await page.keyboard.press('Space');
@@ -118,7 +138,9 @@ test('the bar shows when the gallery opens, then only when the pointer is above 
   await expect(bar).toHaveCSS('opacity', '1');
 });
 
-test('the bar, at the bottom, holds ‹ 2/5 ›, Download image and Close, split like Slides’ toolbar', async ({ context }) => {
+test('the bar, at the bottom, holds ‹ 2/5 ›, Download image and Close, split like Slides’ toolbar', async ({
+  context,
+}) => {
   const page = await openSlide(context);
   await clickCentre(page, `${object(LEFT)} image`);
   await page.keyboard.press('Space');
@@ -127,7 +149,11 @@ test('the bar, at the bottom, holds ‹ 2/5 ›, Download image and Close, split
   // Centred, 20px up from the bottom, 40px tall.
   const { width, height } = page.viewportSize();
   const box = await bar.boundingBox();
-  expect([box.x + box.width / 2, box.y + box.height, box.height]).toEqual([width / 2, height - 20, 40]);
+  expect([box.x + box.width / 2, box.y + box.height, box.height]).toEqual([
+    width / 2,
+    height - 20,
+    40,
+  ]);
 
   // A divider before each section after the first: a 1px line, 20px tall, 4px from the buttons beside
   // it (their 2px margin and its own), in Material's dark outline variant.
@@ -136,14 +162,18 @@ test('the bar, at the bottom, holds ‹ 2/5 ›, Download image and Close, split
       .filter((group) => group.checkVisibility())
       .map((group) => {
         const line = getComputedStyle(group, '::before');
-        return line.content === 'none' ? null : [line.width, line.height, line.margin, line.backgroundColor];
+        return line.content === 'none'
+          ? null
+          : [line.width, line.height, line.margin, line.backgroundColor];
       }),
   );
   const divider = ['1px', '20px', '0px 2px', 'rgb(68, 71, 70)'];
   expect(dividers).toEqual([null, divider, divider]);
 });
 
-test('the bar’s buttons show Slides’ tooltip: after a moment, above the button, gone on leaving or a press', async ({ context }) => {
+test('the bar’s buttons show Slides’ tooltip: after a moment, above the button, gone on leaving or a press', async ({
+  context,
+}) => {
   const page = await openSlide(context);
   await clickCentre(page, `${object(LEFT)} image`);
   await page.keyboard.press('Space');
@@ -162,7 +192,10 @@ test('the bar’s buttons show Slides’ tooltip: after a moment, above the butt
   await expect(tooltip).toHaveCSS('color', 'rgb(48, 48, 48)');
   await expect(tooltip).toHaveCSS('font-size', '12px');
   await expect(tooltip).toHaveCSS('border-radius', '4px');
-  const [tip, button] = await Promise.all([tooltip.boundingBox(), stage(page).getByRole('button', { name: 'Close' }).boundingBox()]);
+  const [tip, button] = await Promise.all([
+    tooltip.boundingBox(),
+    stage(page).getByRole('button', { name: 'Close' }).boundingBox(),
+  ]);
   expect(tip.height).toBe(24);
   expect(tip.x + tip.width / 2).toBeCloseTo(button.x + button.width / 2, 0);
   expect(button.y - (tip.y + tip.height)).toBeCloseTo(5, 0);
@@ -226,13 +259,16 @@ test('the "When images are grouped" setting decides how a group is shown', async
   const page = await openSlide(context);
   // The deck has no groups, so build one the way Slides draws it: the group's own editor
   // element holding the objects' elements.
-  await page.evaluate(([left, right]) => {
-    const first = document.getElementById(left);
-    const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    group.id = 'editor-testgroup';
-    first.before(group);
-    group.append(first, document.getElementById(right));
-  }, [LEFT, RIGHT]);
+  await page.evaluate(
+    ([left, right]) => {
+      const first = document.getElementById(left);
+      const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      group.id = 'editor-testgroup';
+      first.before(group);
+      group.append(first, document.getElementById(right));
+    },
+    [LEFT, RIGHT],
+  );
   await clickCentre(page, `${object(RIGHT)} image`);
   await expect.poll(() => selected(page)).toEqual([RIGHT]);
 
@@ -263,7 +299,9 @@ test('Space does nothing when the selection has no image', async ({ context }) =
 
 test('the right-click menu offers Spotlight image for images only', async ({ context }) => {
   const page = await openSlide(context);
-  const item = page.locator('.goog-menu[role="menu"] .goog-menuitem', { hasText: 'Spotlight image' });
+  const item = page.locator('.goog-menu[role="menu"] .goog-menuitem', {
+    hasText: 'Spotlight image',
+  });
 
   await clickCentre(page, object(CAPTION), { button: 'right' });
   await expect(page.locator('.goog-menu[role="menu"]:visible')).toBeVisible();
@@ -280,14 +318,19 @@ test('the right-click menu offers Spotlight image for images only', async ({ con
 
 // Slides' menus only know their own items; its arrow keys, Home and End stop on ours too, in their
 // place, and Enter chooses it, whether the menu was opened with the pointer or with Shift+F10.
-test('the arrow keys reach Spotlight image in the right-click menu, and Enter spotlights the image', async ({ context }) => {
+test('the arrow keys reach Spotlight image in the right-click menu, and Enter spotlights the image', async ({
+  context,
+}) => {
   const page = await openSlide(context);
   const menu = page.locator('.goog-menu[role="menu"]').filter({ visible: true });
   const item = menu.locator('.goog-menuitem', { hasText: 'Spotlight image' });
   const download = menu.locator('.goog-menuitem', { hasText: 'Download image' });
-  const stops = menu.locator('.goog-menuitem:not(.goog-menuitem-disabled)').filter({ visible: true });
+  const stops = menu
+    .locator('.goog-menuitem:not(.goog-menuitem-disabled)')
+    .filter({ visible: true });
   const highlighted = menu.locator('.goog-menuitem-highlight');
-  const named = async (element) => expect(menu).toHaveAttribute('aria-activedescendant', await element.getAttribute('id'));
+  const named = async (element) =>
+    expect(menu).toHaveAttribute('aria-activedescendant', await element.getAttribute('id'));
   await clickCentre(page, `${object(RIGHT)} image`, { button: 'right' });
   await expect(item).toBeVisible();
   // Ours are the last two, here: down from the first item.

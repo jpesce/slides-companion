@@ -4,13 +4,19 @@
   // Whether the browser can scroll the slide's area further the way the wheel turns.
   function canScroll(area, event) {
     // Shift + scroll scrolls sideways.
-    const [x, y] = event.shiftKey && !event.deltaX ? [event.deltaY, 0] : [event.deltaX, event.deltaY];
-    const room = (position, end, delta) => (delta < 0 && position > 0) || (delta > 0 && position < end - 1);
+    const [x, y] =
+      event.shiftKey && !event.deltaX ? [event.deltaY, 0] : [event.deltaX, event.deltaY];
+    const room = (position, end, delta) =>
+      (delta < 0 && position > 0) || (delta > 0 && position < end - 1);
     if (room(area.scrollTop, area.scrollHeight - area.clientHeight, y)) return true;
     if (!x) return false;
     // Right to left, the area starts scrolled right, and scrollLeft counts down from 0.
     const rtl = getComputedStyle(area).direction === 'rtl';
-    return room(rtl ? -area.scrollLeft : area.scrollLeft, area.scrollWidth - area.clientWidth, rtl ? -x : x);
+    return room(
+      rtl ? -area.scrollLeft : area.scrollLeft,
+      area.scrollWidth - area.clientWidth,
+      rtl ? -x : x,
+    );
   }
 
   // Slides listens for the wheel on the slide itself, and the browser scrolls a zoomed-in slide on

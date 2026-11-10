@@ -21,17 +21,32 @@ export const version = () => JSON.parse(fs.readFileSync(MANIFEST, 'utf8')).versi
 // A version's section: from its "## v1.2.3 - date" heading to the next "## ".
 export function section(text, number) {
   const lines = text.split('\n');
-  const start = lines.findIndex((line) => new RegExp(`^## v${number.replaceAll('.', '\\.')}(\\s|$)`).test(line));
+  const start = lines.findIndex((line) =>
+    new RegExp(`^## v${number.replaceAll('.', '\\.')}(\\s|$)`).test(line),
+  );
   if (start < 0) return null;
   const end = lines.findIndex((line, index) => index > start && line.startsWith('## '));
-  return { heading: lines[start], body: lines.slice(start + 1, end < 0 ? undefined : end).join('\n').trim() };
+  return {
+    heading: lines[start],
+    body: lines
+      .slice(start + 1, end < 0 ? undefined : end)
+      .join('\n')
+      .trim(),
+  };
 }
 
 export function notes(number, text = fs.readFileSync(CHANGELOG, 'utf8')) {
   const found = section(text, number);
-  if (!found) throw new Error(`CHANGELOG.md has no section for v${number}. Add "## v${number} - YYYY-MM-DD" with what changed.`);
-  if (found.heading.includes(UNRELEASED)) throw new Error(`CHANGELOG.md still says v${number} is ${UNRELEASED}: put today's date in its heading.`);
-  if (!found.body || /^-\s*$/m.test(found.body)) throw new Error(`CHANGELOG.md's section for v${number} has an empty line to fill in.`);
+  if (!found)
+    throw new Error(
+      `CHANGELOG.md has no section for v${number}. Add "## v${number} - YYYY-MM-DD" with what changed.`,
+    );
+  if (found.heading.includes(UNRELEASED))
+    throw new Error(
+      `CHANGELOG.md still says v${number} is ${UNRELEASED}: put today's date in its heading.`,
+    );
+  if (!found.body || /^-\s*$/m.test(found.body))
+    throw new Error(`CHANGELOG.md's section for v${number} has an empty line to fill in.`);
   return found.body;
 }
 
@@ -46,7 +61,8 @@ export function bumped(number, part) {
 // The manifest with only its version line changed, so it keeps its layout.
 export function withVersion(manifest, from, to) {
   const line = `"version": "${from}"`;
-  if (!manifest.includes(line)) throw new Error(`extension/manifest.json has no ${line} line to change.`);
+  if (!manifest.includes(line))
+    throw new Error(`extension/manifest.json has no ${line} line to change.`);
   return manifest.replace(line, `"version": "${to}"`);
 }
 
@@ -55,7 +71,9 @@ export function withSection(changelog, number) {
   if (section(changelog, number)) return changelog;
   const at = changelog.search(/^## /m);
   const entry = `## v${number} - ${UNRELEASED}\n\n- \n\n`;
-  return at < 0 ? `${changelog.trimEnd()}\n\n${entry}` : changelog.slice(0, at) + entry + changelog.slice(at);
+  return at < 0
+    ? `${changelog.trimEnd()}\n\n${entry}`
+    : changelog.slice(0, at) + entry + changelog.slice(at);
 }
 
 function bump(part) {
@@ -84,7 +102,8 @@ function testing() {
 function markTested() {
   const commit = fs.existsSync(PENDING) ? fs.readFileSync(PENDING, 'utf8') : null;
   fs.rmSync(PENDING, { force: true });
-  if (!commit || commit !== committed()) return 'Not marked as tested: the code changed during the run, or had uncommitted changes.';
+  if (!commit || commit !== committed())
+    return 'Not marked as tested: the code changed during the run, or had uncommitted changes.';
   fs.writeFileSync(tested(version()), commit);
   return `Marked ${commit.slice(0, 7)} as tested for v${version()}.`;
 }
@@ -94,7 +113,9 @@ function ensureTested() {
   const file = tested(number);
   const commit = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : null;
   if (!commit || commit !== committed()) {
-    throw new Error(`v${number} hasn't passed the tests on its build at this commit. Run \`make test-build\` (about 45 minutes) first.`);
+    throw new Error(
+      `v${number} hasn't passed the tests on its build at this commit. Run \`make test-build\` (about 45 minutes) first.`,
+    );
   }
 }
 
@@ -107,7 +128,10 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     else if (command === 'testing') console.log(testing());
     else if (command === 'tested') console.log(markTested());
     else if (command === 'ensure-tested') ensureTested();
-    else throw new Error('Use: version, bump <major|minor|patch>, notes [version], testing, tested or ensure-tested.');
+    else
+      throw new Error(
+        'Use: version, bump <major|minor|patch>, notes [version], testing, tested or ensure-tested.',
+      );
   } catch (error) {
     console.error(error.message);
     process.exit(1);

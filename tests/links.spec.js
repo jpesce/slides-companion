@@ -5,14 +5,20 @@ import { test, expect, deckUrl, openSettings, press } from './fixtures.js';
 const slide = `${deckUrl}#slide=id.h2c87d6044fe40693_46_0`;
 const LINKED_PHOTO = 'h2c87d6044fe40693_46_2';
 const link = (show) => show.locator(`[id="${LINKED_PHOTO}"] a`).first();
-const landed = (show) => expect.poll(async () => (await link(show).boundingBox())?.y).toBeGreaterThan(0);
+const landed = (show) =>
+  expect.poll(async () => (await link(show).boundingBox())?.y).toBeGreaterThan(0);
 
 // Slides sends the link through google.com/url; the page it goes to is played by these.
 const PAGE = `<title>Linked page</title><h1>Hello from the link</h1><a href="/second">Second page</a>`;
 async function servePages(context) {
-  await context.route('https://www.google.com/', (route) => route.fulfill({ contentType: 'text/html', body: PAGE }));
+  await context.route('https://www.google.com/', (route) =>
+    route.fulfill({ contentType: 'text/html', body: PAGE }),
+  );
   await context.route('https://www.google.com/second', (route) =>
-    route.fulfill({ contentType: 'text/html', body: '<title>Second</title><h1>The second page</h1>' }),
+    route.fulfill({
+      contentType: 'text/html',
+      body: '<title>Second</title><h1>The second page</h1>',
+    }),
   );
 }
 
@@ -28,7 +34,10 @@ async function startSlideshow(context) {
 }
 
 const slideNumber = (show) =>
-  show.locator('.punch-viewer-svgpage-a11yelement').getAttribute('aria-label').then((label) => Number(label.match(/\d+/)[0]));
+  show
+    .locator('.punch-viewer-svgpage-a11yelement')
+    .getAttribute('aria-label')
+    .then((label) => Number(label.match(/\d+/)[0]));
 
 async function clickCentre(page, locator, options) {
   const box = await locator.boundingBox();
@@ -49,7 +58,9 @@ const linkTo = (show, href) =>
     for (const link of links) link.setAttribute('href', href);
   }, href);
 
-test('clicking a link during a slideshow opens its page over the slide, and Esc goes back', async ({ context }) => {
+test('clicking a link during a slideshow opens its page over the slide, and Esc goes back', async ({
+  context,
+}) => {
   const { page, show } = await startSlideshow(context);
   expect(await slideNumber(show)).toBe(4);
   const tabs = context.pages().length;
@@ -64,7 +75,12 @@ test('clicking a link during a slideshow opens its page over the slide, and Esc 
   await expect(linked.getByRole('heading', { name: 'Hello from the link' })).toBeVisible();
   // The page fills the space the gallery gives a picture.
   const viewport = page.viewportSize();
-  expect(await website(show).boundingBox()).toEqual({ x: 48, y: 80, width: viewport.width - 96, height: viewport.height - 160 });
+  expect(await website(show).boundingBox()).toEqual({
+    x: 48,
+    y: 80,
+    width: viewport.width - 96,
+    height: viewport.height - 160,
+  });
 
   // Without every site allowed, the page can't say where it is: no Back or Forward.
   await expect(stage(show).locator('.slides-companion-spotlight-back')).toBeHidden();
@@ -94,7 +110,9 @@ test('the page can be browsed, and the ✕ brings the slide back', async ({ cont
   await expect.poll(() => slideNumber(show)).toBe(11);
 });
 
-test('Open in new tab opens the link in a tab of its own and closes the page over the slide', async ({ context }) => {
+test('Open in new tab opens the link in a tab of its own and closes the page over the slide', async ({
+  context,
+}) => {
   const { page, show } = await startSlideshow(context);
   await clickLink(page, show);
   const { height } = page.viewportSize();
@@ -114,7 +132,9 @@ test('Ctrl/⌘-click on a link is left to Slides', async ({ context }) => {
   await expect(stage(show)).toHaveCount(0);
 });
 
-test('set to open links in a new tab, a click opens a new tab as Slides does', async ({ context }) => {
+test('set to open links in a new tab, a click opens a new tab as Slides does', async ({
+  context,
+}) => {
   await servePages(context);
   const page = await context.newPage();
   await page.goto(slide);
@@ -132,12 +152,22 @@ test('set to open links in a new tab, a click opens a new tab as Slides does', a
 });
 
 // The deck's video is played on the slide; a link to one is turned into YouTube's own player.
-test('a YouTube link plays in YouTube’s player, from where the link starts it', async ({ context }) => {
-  await context.route('https://www.youtube.com/embed/**', (route) => route.fulfill({ contentType: 'text/html', body: '<h1>Player</h1>' }));
+test('a YouTube link plays in YouTube’s player, from where the link starts it', async ({
+  context,
+}) => {
+  await context.route('https://www.youtube.com/embed/**', (route) =>
+    route.fulfill({ contentType: 'text/html', body: '<h1>Player</h1>' }),
+  );
   const { page, show } = await startSlideshow(context);
-  await linkTo(show, 'https://www.google.com/url?q=https://www.youtube.com/watch?v%3D10QOOvxw0uA%26t%3D1m30s&sa=D');
+  await linkTo(
+    show,
+    'https://www.google.com/url?q=https://www.youtube.com/watch?v%3D10QOOvxw0uA%26t%3D1m30s&sa=D',
+  );
   await clickLink(page, show);
-  await expect(website(show)).toHaveAttribute('src', 'https://www.youtube.com/embed/10QOOvxw0uA?autoplay=1&start=90');
+  await expect(website(show)).toHaveAttribute(
+    'src',
+    'https://www.youtube.com/embed/10QOOvxw0uA?autoplay=1&start=90',
+  );
   await page.keyboard.press('Escape');
   await expect(stage(show)).toHaveCount(0);
 
@@ -152,35 +182,57 @@ test('a YouTube link plays in YouTube’s player, from where the link starts it'
 test('a page can’t take over the slideshow’s window', async ({ context }) => {
   const { page, show } = await startSlideshow(context);
   await context.route('https://www.google.com/', (route) =>
-    route.fulfill({ contentType: 'text/html', body: `<h1>Busting</h1><script>top.location.href = 'https://www.google.com/second';</script>` }),
+    route.fulfill({
+      contentType: 'text/html',
+      body: `<h1>Busting</h1><script>top.location.href = 'https://www.google.com/second';</script>`,
+    }),
   );
   await clickLink(page, show);
-  await expect(show.frameLocator('iframe.slides-companion-spotlight-website').getByRole('heading', { name: 'Busting' })).toBeVisible();
+  await expect(
+    show
+      .frameLocator('iframe.slides-companion-spotlight-website')
+      .getByRole('heading', { name: 'Busting' }),
+  ).toBeVisible();
   await page.waitForTimeout(1000);
   expect(page.url()).toContain('/edit');
   await expect(stage(show)).toBeVisible();
 });
 
 // Opened from a /present link, Slides sends links through google.com/url.
-test('a slideshow opened from a link opens the real address over the slide', async ({ context }) => {
+test('a slideshow opened from a link opens the real address over the slide', async ({
+  context,
+}) => {
   await servePages(context);
   const page = await context.newPage();
   await page.goto(slide.replace('/edit#slide=', '/present?slide='));
-  const linked = page.locator('.punch-viewer-svgpage-svgcontainer a[*|href*="google.com/url"]').first();
+  const linked = page
+    .locator('.punch-viewer-svgpage-svgcontainer a[*|href*="google.com/url"]')
+    .first();
   await expect.poll(async () => (await linked.boundingBox())?.y).toBeGreaterThan(0);
   await clickCentre(page, linked);
-  await expect(page.locator('iframe.slides-companion-spotlight-website')).toHaveAttribute('src', 'https://www.google.com/');
+  await expect(page.locator('iframe.slides-companion-spotlight-website')).toHaveAttribute(
+    'src',
+    'https://www.google.com/',
+  );
   await page.keyboard.press('Escape');
   await expect(page.locator('.slides-companion-spotlight')).toHaveCount(0);
 });
 
 test('Shorts, live videos and Drive files open in their players', async ({ context }) => {
-  await context.route(/^https:\/\/(www\.youtube|drive\.google)\.com\//, (route) => route.fulfill({ contentType: 'text/html', body: '<h1>Player</h1>' }));
+  await context.route(/^https:\/\/(www\.youtube|drive\.google)\.com\//, (route) =>
+    route.fulfill({ contentType: 'text/html', body: '<h1>Player</h1>' }),
+  );
   const { page, show } = await startSlideshow(context);
   for (const [href, shown] of [
     ['https://youtube.com/shorts/abc123', 'https://www.youtube.com/embed/abc123?autoplay=1'],
-    ['https://www.youtube.com/live/def456?t=30', 'https://www.youtube.com/embed/def456?autoplay=1&start=30'],
-    ['https://drive.google.com/file/d/1AbC/view?usp=sharing', 'https://drive.google.com/file/d/1AbC/preview'],
+    [
+      'https://www.youtube.com/live/def456?t=30',
+      'https://www.youtube.com/embed/def456?autoplay=1&start=30',
+    ],
+    [
+      'https://drive.google.com/file/d/1AbC/view?usp=sharing',
+      'https://drive.google.com/file/d/1AbC/preview',
+    ],
     ['https://drive.google.com/open?id=2DeF', 'https://drive.google.com/file/d/2DeF/preview'],
   ]) {
     await linkTo(show, href);
@@ -194,7 +246,9 @@ test('Shorts, live videos and Drive files open in their players', async ({ conte
 // Chrome's PDF viewer isn't let into the page's frame, and a link in it would take the
 // whole tab. Google's servers fetch the PDF, so it's a real one, online.
 const PDF = 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf';
-test('a PDF opens in Google’s viewer, in Slides’ language, where Esc goes back too', async ({ context }) => {
+test('a PDF opens in Google’s viewer, in Slides’ language, where Esc goes back too', async ({
+  context,
+}) => {
   const { page, show } = await startSlideshow(context);
   await linkTo(show, `https://www.google.com/url?q=${encodeURIComponent(PDF)}&sa=D`);
   await clickLink(page, show);
@@ -228,7 +282,9 @@ test('a PDF opens in Google’s viewer, in Slides’ language, where Esc goes ba
 
 // A PDF at an address that doesn't say so fails the refusal check, as it fails in the
 // page's frame; Google's viewer, asked out of sight, finds it's a PDF, and it shows there.
-test('a PDF whose address doesn’t end in .pdf (arXiv’s) shows in Google’s viewer too', async ({ context }) => {
+test('a PDF whose address doesn’t end in .pdf (arXiv’s) shows in Google’s viewer too', async ({
+  context,
+}) => {
   const ARXIV = 'https://arxiv.org/pdf/1706.03762';
   const { page, show } = await startSlideshow(context);
   await linkTo(show, ARXIV);
@@ -239,13 +295,17 @@ test('a PDF whose address doesn’t end in .pdf (arXiv’s) shows in Google’s 
   await expect(website(show)).toHaveAttribute('src', viewer.href, { timeout: 15000 });
   const pdf = show.frameLocator('iframe.slides-companion-spotlight-website');
   await expect(pdf.locator('img[src^="blob:"]').first()).toBeVisible({ timeout: 20000 });
-  await expect(stage(show).locator('.slides-companion-spotlight-refused, .slides-companion-spotlight-probe')).toHaveCount(0);
+  await expect(
+    stage(show).locator('.slides-companion-spotlight-refused, .slides-companion-spotlight-probe'),
+  ).toHaveCount(0);
   await expect(stage(show).locator('.slides-companion-spotlight-site')).toHaveText('arxiv.org');
 });
 
 // GitHub's page for a PDF ends in .pdf too. Google's viewer would show it as code; it shows as any
 // page instead, here GitHub's refusal to be shown inside another page.
-test('a .pdf address that’s a web page opens as one, not in the PDF viewer', async ({ context }) => {
+test('a .pdf address that’s a web page opens as one, not in the PDF viewer', async ({
+  context,
+}) => {
   const GITHUB = 'https://github.com/mozilla/pdf.js/blob/master/test/pdfs/tracemonkey.pdf';
   const { page, show } = await startSlideshow(context);
   await linkTo(show, GITHUB);
@@ -253,20 +313,32 @@ test('a .pdf address that’s a web page opens as one, not in the PDF viewer', a
   await show.locator('body').evaluate(() => {
     window.sawCode = false;
     const watch = () => {
-      const viewer = document.querySelector('iframe.slides-companion-spotlight-website[src^="https://docs.google.com/viewer"]');
-      if (viewer && getComputedStyle(viewer).visibility !== 'hidden' && viewer.contentDocument?.querySelector('pre')) window.sawCode = true;
+      const viewer = document.querySelector(
+        'iframe.slides-companion-spotlight-website[src^="https://docs.google.com/viewer"]',
+      );
+      if (
+        viewer &&
+        getComputedStyle(viewer).visibility !== 'hidden' &&
+        viewer.contentDocument?.querySelector('pre')
+      )
+        window.sawCode = true;
       requestAnimationFrame(watch);
     };
     watch();
   });
   await clickLink(page, show);
-  await expect(inRefusal(show).getByRole('heading')).toHaveText('github.com won’t open over your slide', { timeout: 20000 });
+  await expect(inRefusal(show).getByRole('heading')).toHaveText(
+    'github.com won’t open over your slide',
+    { timeout: 20000 },
+  );
   expect(await show.locator('body').evaluate(() => window.sawCode)).toBe(false);
 });
 
 // The slideshow is an https page, where Chrome blocks plain http ones.
 test('an http link opens at its https address, and in a new tab as it was', async ({ context }) => {
-  await context.route('http://www.google.com/', (route) => route.fulfill({ contentType: 'text/html', body: PAGE }));
+  await context.route('http://www.google.com/', (route) =>
+    route.fulfill({ contentType: 'text/html', body: PAGE }),
+  );
   const { page, show } = await startSlideshow(context);
   await linkTo(show, 'http://www.google.com/');
   await clickLink(page, show);
@@ -287,11 +359,17 @@ test('a link that isn’t shown yet leaves the click to the slideshow', async ({
 });
 
 // A page can take the keys as it opens (a search box), where the slideshow can't hear Esc.
-test('a page can’t take the keys until the pointer goes over it, so Esc still closes it', async ({ context }) => {
+test('a page can’t take the keys until the pointer goes over it, so Esc still closes it', async ({
+  context,
+}) => {
   const GRABBING = `<input autofocus><script>setTimeout(() => document.querySelector('input').focus(), 300);</script>`;
   const { page, show } = await startSlideshow(context);
-  await context.route('https://www.google.com/', (route) => route.fulfill({ contentType: 'text/html', body: GRABBING }));
-  await context.route('https://docs.google.com/document/d/test/edit', (route) => route.fulfill({ contentType: 'text/html', body: GRABBING }));
+  await context.route('https://www.google.com/', (route) =>
+    route.fulfill({ contentType: 'text/html', body: GRABBING }),
+  );
+  await context.route('https://docs.google.com/document/d/test/edit', (route) =>
+    route.fulfill({ contentType: 'text/html', body: GRABBING }),
+  );
   const keysInPage = () => website(show).evaluate((frame) => document.activeElement === frame);
   const input = show.frameLocator('iframe.slides-companion-spotlight-website').locator('input');
 
@@ -330,14 +408,18 @@ const REFUSALS = [
 ];
 const serveGoogle = async (context, headers = {}) => {
   await context.unroute('https://www.google.com/');
-  await context.route('https://www.google.com/', (route) => route.fulfill({ contentType: 'text/html', headers, body: PAGE }));
+  await context.route('https://www.google.com/', (route) =>
+    route.fulfill({ contentType: 'text/html', headers, body: PAGE }),
+  );
 };
 const refusal = (show) => stage(show).locator('iframe.slides-companion-spotlight-refused');
 const inRefusal = (show) => show.frameLocator('iframe.slides-companion-spotlight-refused');
 // The frame of our message, to act in it as Chrome would.
 const refusalFrame = (page) => page.frames().find((frame) => frame.url().includes('/refused.html'));
 
-test('a site that refuses to be shown says so over the slide, instead of Chrome’s empty error page', async ({ context }) => {
+test('a site that refuses to be shown says so over the slide, instead of Chrome’s empty error page', async ({
+  context,
+}) => {
   const { page, show } = await startSlideshow(context);
   for (const [, headers] of REFUSALS) {
     await serveGoogle(context, headers);
@@ -346,13 +428,22 @@ test('a site that refuses to be shown says so over the slide, instead of Chrome�
     // In place of the page, filling its space.
     await expect(website(show)).toHaveCount(0);
     const viewport = page.viewportSize();
-    expect(await refusal(show).boundingBox()).toEqual({ x: 48, y: 80, width: viewport.width - 96, height: viewport.height - 160 });
+    expect(await refusal(show).boundingBox()).toEqual({
+      x: 48,
+      y: 80,
+      width: viewport.width - 96,
+      height: viewport.height - 160,
+    });
     const message = inRefusal(show);
     await expect(message.getByRole('heading')).toHaveText('google.com won’t open over your slide');
-    await expect(message.getByText('Allow all sites to show it here, or open it in a new tab.')).toBeVisible();
+    await expect(
+      message.getByText('Allow all sites to show it here, or open it in a new tab.'),
+    ).toBeVisible();
     await expect(message.getByRole('button')).toHaveText(['Open in new tab', 'Allow all sites']);
     // Screen readers hear it too.
-    await expect(stage(show).locator('.slides-companion-spotlight-status')).toHaveText('google.com won’t open over your slide');
+    await expect(stage(show).locator('.slides-companion-spotlight-status')).toHaveText(
+      'google.com won’t open over your slide',
+    );
     // The bar still names the site, with Open in new tab.
     await expect(stage(show).locator('.slides-companion-spotlight-site')).toHaveText('google.com');
     await page.keyboard.press('Escape');
@@ -379,7 +470,10 @@ test('the message looks like Slides’ dialogs in Google’s dark theme', async 
   await expect(title).toHaveCSS('color', 'rgb(227, 227, 227)');
   await expect(message.locator('p')).toHaveCSS('font-size', '14px');
   await expect(message.locator('p')).toHaveCSS('color', 'rgb(196, 199, 197)');
-  const [open, allow] = [message.getByRole('button', { name: 'Open in new tab' }), message.getByRole('button', { name: 'Allow all sites' })];
+  const [open, allow] = [
+    message.getByRole('button', { name: 'Open in new tab' }),
+    message.getByRole('button', { name: 'Allow all sites' }),
+  ];
   for (const button of [open, allow]) {
     await expect(button).toHaveCSS('height', '40px');
     await expect(button).toHaveCSS('border-radius', '20px');
@@ -393,7 +487,9 @@ test('the message looks like Slides’ dialogs in Google’s dark theme', async 
   await page.screenshot({ path: test.info().outputPath('refused.png') });
 });
 
-test('from the message, Open in new tab opens the site, by pointer or keyboard', async ({ context }) => {
+test('from the message, Open in new tab opens the site, by pointer or keyboard', async ({
+  context,
+}) => {
   const { page, show } = await startSlideshow(context);
   await serveGoogle(context, REFUSALS[0][1]);
   await clickLink(page, show);
@@ -420,7 +516,10 @@ test('from the message, Open in new tab opens the site, by pointer or keyboard',
   await expect(stage(show)).toHaveCount(0);
 });
 
-test('Allow all sites asks Chrome from the message, and once allowed the page shows', async ({ context, serviceWorker }) => {
+test('Allow all sites asks Chrome from the message, and once allowed the page shows', async ({
+  context,
+  serviceWorker,
+}) => {
   const { page, show } = await startSlideshow(context);
   await serveGoogle(context, REFUSALS[0][1]);
   await clickLink(page, show);
@@ -434,8 +533,14 @@ test('Allow all sites asks Chrome from the message, and once allowed the page sh
   });
   await serveGoogle(context);
   await inRefusal(show).getByRole('button', { name: 'Allow all sites' }).click();
-  await expect(show.frameLocator('iframe.slides-companion-spotlight-website').getByRole('heading', { name: 'Hello from the link' })).toBeVisible();
-  expect(await serviceWorker.evaluate(() => chrome.storage.local.get('asked'))).toEqual({ asked: { origins: ['*://*/*'] } });
+  await expect(
+    show
+      .frameLocator('iframe.slides-companion-spotlight-website')
+      .getByRole('heading', { name: 'Hello from the link' }),
+  ).toBeVisible();
+  expect(await serviceWorker.evaluate(() => chrome.storage.local.get('asked'))).toEqual({
+    asked: { origins: ['*://*/*'] },
+  });
   await expect(refusal(show)).toHaveCount(0);
   await expect(stage(show).locator('.slides-companion-spotlight-status')).toHaveText('');
 });
@@ -443,7 +548,11 @@ test('Allow all sites asks Chrome from the message, and once allowed the page sh
 test('a site that lets itself be shown never shows the message', async ({ context }) => {
   const { page, show } = await startSlideshow(context);
   await clickLink(page, show);
-  await expect(show.frameLocator('iframe.slides-companion-spotlight-website').getByRole('heading', { name: 'Hello from the link' })).toBeVisible();
+  await expect(
+    show
+      .frameLocator('iframe.slides-companion-spotlight-website')
+      .getByRole('heading', { name: 'Hello from the link' }),
+  ).toBeVisible();
   await page.waitForTimeout(1500);
   await expect(refusal(show)).toHaveCount(0);
   // Checked and done: nothing's left loading out of sight.

@@ -15,12 +15,16 @@
   const open = document.querySelector('.slides-companion-refused-open');
   const allow = document.querySelector('.slides-companion-refused-allow');
   document.title = text('refusedTitle', site);
-  document.querySelector('.slides-companion-refused-title').textContent = text('refusedTitle', site);
+  document.querySelector('.slides-companion-refused-title').textContent = text(
+    'refusedTitle',
+    site,
+  );
   document.querySelector('.slides-companion-refused-text').textContent = text('refusedLine');
   open.textContent = text('openInNewTab');
   allow.textContent = text('allSitesAllow');
 
-  const tell = (message) => parent.postMessage({ source: 'slides-companion-refused', ...message }, SLIDES_ORIGIN);
+  const tell = (message) =>
+    parent.postMessage({ source: 'slides-companion-refused', ...message }, SLIDES_ORIGIN);
 
   open.addEventListener('click', () => tell({ type: 'open' }));
   allow.addEventListener('click', async () => {
@@ -29,18 +33,27 @@
     } catch {}
   });
   // Allowed another way meanwhile (Settings, in another tab).
-  chrome.permissions.onAdded.addListener(async () => (await chrome.permissions.contains(ALL_SITES)) && tell({ type: 'allowed' }));
+  chrome.permissions.onAdded.addListener(
+    async () => (await chrome.permissions.contains(ALL_SITES)) && tell({ type: 'allowed' }),
+  );
 
   // A click on the black around the message closes the stage, as around a picture.
-  document.addEventListener('click', (event) => [document.body, document.documentElement].includes(event.target) && tell({ type: 'close' }));
+  document.addEventListener(
+    'click',
+    (event) =>
+      [document.body, document.documentElement].includes(event.target) && tell({ type: 'close' }),
+  );
 
   // Tabbed into from the stage: the first button, or the last going back.
   window.addEventListener('message', (event) => {
-    if (event.source !== parent || event.origin !== SLIDES_ORIGIN || event.data?.type !== 'focus') return;
+    if (event.source !== parent || event.origin !== SLIDES_ORIGIN || event.data?.type !== 'focus')
+      return;
     document.documentElement.classList.add('slides-companion-tabbed');
     (event.data.last ? allow : open).focus();
   });
-  window.addEventListener('mousedown', () => document.documentElement.classList.remove('slides-companion-tabbed'));
+  window.addEventListener('mousedown', () =>
+    document.documentElement.classList.remove('slides-companion-tabbed'),
+  );
 
   // Esc closes the stage, as everywhere on it. (Tab goes on out of the frame by itself.)
   window.addEventListener('keydown', (event) => {

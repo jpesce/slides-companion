@@ -18,7 +18,10 @@ async function startSlideshow(context) {
 
 // The slide the slideshow is on, from its accessible label ("Slide 3 of 9").
 const slideNumber = (show) =>
-  show.locator('.punch-viewer-svgpage-a11yelement').getAttribute('aria-label').then((label) => Number(label.match(/\d+/)[0]));
+  show
+    .locator('.punch-viewer-svgpage-a11yelement')
+    .getAttribute('aria-label')
+    .then((label) => Number(label.match(/\d+/)[0]));
 
 async function clickCentre(page, locator, options) {
   const box = await locator.boundingBox();
@@ -27,9 +30,14 @@ async function clickCentre(page, locator, options) {
 
 const stage = (show) => show.locator('.slides-companion-spotlight');
 const showing = (show) =>
-  show.locator('.slides-companion-spotlight-picture svg > g:last-child > g').getAttribute('id').then((id) => id.replace('slides-companion-', ''));
+  show
+    .locator('.slides-companion-spotlight-picture svg > g:last-child > g')
+    .getAttribute('id')
+    .then((id) => id.replace('slides-companion-', ''));
 
-test('clicking an image during a slideshow spotlights it, and Esc goes back to the slide', async ({ context }) => {
+test('clicking an image during a slideshow spotlights it, and Esc goes back to the slide', async ({
+  context,
+}) => {
   const { page, show } = await startSlideshow(context);
   expect(await slideNumber(show)).toBe(3);
 
@@ -53,7 +61,8 @@ test('Esc stays kept until the key that closed the gallery is released', async (
   await page.evaluate(() => {
     window.escapeRequests = [];
     window.addEventListener('message', (event) => {
-      if (event.data?.type === 'slides-companion-keep-escape') window.escapeRequests.push(event.data.keep);
+      if (event.data?.type === 'slides-companion-keep-escape')
+        window.escapeRequests.push(event.data.keep);
     });
   });
   const requests = () => page.evaluate(() => window.escapeRequests);
@@ -70,11 +79,15 @@ test('Esc stays kept until the key that closed the gallery is released', async (
   await expect.poll(requests).toEqual([true, false]);
 });
 
-test('in the gallery, clicks, keys and the scroll wheel stay out of the slideshow', async ({ context }) => {
+test('in the gallery, clicks, keys and the scroll wheel stay out of the slideshow', async ({
+  context,
+}) => {
   const { page, show } = await startSlideshow(context);
   await clickCentre(page, show.locator(`[id="${RIGHT}"] image`));
   await expect(stage(show)).toBeVisible();
-  const picture = await stage(show).locator('.slides-companion-spotlight-picture svg').boundingBox();
+  const picture = await stage(show)
+    .locator('.slides-companion-spotlight-picture svg')
+    .boundingBox();
 
   await page.mouse.click(picture.x + picture.width * 0.8, picture.y + picture.height / 2);
   await page.mouse.click(picture.x + picture.width * 0.2, picture.y + picture.height / 2);
@@ -118,7 +131,9 @@ test('with the pen on, clicking an image leaves it to the pen', async ({ context
   expect(await slideNumber(show)).toBe(3);
 });
 
-test('turning the setting off keeps clicks on images going to the next slide', async ({ context }) => {
+test('turning the setting off keeps clicks on images going to the next slide', async ({
+  context,
+}) => {
   const page = await context.newPage();
   await page.goto(slide);
   await openSettings(page, 'Spotlight');
@@ -163,7 +178,9 @@ test('holding the key that closes the gallery doesn’t skip slides', async ({ c
 });
 
 // A click on the black around the gallery's picture closes it, and the top of the photo is there.
-test('double clicking an image opens it, and the second click does nothing more', async ({ context }) => {
+test('double clicking an image opens it, and the second click does nothing more', async ({
+  context,
+}) => {
   const { page, show } = await startSlideshow(context);
   // On the photo, and in the gallery's safe area above the picture.
   const photo = await show.locator(`[id="${RIGHT}"] image`).boundingBox();
@@ -183,7 +200,8 @@ test('the gallery closes when the slide changes under it', async ({ context }) =
   await expect(stage(show)).toBeVisible();
   // As auto-advance or the presenter view would, without a key or click on the gallery.
   await show.locator('.punch-viewer-navbar-next').evaluate((next) => {
-    for (const type of ['mouseover', 'mousedown', 'mouseup', 'click']) next.dispatchEvent(new MouseEvent(type, { bubbles: true }));
+    for (const type of ['mouseover', 'mousedown', 'mouseup', 'click'])
+      next.dispatchEvent(new MouseEvent(type, { bubbles: true }));
   });
   await expect.poll(() => slideNumber(show)).toBe(4);
   await expect(stage(show)).toHaveCount(0);

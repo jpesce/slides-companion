@@ -11,8 +11,14 @@ import os from 'node:os';
 import path from 'node:path';
 import { SLIDES, LIVE_NUMBER } from './deck.mjs';
 
-export const DECK = process.env.DEMO_DECK_URL ?? 'https://docs.google.com/presentation/d/1NDwGq1xtrVbcPY94Px0Up1Em57N8K23oDEgdcP9J4dg/edit';
-const EXTENSION = path.resolve(import.meta.dirname, '../..', process.env.EXTENSION_PATH ?? 'extension');
+export const DECK =
+  process.env.DEMO_DECK_URL ??
+  'https://docs.google.com/presentation/d/1NDwGq1xtrVbcPY94Px0Up1Em57N8K23oDEgdcP9J4dg/edit';
+const EXTENSION = path.resolve(
+  import.meta.dirname,
+  '../..',
+  process.env.EXTENSION_PATH ?? 'extension',
+);
 const RAW = path.resolve(import.meta.dirname, '../../build/demo/raw');
 const VIEWPORT = { width: 1600, height: 900 };
 const NOTES_WINDOW = { width: 480, height: 600 };
@@ -38,11 +44,27 @@ export function drawPointer() {
       return node;
     };
     const arrow = svg('svg', { width: 34, height: 34, viewBox: '0 0 28 28' }); // a little larger than life, for video
-    arrow.append(svg('path', { d: 'M6 3v19.5l5-4.8 3.2 7.3 3.4-1.5-3.2-7.1H21z', fill: '#000', stroke: '#fff', 'stroke-width': 1.6, 'stroke-linejoin': 'round' }));
+    arrow.append(
+      svg('path', {
+        d: 'M6 3v19.5l5-4.8 3.2 7.3 3.4-1.5-3.2-7.1H21z',
+        fill: '#000',
+        stroke: '#fff',
+        'stroke-width': 1.6,
+        'stroke-linejoin': 'round',
+      }),
+    );
     pointer.append(arrow);
     Object.assign(pointer.style, {
-      position: 'fixed', left: '0', top: '0', width: '34px', height: '34px', margin: '-4px 0 0 -7px',
-      zIndex: '2147483647', pointerEvents: 'none', display: 'none', transition: 'transform 80ms',
+      position: 'fixed',
+      left: '0',
+      top: '0',
+      width: '34px',
+      height: '34px',
+      margin: '-4px 0 0 -7px',
+      zIndex: '2147483647',
+      pointerEvents: 'none',
+      display: 'none',
+      transition: 'transform 80ms',
     });
     document.documentElement.append(pointer);
   };
@@ -55,7 +77,12 @@ export function drawPointer() {
     const host = top?.tagName === 'IFRAME' ? top.contentDocument?.documentElement : top;
     const into = host ?? document.documentElement;
     if (pointer.parentNode !== into) into.append(pointer);
-    Object.assign(pointer.style, { display: 'block', left: `${x}px`, top: `${y}px`, transform: pressed ? 'scale(0.85)' : 'none' });
+    Object.assign(pointer.style, {
+      display: 'block',
+      left: `${x}px`,
+      top: `${y}px`,
+      transform: pressed ? 'scale(0.85)' : 'none',
+    });
   };
 }
 
@@ -63,14 +90,24 @@ export function drawPointer() {
 // carry the editor's ?hl=en. This adds it, so the slideshow, presenter view and the extension speak English.
 export function inEnglish() {
   const english = (url) => {
-    if (typeof url !== 'string' || !/\/(local)?present\b/.test(url) || /[?&]hl=/.test(url)) return url;
+    if (typeof url !== 'string' || !/\/(local)?present\b/.test(url) || /[?&]hl=/.test(url))
+      return url;
     return `${url}${url.includes('?') ? '&' : '?'}hl=en`;
   };
   const src = Object.getOwnPropertyDescriptor(HTMLIFrameElement.prototype, 'src');
-  Object.defineProperty(HTMLIFrameElement.prototype, 'src', { ...src, set(url) { src.set.call(this, english(url)); } });
+  Object.defineProperty(HTMLIFrameElement.prototype, 'src', {
+    ...src,
+    set(url) {
+      src.set.call(this, english(url));
+    },
+  });
   const setAttribute = Element.prototype.setAttribute;
   Element.prototype.setAttribute = function (name, value) {
-    return setAttribute.call(this, name, this instanceof HTMLIFrameElement && name === 'src' ? english(value) : value);
+    return setAttribute.call(
+      this,
+      name,
+      this instanceof HTMLIFrameElement && name === 'src' ? english(value) : value,
+    );
   };
 }
 
@@ -81,7 +118,8 @@ async function moveTo(page, x, y, ms = 500) {
   for (let i = 1; i <= steps; i++) {
     const k = i / steps;
     const e = k < 0.5 ? 2 * k * k : 1 - (-2 * k + 2) ** 2 / 2; // ease in and out
-    const px = from.x + (x - from.x) * e, py = from.y + (y - from.y) * e;
+    const px = from.x + (x - from.x) * e,
+      py = from.y + (y - from.y) * e;
     await page.mouse.move(px, py);
     await page.evaluate(([px, py]) => window.demoPointer?.(px, py), [px, py]).catch(() => {});
     await sleep(ms / steps / 2);
@@ -139,13 +177,21 @@ class Stream {
       this.cdp.send('Page.screencastFrameAck', { sessionId }).catch(() => {});
     });
     const size = this.page.viewportSize() ?? { width: 1600, height: 900 };
-    await this.cdp.send('Page.startScreencast', { format: 'jpeg', quality: 88, maxWidth: size.width * SCALE, maxHeight: size.height * SCALE, everyNthFrame: 1 });
+    await this.cdp.send('Page.startScreencast', {
+      format: 'jpeg',
+      quality: 88,
+      maxWidth: size.width * SCALE,
+      maxHeight: size.height * SCALE,
+      everyNthFrame: 1,
+    });
   }
   async stop() {
     await this.cdp.send('Page.stopScreencast').catch(() => {});
     await this.cdp.detach().catch(() => {});
     fs.writeFileSync(`${this.dir}.json`, JSON.stringify(this.frames));
-    const size = this.page.viewportSize() ?? (await this.page.evaluate(() => ({ width: innerWidth, height: innerHeight })));
+    const size =
+      this.page.viewportSize() ??
+      (await this.page.evaluate(() => ({ width: innerWidth, height: innerHeight })));
     return { name: this.name, width: size.width * SCALE, height: size.height * SCALE };
   }
 }
@@ -190,7 +236,11 @@ class Scene {
   }
   // The video zooms in on part of a window (a box in its page, in CSS pixels), or back out (null).
   async zoom(stream, box, settle = 750) {
-    this.focus.push({ stream, t: this.now(), box: box && { x: box.x, y: box.y, width: box.width, height: box.height } });
+    this.focus.push({
+      stream,
+      t: this.now(),
+      box: box && { x: box.x, y: box.y, width: box.width, height: box.height },
+    });
     await sleep(settle);
   }
   async end(hold = 600) {
@@ -199,14 +249,23 @@ class Scene {
     this.quiet(duration);
     const streams = [];
     for (const s of this.streams) streams.push(await s.stop());
-    return { name: this.name, duration, streams, captions: this.captions, focus: this.focus, scale: SCALE };
+    return {
+      name: this.name,
+      duration,
+      streams,
+      captions: this.captions,
+      focus: this.focus,
+      scale: SCALE,
+    };
   }
 }
 
 // A box around several, with room around them.
 function around(boxes, pad = 24) {
-  const x = Math.min(...boxes.map((b) => b.x)) - pad, y = Math.min(...boxes.map((b) => b.y)) - pad;
-  const right = Math.max(...boxes.map((b) => b.x + b.width)) + pad, bottom = Math.max(...boxes.map((b) => b.y + b.height)) + pad;
+  const x = Math.min(...boxes.map((b) => b.x)) - pad,
+    y = Math.min(...boxes.map((b) => b.y)) - pad;
+  const right = Math.max(...boxes.map((b) => b.x + b.width)) + pad,
+    bottom = Math.max(...boxes.map((b) => b.y + b.height)) + pad;
   return { x, y, width: right - x, height: bottom - y };
 }
 
@@ -235,7 +294,11 @@ async function startSlideshow(page, firstElement) {
 }
 async function endSlideshow(page) {
   await page.keyboard.press('Escape');
-  await page.locator(PLAYER).first().waitFor({ state: 'detached' }).catch(() => {});
+  await page
+    .locator(PLAYER)
+    .first()
+    .waitFor({ state: 'detached' })
+    .catch(() => {});
   await sleep(800);
 }
 async function nextSlide(page, element) {
@@ -268,7 +331,8 @@ async function spotlightInSlideshow(page) {
   await scene.record({ slideshow: page });
   await sleep(600);
   await scene.step('In a slideshow, just click a picture', [], () =>
-    click(page, show(page).locator(`[id="${SLIDES.spotlight}_photo2"] image`), { ms: 800 }));
+    click(page, show(page).locator(`[id="${SLIDES.spotlight}_photo2"] image`), { ms: 800 }),
+  );
   // The bar shows when the pointer comes near the bottom.
   const download = show(page).locator('.slides-companion-spotlight-download');
   await scene.step('Download it', [], async () => {
@@ -296,12 +360,21 @@ async function links(page) {
   // The card is the link. (Linked words still open a new tab, so the demo clicks the card.)
   const { box: card } = await centre(show(page).locator(`[id="${SLIDES.links}_card1"]`));
   const site = show(page).locator('iframe.slides-companion-spotlight-website');
-  await scene.step('Click a link', [], async () => {
-    await clickAt(page, card.x + card.width * 0.72, card.y + card.height / 2, 800);
-    await site.waitFor();
-    await show(page).frameLocator('iframe.slides-companion-spotlight-website').locator('#firstHeading').waitFor({ timeout: 15000 }).catch(() => {});
-    await sleep(500);
-  }, { see: 600 });
+  await scene.step(
+    'Click a link',
+    [],
+    async () => {
+      await clickAt(page, card.x + card.width * 0.72, card.y + card.height / 2, 800);
+      await site.waitFor();
+      await show(page)
+        .frameLocator('iframe.slides-companion-spotlight-website')
+        .locator('#firstHeading')
+        .waitFor({ timeout: 15000 })
+        .catch(() => {});
+      await sleep(500);
+    },
+    { see: 600 },
+  );
   await scene.step('It opens over your slide', [], async () => {
     await moveTo(page, VIEWPORT.width * 0.55, VIEWPORT.height * 0.6, 500);
     await wheel(page, 640, 1600);
@@ -330,16 +403,26 @@ async function zoom(page) {
   // Moscow, top right of the map, where the army is at its thinnest.
   await moveTo(page, box.x + box.width * 0.86, box.y + box.height * 0.3, 700);
   await scene.step('Scroll to zoom in where the pointer is', [], () => wheel(page, -420, 1400));
-  await scene.step('Drag to look around', [], async () => {
-    await page.mouse.down();
-    await moveTo(page, VIEWPORT.width * 0.62, VIEWPORT.height * 0.45, 1400);
-    await page.mouse.up();
-  }, { see: 1200 });
-  await scene.step('Or press {−} to zoom out, {+} to zoom in', [], async () => {
-    await page.keyboard.press('-');
-    await sleep(900);
-    await page.keyboard.press('-');
-  }, { see: 1400 });
+  await scene.step(
+    'Drag to look around',
+    [],
+    async () => {
+      await page.mouse.down();
+      await moveTo(page, VIEWPORT.width * 0.62, VIEWPORT.height * 0.45, 1400);
+      await page.mouse.up();
+    },
+    { see: 1200 },
+  );
+  await scene.step(
+    'Or press {−} to zoom out, {+} to zoom in',
+    [],
+    async () => {
+      await page.keyboard.press('-');
+      await sleep(900);
+      await page.keyboard.press('-');
+    },
+    { see: 1400 },
+  );
   return [await scene.end()];
 }
 
@@ -354,28 +437,47 @@ async function pen(page) {
     await sleep(500);
     // Circle June, the best month.
     const { x, y, box } = await centre(best);
-    const rx = box.width * 1.05, ry = box.height * 0.68, cy = y - box.height * 0.08;
+    const rx = box.width * 1.05,
+      ry = box.height * 0.68,
+      cy = y - box.height * 0.08;
     await moveTo(page, x + rx, cy, 600);
     await page.mouse.down();
     for (let i = 0; i <= 44; i++) {
       const a = (i / 40) * 2 * Math.PI;
-      const px = x + rx * Math.cos(a), py = cy - ry * Math.sin(a);
+      const px = x + rx * Math.cos(a),
+        py = cy - ry * Math.sin(a);
       await page.mouse.move(px, py);
-      await page.evaluate(([px, py]) => window.demoPointer?.(px, py, true), [px, py]).catch(() => {});
+      await page
+        .evaluate(([px, py]) => window.demoPointer?.(px, py, true), [px, py])
+        .catch(() => {});
       await sleep(22);
     }
     await page.mouse.up();
     pointers.set(page, { x: x + rx, y: cy });
     await page.keyboard.press('Shift+L');
   });
-  await scene.step('End the slideshow: {Esc}', [], async () => {
-    await page.keyboard.press('Escape');
-    await page.locator(PLAYER).first().waitFor({ state: 'detached' }).catch(() => {});
-  }, { see: 1000 });
-  await scene.step('Present again: your drawing is still there', [], async () => {
-    await click(page, page.locator('#punch-start-presentation-left'), { ms: 700 });
-    await show(page).locator('.slides-companion-kept-ink').first().waitFor();
-  }, { see: 2400 });
+  await scene.step(
+    'End the slideshow: {Esc}',
+    [],
+    async () => {
+      await page.keyboard.press('Escape');
+      await page
+        .locator(PLAYER)
+        .first()
+        .waitFor({ state: 'detached' })
+        .catch(() => {});
+    },
+    { see: 1000 },
+  );
+  await scene.step(
+    'Present again: your drawing is still there',
+    [],
+    async () => {
+      await click(page, page.locator('#punch-start-presentation-left'), { ms: 700 });
+      await show(page).locator('.slides-companion-kept-ink').first().waitFor();
+    },
+    { see: 2400 },
+  );
   return [await scene.end()];
 }
 
@@ -402,20 +504,41 @@ async function timer(page, context) {
   const scene = new Scene('timer');
   await scene.record({ presenter });
   await scene.step('Presenter view, on your screen only', [], null, { read: 0, see: 1900 });
-  const menuItem = (name) => presenter.locator('.slides-companion-countdown-menu .goog-menuitem', { hasText: name });
-  await scene.step('Click the timer', [], async () => {
-    const clock = await button.boundingBox();
-    // The clock, the timer button and the whole menu that opens under it, Add 1 minute included.
-    await scene.zoom('presenter', { x: 0, y: 0, width: clock.x + clock.width + 240, height: clock.y + clock.height + 380 });
-    await click(presenter, button, { ms: 700 });
-    await menuItem('Count down from 15 minutes').waitFor();
-  }, { see: 1000 });
-  await scene.step('Choose how long you have', [], () => click(presenter, menuItem('Count down from 15 minutes'), { ms: 600 }), { see: 2400 });
-  await scene.step('Add a minute when you need one', [], async () => {
-    await click(presenter, button, { ms: 500 });
-    await sleep(600);
-    await click(presenter, menuItem('Add 1 minute'), { ms: 600 });
-  }, { see: 2000 });
+  const menuItem = (name) =>
+    presenter.locator('.slides-companion-countdown-menu .goog-menuitem', { hasText: name });
+  await scene.step(
+    'Click the timer',
+    [],
+    async () => {
+      const clock = await button.boundingBox();
+      // The clock, the timer button and the whole menu that opens under it, Add 1 minute included.
+      await scene.zoom('presenter', {
+        x: 0,
+        y: 0,
+        width: clock.x + clock.width + 240,
+        height: clock.y + clock.height + 380,
+      });
+      await click(presenter, button, { ms: 700 });
+      await menuItem('Count down from 15 minutes').waitFor();
+    },
+    { see: 1000 },
+  );
+  await scene.step(
+    'Choose how long you have',
+    [],
+    () => click(presenter, menuItem('Count down from 15 minutes'), { ms: 600 }),
+    { see: 2400 },
+  );
+  await scene.step(
+    'Add a minute when you need one',
+    [],
+    async () => {
+      await click(presenter, button, { ms: 500 });
+      await sleep(600);
+      await click(presenter, menuItem('Add 1 minute'), { ms: 600 });
+    },
+    { see: 2000 },
+  );
   await scene.zoom('presenter', null);
   parts.push(await scene.end(300));
   await presenter.close();
@@ -434,7 +557,11 @@ async function floatingNotes(page, context) {
   await intro.step('Press {Shift} {S}', [], () => page.keyboard.press('Shift+S'), { see: 400 });
   const notes = await opened;
   await notes.setViewportSize(NOTES_WINDOW); // this resizes the window itself too
-  await notes.locator('.punch-viewer-speakernotes-text-header').first().waitFor().catch(() => {});
+  await notes
+    .locator('.punch-viewer-speakernotes-text-header')
+    .first()
+    .waitFor()
+    .catch(() => {});
   const parts = [await intro.end(0)];
   await notes.evaluate(drawPointer).catch(() => {});
   await sleep(900);
@@ -448,10 +575,19 @@ async function floatingNotes(page, context) {
     await sleep(600);
     await click(notes, zoomIn, { ms: 200 });
   });
-  await scene.step('They follow the slideshow {→}', [], async () => {
-    await page.keyboard.press('ArrowRight');
-    await notes.getByText(/Slide 8\b/).first().waitFor({ timeout: 10000 }).catch(() => {});
-  }, { see: 2400 });
+  await scene.step(
+    'They follow the slideshow {→}',
+    [],
+    async () => {
+      await page.keyboard.press('ArrowRight');
+      await notes
+        .getByText(/Slide 8\b/)
+        .first()
+        .waitFor({ timeout: 10000 })
+        .catch(() => {});
+    },
+    { see: 2400 },
+  );
   // Shown as what it is, a picture-in-picture window over the slideshow (edit.mjs).
   parts.push({ ...(await scene.end(300)), pip: 'notes' });
   await page.keyboard.press('Shift+S');
@@ -474,22 +610,40 @@ async function liveEdits(page, context) {
   const number = editor.locator(`#workspace [id="editor-${LIVE_NUMBER}"]`);
   const scene = new Scene('live-editor');
   await scene.record({ editor });
-  await scene.step('Someone edits the deck in the editor', [], async () => {
-    const cards = await editor.locator(`#workspace [id="editor-${SLIDES.liveEdits}_label"], #workspace [id="editor-${SLIDES.liveEdits}_card"], #workspace [id="editor-${SLIDES.liveEdits}_seats"]`).evaluateAll((all) =>
-      all.map((el) => { const r = el.getBoundingClientRect(); return { x: r.x, y: r.y, width: r.width, height: r.height }; }));
-    await scene.zoom('editor', around(cards, 40));
-    await click(editor, number, { double: true, ms: 800 });
-    await editor.keyboard.press('ControlOrMeta+A');
-    await sleep(300);
-    await editor.keyboard.type('129', { delay: 220 });
-    await editor.keyboard.press('Escape');
-    await editor.keyboard.press('Escape');
-  }, { see: 900 });
+  await scene.step(
+    'Someone edits the deck in the editor',
+    [],
+    async () => {
+      const cards = await editor
+        .locator(
+          `#workspace [id="editor-${SLIDES.liveEdits}_label"], #workspace [id="editor-${SLIDES.liveEdits}_card"], #workspace [id="editor-${SLIDES.liveEdits}_seats"]`,
+        )
+        .evaluateAll((all) =>
+          all.map((el) => {
+            const r = el.getBoundingClientRect();
+            return { x: r.x, y: r.y, width: r.width, height: r.height };
+          }),
+        );
+      await scene.zoom('editor', around(cards, 40));
+      await click(editor, number, { double: true, ms: 800 });
+      await editor.keyboard.press('ControlOrMeta+A');
+      await sleep(300);
+      await editor.keyboard.type('129', { delay: 220 });
+      await editor.keyboard.press('Escape');
+      await editor.keyboard.press('Escape');
+    },
+    { see: 900 },
+  );
   parts.push(await scene.end(0));
 
   const shown = new Scene('live-slideshow');
   await shown.record({ slideshow: page });
-  await shown.step('The slideshow catches up by itself', [], () => show(page).getByText('129').first().waitFor({ timeout: 30000 }), { read: 300, see: 2400 });
+  await shown.step(
+    'The slideshow catches up by itself',
+    [],
+    () => show(page).getByText('129').first().waitFor({ timeout: 30000 }),
+    { read: 300, see: 2400 },
+  );
   parts.push(await shown.end(200));
 
   // Put the number back.
@@ -514,29 +668,63 @@ export async function record() {
     deviceScaleFactor: SCALE,
     locale: 'en-US',
     acceptDownloads: true,
-    args: [`--disable-extensions-except=${EXTENSION}`, `--load-extension=${EXTENSION}`, '--lang=en-US', '--hide-scrollbars',
+    args: [
+      `--disable-extensions-except=${EXTENSION}`,
+      `--load-extension=${EXTENSION}`,
+      '--lang=en-US',
+      '--hide-scrollbars',
       `--force-device-scale-factor=${SCALE}`,
       // A screen big enough that Chrome doesn't shrink the floating notes window.
       '--screen-info={3840x2160}',
       // Keep every window painting while another has focus: the slideshow behind presenter view or floating notes.
-      '--disable-renderer-backgrounding', '--disable-backgrounding-occluded-windows', '--disable-background-timer-throttling'],
+      '--disable-renderer-backgrounding',
+      '--disable-backgrounding-occluded-windows',
+      '--disable-background-timer-throttling',
+    ],
   });
   await context.addInitScript(drawPointer);
   await context.addInitScript(inEnglish);
   // Floating notes opens as it was last left: a window beside the slideshow, as on a laptop, with
   // the notes zoomed a few steps in, as a presenter would have them, so they read on video.
   const worker = context.serviceWorkers()[0] ?? (await context.waitForEvent('serviceworker'));
-  await worker.evaluate((size) => chrome.storage.local.set({ notesWindow: size, notesZoom: 6 }), NOTES_WINDOW);
+  await worker.evaluate(
+    (size) => chrome.storage.local.set({ notesWindow: size, notesZoom: 6 }),
+    NOTES_WINDOW,
+  );
   try {
     const page = context.pages()[0] ?? (await context.newPage());
-    const story = [{ name: 'title', card: { title: 'Slides Companion', subtitle: 'Presenter tools for Google Slides' }, duration: 2.8 }];
-    for (const scene of [spotlightInEditor, spotlightInSlideshow, links, zoom, pen, timer, floatingNotes, liveEdits]) {
+    const story = [
+      {
+        name: 'title',
+        card: { title: 'Slides Companion', subtitle: 'Presenter tools for Google Slides' },
+        duration: 2.8,
+      },
+    ];
+    for (const scene of [
+      spotlightInEditor,
+      spotlightInSlideshow,
+      links,
+      zoom,
+      pen,
+      timer,
+      floatingNotes,
+      liveEdits,
+    ]) {
       for (const part of await scene(page, context)) {
-        console.log(`${part.name}: ${part.duration.toFixed(1)} s, ${part.streams.map((s) => s.name).join(' + ')}`);
+        console.log(
+          `${part.name}: ${part.duration.toFixed(1)} s, ${part.streams.map((s) => s.name).join(' + ')}`,
+        );
         story.push(part);
       }
     }
-    story.push({ name: 'end', card: { title: 'Free and open source', subtitle: 'Get Slides Companion from the Chrome Web Store' }, duration: 3.5 });
+    story.push({
+      name: 'end',
+      card: {
+        title: 'Free and open source',
+        subtitle: 'Get Slides Companion from the Chrome Web Store',
+      },
+      duration: 3.5,
+    });
     fs.writeFileSync(path.join(RAW, 'story.json'), JSON.stringify(story, null, 2));
   } finally {
     await context.close();
