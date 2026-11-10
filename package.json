@@ -15,6 +15,7 @@
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write . && eslint --fix .",
     "test": "npm run lint && playwright test",
+    "test:offline": "playwright test --grep @offline",
     "test:build": "npm run build && node scripts/release.mjs testing && EXTENSION_PATH=build/slides-companion playwright test && node scripts/release.mjs tested",
     "test:headed": "playwright test --headed"
   },

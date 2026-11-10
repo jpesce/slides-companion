@@ -3,26 +3,34 @@ import { test, expect } from '@playwright/test';
 import { readLocales, render, resolve, DEFAULT_LOCALE } from '../scripts/build-messages.mjs';
 
 // Our words live in extension/_locales; content scripts read them from messages.js, made from them.
-test('messages.js is made from the messages in _locales (npm run messages)', () => {
-  expect(fs.readFileSync(new URL('../extension/messages.js', import.meta.url), 'utf8')).toBe(
-    render(),
-  );
-});
+test(
+  'messages.js is made from the messages in _locales (npm run messages)',
+  { tag: '@offline' },
+  () => {
+    expect(fs.readFileSync(new URL('../extension/messages.js', import.meta.url), 'utf8')).toBe(
+      render(),
+    );
+  },
+);
 
-test('every language has every message, with the same places for what goes in it', () => {
-  const locales = readLocales();
-  const places = (entry) => resolve(entry).match(/\$\d/g)?.sort() ?? [];
-  const ours = locales[DEFAULT_LOCALE];
-  for (const [locale, messages] of Object.entries(locales)) {
-    expect(Object.keys(messages).sort(), locale).toEqual(Object.keys(ours).sort());
-    for (const [key, entry] of Object.entries(messages))
-      expect(places(entry), `${locale} ${key}`).toEqual(places(ours[key]));
-  }
-});
+test(
+  'every language has every message, with the same places for what goes in it',
+  { tag: '@offline' },
+  () => {
+    const locales = readLocales();
+    const places = (entry) => resolve(entry).match(/\$\d/g)?.sort() ?? [];
+    const ours = locales[DEFAULT_LOCALE];
+    for (const [locale, messages] of Object.entries(locales)) {
+      expect(Object.keys(messages).sort(), locale).toEqual(Object.keys(ours).sort());
+      for (const [key, entry] of Object.entries(messages))
+        expect(places(entry), `${locale} ${key}`).toEqual(places(ours[key]));
+    }
+  },
+);
 
 // Each message is asked for somewhere (by its key, quoted, or in the manifest as __MSG_key__), and
 // each key asked for has a message: a missing one would stop the feature that asks for it.
-test('every message is used, and every message asked for exists', () => {
+test('every message is used, and every message asked for exists', { tag: '@offline' }, () => {
   const dir = new URL('../extension/', import.meta.url);
   const code = fs
     .readdirSync(dir)
@@ -45,7 +53,7 @@ test('every message is used, and every message asked for exists', () => {
 // Chrome and the Web Store show our name and line under it in every language, within their limits
 // (75 and 132 characters). The store finds extensions by name, so it says what we do, after our own
 // name, and names Google Slides as Google asks of other makers: after "for", marked ™, never first.
-test('our name and summary in the Web Store fit, in every language', () => {
+test('our name and summary in the Web Store fit, in every language', { tag: '@offline' }, () => {
   for (const [locale, messages] of Object.entries(readLocales())) {
     const name = resolve(messages.storeName);
     expect([...name].length, `${locale}: ${name}`).toBeLessThanOrEqual(75);

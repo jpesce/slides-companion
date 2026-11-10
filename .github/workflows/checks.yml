@@ -1,0 +1,24 @@
+# On every push and pull request: lint, the release build, and the tests that don't need Google
+# Slides. The rest run against a live deck in about 45 minutes, so they run locally (npm test).
+name: Checks
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+      - run: npm run test:offline
