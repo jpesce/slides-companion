@@ -87,8 +87,9 @@ Regular Chrome stopped accepting `--load-extension` in version 137, which is why
 1. `make bump` raises the version in `extension/manifest.json` and starts its section in [CHANGELOG.md](CHANGELOG.md).
 2. Write what changed there, from the user's side, and replace "Unreleased" with the date.
 3. Commit and push to `main`.
-4. `make all` builds, tags the version with its changelog section, pushes the tag, and creates the GitHub release with the zip attached.
-5. Upload the zip at the [Chrome Web Store dashboard](https://chrome.google.com/webstore/devconsole), with the listing text from [STORE.md](STORE.md) if it changed.
+4. `make test-build` runs every test on the release build, in about 45 minutes, and marks the commit as tested if they pass.
+5. `make all` checks that this commit passed, builds, then asks before it tags the version with its changelog section, pushes the tag, and creates the GitHub release with the zip attached.
+6. Upload the zip at the [Chrome Web Store dashboard](https://chrome.google.com/webstore/devconsole), with the listing text from [STORE.md](STORE.md) if it changed.
 
 `make help` lists every step, to run them one at a time.
 

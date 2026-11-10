@@ -10,7 +10,7 @@
     "illustrations": "node scripts/build-illustrations.mjs",
     "messages": "node scripts/build-messages.mjs",
     "test": "playwright test",
-    "test:build": "npm run build && EXTENSION_PATH=build/slides-companion playwright test",
+    "test:build": "npm run build && node scripts/release.mjs testing && EXTENSION_PATH=build/slides-companion playwright test && node scripts/release.mjs tested",
     "test:headed": "playwright test --headed"
   },
   "devDependencies": {

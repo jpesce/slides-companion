@@ -4,7 +4,8 @@
 # - tags the version and makes its GitHub release, with its notes from CHANGELOG.md
 #
 # A release: `make bump`, write what changed under the new version in CHANGELOG.md and date it,
-# commit and push, then `make all`. Upload the zip it makes at the Chrome Web Store dashboard.
+# commit and push, `make test-build`, then `make all`. Upload the zip it makes at the Chrome Web
+# Store dashboard.
 
 PROJECT = slides-companion
 BUILD_DIR = build
@@ -19,10 +20,10 @@ help:
 	@echo "\n📋 Available commands:\n"
 	@grep -E '^# @[a-zA-Z_-]+:' $(MAKEFILE_LIST) | sed 's/^# @//' | awk -F: '{printf "\033[34m%-12s\033[0m %s\n", $$1, $$2}'
 
-# @all: Main release workflow - builds the package, creates and pushes the git tag and creates the GitHub release
+# @all: Main release workflow - builds the package, then asks before it creates and pushes the git tag and creates the GitHub release
 .PHONY: all
-all: ensure-main ensure-clean ensure-pushed ensure-notes \
-	build tag push-tag release
+all: ensure-main ensure-clean ensure-pushed ensure-notes ensure-tested \
+	build confirm tag push-tag release
 	@echo "\n📮 Last step: upload \033[34m$(ZIPNAME)\033[0m at $(STORE_DASHBOARD)"
 
 
@@ -36,7 +37,7 @@ build: require-zip
 $(ZIPNAME): build
 
 
-# @test-build: Builds, then runs every test on the built package
+# @test-build: Builds, then runs every test on the built package; make all needs this commit to have passed
 .PHONY: test-build
 test-build:
 	@npm run test:build
@@ -117,6 +118,18 @@ require-gh:
 .PHONY: ensure-notes
 ensure-notes:
 	@node scripts/release.mjs notes $(VERSION) >/dev/null || { echo "\n❌ Release notes for \033[34m$(TAG)\033[0m aren't ready (see above).\n"; exit 1; }
+
+.PHONY: ensure-tested
+ensure-tested:
+	@node scripts/release.mjs ensure-tested || { echo "\n❌ \033[34m$(TAG)\033[0m isn't tested yet (see above).\n"; exit 1; }
+
+.PHONY: confirm
+confirm:
+	@read -p "Tag $(TAG), push the tag and publish its GitHub release? [y/N] " answer; \
+	case "$$answer" in \
+		y|Y) ;; \
+		*) echo "Stopped: nothing was tagged or published."; exit 130;; \
+	esac
 
 .PHONY: ensure-tag
 ensure-tag:
