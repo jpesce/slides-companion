@@ -80,6 +80,8 @@ Each run launches Playwright's Chromium with `extension/` loaded and checks it a
 
 Regular Chrome stopped accepting `--load-extension` in version 137, which is why tests use Chromium. Auto-reload doesn't work there, and tests don't need it, since each run starts fresh.
 
+`npm test` runs `npm run lint` first: ESLint, and Prettier's check of the formatting. `npm run format` fixes what can be fixed by itself.
+
 ### Releasing
 
 `npm run build` (or `make build`) writes the release build to `build/slides-companion/` and zips it as `build/slides-companion-v<version>.zip`, without the dev auto-reload and the `alarms` permission only it uses.

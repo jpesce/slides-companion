@@ -1,0 +1,5 @@
+# Commits that only reformat code, for git blame to skip. GitHub reads this file by itself; locally:
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# Card 360: the code formatted by Prettier
+2c7203f0eaa19e3e5ff78c0220b273d30e2836e7
