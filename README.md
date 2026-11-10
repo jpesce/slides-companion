@@ -80,7 +80,7 @@ Each run launches Playwright's Chromium with `extension/` loaded and checks it a
 
 Regular Chrome stopped accepting `--load-extension` in version 137, which is why tests use Chromium. Auto-reload doesn't work there, and tests don't need it, since each run starts fresh.
 
-`npm test` runs `npm run lint` first: ESLint, and Prettier's check of the formatting. `npm run format` fixes what can be fixed by itself.
+`npm test` runs `npm run lint` first: ESLint, and Prettier's check of the formatting. `npm run format` fixes what can be fixed by itself. On GitHub, every push and pull request runs the lint, the release build and the tests that need no Google Slides (`npm run test:offline`, a few seconds); the rest run only locally.
 
 ### Releasing
 
