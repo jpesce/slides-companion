@@ -255,7 +255,7 @@ test('set to wait for the next slideshow, nothing changes', async ({ context }) 
   await expect(words(page, 'Lisbon')).toHaveCount(0);
 });
 
-// Card 150: on a busy computer, Slides numbers a slide's clip paths differently each time it draws it.
+// On a busy computer, Slides numbers a slide's clip paths differently each time it draws it.
 test('a slide drawn again, unedited but numbered differently, loads no new player', async ({ context }) => {
   const page = await startSlideshow(context);
   await page.evaluate(() => (window.renumbered = true));

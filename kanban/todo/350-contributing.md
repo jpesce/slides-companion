@@ -21,7 +21,7 @@ Also, commit subjects run up to 592 characters, which `git log --oneline` can't 
   - the tests and their deck;
   - languages;
   - a map of `extension/`;
-  - the kanban board;
+  - the kanban board, and how comments are written (CLAUDE.md's rule 8: a reason, never a card number, and the APIs' names);
   - commit style: a short subject naming the card, with detail in the body.
 - CLAUDE.md keeps only what's for the agent, and points to CONTRIBUTING.md for the rest. The maintainer approves the new CLAUDE.md, since it steers every session.
 - SECURITY.md: report through GitHub's private vulnerability reporting (turn it on in the repo's settings).

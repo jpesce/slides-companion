@@ -247,7 +247,7 @@
   }
 
   // Items are objects on the slide, or a page a link goes to: { address, shown }. With every site
-  // allowed (card 56), page.js says where the page goes: `visited` lists the addresses, from the one
+  // allowed, page.js says where the page goes: `visited` lists the addresses, from the one
   // first shown, `at` is where it is among them (Back and Forward move it), `goes` counts Back and
   // Forward, and `frameId` is how to reach it.
   const isPage = (item) => !(item instanceof Element);
@@ -379,7 +379,7 @@
     frame.inert = true;
     // A page on Slides' own site (a Doc, another deck) is in reach: Esc there closes it too, once
     // the presenter has gone into it. Other sites can't be listened to; page.js does it there, with
-    // every site allowed (card 56).
+    // every site allowed.
     // Google's viewer shows nothing until it has loaded, and it then says what it got: a web page's
     // code doesn't flash meanwhile.
     const reveal = inPdfViewer(item) ? hideWhileChecking(frame, VIEWER_WAIT_MS) : null;
@@ -425,7 +425,7 @@
     const page = isPage(items[index]) ? items[index] : null;
     stage.querySelector('.slides-companion-spotlight-sitebar').hidden = !page;
     stage.querySelector('.slides-companion-spotlight-site').textContent = page ? siteName(page) : '';
-    // Only once page.js says where the page is (card 56).
+    // Only once page.js says where the page is.
     const back = stage.querySelector('.slides-companion-spotlight-back');
     const forward = stage.querySelector('.slides-companion-spotlight-forward');
     back.hidden = forward.hidden = page?.frameId === undefined;
@@ -549,7 +549,7 @@
     if (over && Math.hypot(event.clientX - gallery.restingAt.x, event.clientY - gallery.restingAt.y) > 4) frame.inert = false;
   }
 
-  // From page.js (card 56), through background.js to each of the tab's frames: the one showing the
+  // From page.js, through background.js to each of the tab's frames: the one showing the
   // page acts. Esc's release comes after the page has gone.
   chrome.runtime.onMessage.addListener((message) => {
     if (message?.type === 'page-key' && message.phase === 'keyup') return onKeyUp({ type: 'keyup', key: message.key });
@@ -613,17 +613,19 @@
     window.open(address.href, '_blank', 'noopener');
   }
 
-  // ----- Sites that refuse to be shown (card 130) -----
+  // ----- Sites that refuse to be shown -----
 
-  // Without every site allowed, a site that refuses to be shown inside another page shows as Chrome's
-  // grey error page, and nothing the slideshow can see of a frame tells the two apart (Chrome hides
-  // it). An <object> can: where a frame shows that page, it fails to load (its `error` event), as it
-  // does for a missing page or site. Slides' pages let objects load only from Slides itself, so it
-  // goes in a page of Slides' site that a rule of ours lets them load from anywhere (background.js,
-  // CHECK_PAGE_RULE: a "not found" page, at an address only we ask for). Above the site, every page is then Slides', as
-  // above the page's own frame, so the site decides alike. The frame is sandboxed without scripts,
-  // and so is the site in it: it can't play, count a visit or take the slideshow's window.
-  // Meanwhile the page waits out of sight, for a moment at most, so that a refusal doesn't flash.
+  // Without every site allowed, a site that refuses to be framed (`X-Frame-Options` or CSP
+  // `frame-ancestors`) shows as Chrome's grey error page, and nothing the slideshow can see of a
+  // frame tells the two apart (Chrome hides it). An <object> can: where a frame shows that page, it
+  // fails to load (its `error` event), as it does for a missing page or site. Slides' CSP lets
+  // objects load only from Slides itself, so the <object> goes in a page of Slides' site whose CSP a
+  // declarativeNetRequest rule of ours lifts (background.js, CHECK_PAGE_RULE: a "not found" page, at
+  // an address only we ask for). Every ancestor of the <object> is then on docs.google.com, as for
+  // the page's own frame, so the site's framing headers give the same answer in both. The frame is
+  // sandboxed without scripts, and so is the site in it: it can't play, count a visit or take the
+  // slideshow's window. Meanwhile the page waits out of sight, for a moment at most, so that a
+  // refusal doesn't flash.
   const CHECK_PAGE = 'https://docs.google.com/presentation/slides-companion-check';
   const CHECK_HIDES_MS = 1000;
   // The page out of sight while it's checked, for a moment at most if given; what's returned shows
@@ -639,7 +641,7 @@
   }
   const EXTENSION_ORIGIN = new URL(chrome.runtime.getURL('')).origin;
 
-  // Whether the page can be shown, or is a PDF (card 170): with every site allowed nothing refuses,
+  // Whether the page can be shown, or is a PDF: with every site allowed nothing refuses,
   // so only the second is asked. Google's PDF viewer is neither.
   function checkPage(item) {
     if (inPdfViewer(item)) return;
@@ -658,7 +660,7 @@
     const decided = (refused) => {
       probe.remove();
       reveal();
-      // A PDF fails here too, as it does in the page's frame: the viewer is asked first (card 170).
+      // A PDF fails here too, as it does in the page's frame: the viewer is asked first.
       if (refused && mayBePdf(item)) return askViewer(item, page);
       if (refused && gallery?.items[gallery.index] === item) showRefusal(item);
     };
@@ -984,7 +986,7 @@
     return { address, shown, visited: [shown], at: 0 };
   }
 
-  // ----- PDFs (cards 160 and 170) -----
+  // ----- PDFs -----
 
   // A PDF shows in Google's viewer, as Drive shows one. Chrome's own viewer isn't let into the page's
   // frame (sandboxed), and out of it a link in the PDF would take the slideshow's whole tab. Google
@@ -1117,9 +1119,9 @@
     return player.href;
   }
 
-  // With every site allowed (card 56), the rule letting sites be shown goes in first. If an image
+  // With every site allowed, the rule letting sites be shown goes in first. If an image
   // opened on the stage meanwhile, the rule comes out again. Without, the page is checked for a
-  // refusal (card 130).
+  // refusal.
   async function openPage(page) {
     page.allSites = Boolean((await askBackground({ type: 'page-open' }))?.allSites);
     if (!gallery) openStage([page], 0, siteName(page));

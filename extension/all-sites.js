@@ -1,4 +1,4 @@
-// The notice asking for every site (card 110), in a frame of the Settings dialog
+// The notice asking for every site, in a frame of the Settings dialog
 // (settings-dialog.js). It shows only while Chrome hasn't given the extension every site, which some
 // sites need to be shown over the slide. Its button asks Chrome right away, as Chrome asks only during
 // a click, and the notice goes once access is given. Taking it back is done in Chrome's own settings

@@ -33,3 +33,4 @@ Rules:
 5. If a card is too big for one commit, split it into new cards.
 6. When an idea or follow-up comes up in conversation, add a card to `todo/` rather than leaving it in chat. Give it a number after the existing cards unless the user sets a priority.
 7. Every card states the user's problem, the evidence of demand, the approach and a "Done when" checklist. See the existing cards for the format.
+8. Code comments give their reason, never a card number: finished cards are deleted, and the reason with them. Comments are for engineers, so they name the APIs and headers they're about. The plain-words rule is for what users read.

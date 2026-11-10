@@ -6,7 +6,7 @@ import path from 'node:path';
 import { build } from '../scripts/build.mjs';
 import { deckUrl } from './fixtures.js';
 
-// Card 80: the release build is the extension without its dev auto-reload, and it still works.
+// The release build is the extension without its dev auto-reload, and it still works.
 // (`npm run test:build` runs every test on it.)
 const test = base.extend({
   built: [

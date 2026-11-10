@@ -293,7 +293,7 @@ async function links(page) {
   await nextSlide(page, `${SLIDES.links}_card1_text`);
   await scene.record({ slideshow: page });
   await sleep(INTRO);
-  // The card is the link. (Linked words open a new tab for now: card 280.)
+  // The card is the link. (Linked words still open a new tab, so the demo clicks the card.)
   const { box: card } = await centre(show(page).locator(`[id="${SLIDES.links}_card1"]`));
   const site = show(page).locator('iframe.slides-companion-spotlight-website');
   await scene.step('Click a link', [], async () => {

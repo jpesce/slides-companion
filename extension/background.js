@@ -2,7 +2,7 @@
 // drops this line and that file, with the alarms permission only it uses.
 importScripts('dev-reload.js');
 
-// Every site opens over the slide (card 56), once the presenter lets it from Settings, which asks
+// Every site opens over the slide, once the presenter lets it from Settings, which asks
 // Chrome for access to every site. While a page is open over a slide, the tab's frames lose the
 // headers sites use to refuse being shown inside another page. page.js runs in that page to hand
 // Esc back to the slideshow and say where it is.
@@ -24,7 +24,7 @@ syncPageScript();
 chrome.permissions.onAdded.addListener(syncPageScript);
 chrome.permissions.onRemoved.addListener(syncPageScript);
 
-// Spotlight checks whether a site refuses to be shown inside another page (card 130) from a "not
+// Spotlight checks whether a site refuses to be shown inside another page from a "not
 // found" page of Slides' site, at an address only it asks for; Slides' pages let objects load only
 // from Slides itself, and this one, without its rules, lets the check load the site. Dynamic rules
 // have their own ids, apart from the tabs' session rules below.
@@ -58,7 +58,7 @@ const frameHeadersRule = (tabId) => ({
 const dropFrameHeadersRule = (tabId) => chrome.declarativeNetRequest.updateSessionRules({ removeRuleIds: [tabId] });
 chrome.tabs.onRemoved.addListener((tabId) => dropFrameHeadersRule(tabId).catch(() => {}));
 
-// Whether an address is a PDF, asked of its site (card 170), for spotlight.js to show it in Google's
+// Whether an address is a PDF, asked of its site, for spotlight.js to show it in Google's
 // viewer: only with every site allowed, which lets the extension ask any site. Without the
 // presenter's cookies, as Google's viewer will fetch it. A GET stops at the headers, for sites that
 // don't answer HEAD. Null when the site doesn't say.
@@ -116,7 +116,7 @@ chrome.runtime.onMessage.addListener((message, sender, respond) => {
   switch (message.type) {
     // spotlight.js is about to show a page: it waits for the answer (whether every site can be
     // shown) so the page loads with the rules in place (this tab's, or the check's), and page.js in
-    // it, if every site was only just allowed (card 130).
+    // it, if every site was only just allowed.
     case 'page-open':
       Promise.all([syncPageScript(), checkPageRule]).then(() => chrome.permissions.contains(ALL_SITES)).then(async (allSites) => {
         if (allSites) {

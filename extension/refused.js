@@ -1,5 +1,5 @@
-// The message shown over the slide instead of a site that refuses to be shown inside another page
-// (card 130), in a frame of ours on the Spotlight stage (spotlight.js). Open in new tab and closing
+// The message shown over the slide instead of a site that refuses to be shown inside another page,
+// in a frame of ours on the Spotlight stage (spotlight.js). Open in new tab and closing
 // are the stage's to do, so they're told to it; Allow all sites asks Chrome here, as Chrome asks only
 // from the extension's own pages, during a click. Once every site is allowed, the stage shows the
 // page.

@@ -60,7 +60,7 @@
   // ----- Slides as each player got them -----
 
   // Slides numbers some ids afresh each time it draws a slide ("e23_21"), both numbers: the second
-  // one too when the computer is busy (card 150). They're numbered here as they first come, so that
+  // one too when the computer is busy. They're numbered here as they first come, so that
   // only what refers to what counts.
   function fingerprint(svg) {
     const ids = new Map();

@@ -1,5 +1,5 @@
 // Our keys in Slides' Keyboard shortcuts dialog (Help › Keyboard shortcuts, or ⌘+/ or Ctrl+/), in a
-// section of their own after Slides' sections, made from one of them so it looks the same (card 120).
+// section of their own after Slides' sections, made from one of them so it looks the same.
 // The editor and the slideshow each have the dialog, each with the keys that work there. Slides
 // builds the dialog each time it opens, and its list again at each letter typed in its search, so
 // the section goes back in after each build, keeping only the keys whose name matches, as Slides does.

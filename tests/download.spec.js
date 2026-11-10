@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import { test, expect, deckUrl, press } from './fixtures.js';
 
-// Download image (card 140): the picture file Slides holds for an image, saved under the deck's name.
+// Download image: the picture file Slides holds for an image, saved under the deck's name.
 
 // Slide 3 of the test deck: two photos side by side and a caption text box.
 const slide = `${deckUrl}#slide=id.g35a1872bb6d_1_0`;

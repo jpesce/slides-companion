@@ -1,6 +1,6 @@
 import { test, expect, deckUrl, press } from './fixtures.js';
 
-// With every site allowed from Settings (card 56). Chrome's header rule doesn't apply to pages a
+// With every site allowed from Settings. Chrome's header rule doesn't apply to pages a
 // test plays, so these go to real sites: google.com refuses being shown inside another page.
 test.use({ allSites: true });
 
@@ -48,7 +48,7 @@ test('a site that refuses to be shown in another page opens over the slide', asy
   // Google's own page, not Chrome's "refused to connect".
   expect(await google.title()).toBe('Google');
   expect(await sessionRules(serviceWorker)).toHaveLength(1);
-  // With every site allowed, Spotlight doesn't check whether it refuses, nor say so (card 130).
+  // With every site allowed, Spotlight doesn't check whether it refuses, nor say so.
   await expect(stage(show).locator('.slides-companion-spotlight-probe, .slides-companion-spotlight-refused')).toHaveCount(0);
 
   await page.keyboard.press('Escape');
@@ -83,7 +83,7 @@ test('Open in new tab opens the page browsed to', async ({ context }) => {
   await expect(stage(show)).toHaveCount(0);
 });
 
-// Card 160: Google's viewer shows a PDF, page.js in it too, and the bar is the PDF's.
+// Google's viewer shows a PDF, page.js in it too, and the bar is the PDF's.
 test('a PDF opens in Google’s viewer, with the PDF’s site, and Esc and Open in new tab work there', async ({ context }) => {
   const PDF = 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf';
   const page = await context.newPage();
@@ -125,7 +125,7 @@ test('a PDF opens in Google’s viewer, with the PDF’s site, and Esc and Open 
   await tab.close();
 });
 
-// Card 170: nothing refuses, so the extension asks the site what a link is; a PDF goes to Google's
+// Nothing refuses, so the extension asks the site what a link is; a PDF goes to Google's
 // viewer, not Chrome's "blocked" page.
 test('a PDF whose address doesn’t end in .pdf (arXiv’s) shows in Google’s viewer', async ({ context }) => {
   const ARXIV = 'https://arxiv.org/pdf/1706.03762';

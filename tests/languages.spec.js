@@ -1,7 +1,7 @@
 import { test, expect, deckUrl } from './fixtures.js';
 import { readLocales, resolve } from '../scripts/build-messages.mjs';
 
-// Card 100: every language we speak, in Slides set to it. Our words are that language's, each fits
+// Every language we speak, in Slides set to it. Our words are that language's, each fits
 // where it goes as English does, and the keys are named and pointed as Slides does there (right to
 // left, ← is the next one). language.spec.js goes through each window in Portuguese.
 const slide = `${deckUrl}#slide=id.g35a1872bb6d_1_0`;

@@ -1,6 +1,6 @@
 import { test, expect, deckUrl } from './fixtures.js';
 
-// Card 120: our keys in Slides' Keyboard shortcuts dialog (Help › Keyboard shortcuts, ⌘+/ or Ctrl+/).
+// Our keys in Slides' Keyboard shortcuts dialog (Help › Keyboard shortcuts, ⌘+/ or Ctrl+/).
 // Slides' own words here are in the browser's language, ours in English (see fixtures.js).
 const slide = `${deckUrl}#slide=id.g35a1872bb6d_1_0`;
 const SLIDES = 'appsElementsKeyboardShortcutsDialog';

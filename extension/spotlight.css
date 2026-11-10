@@ -163,7 +163,7 @@
   scale: -1 1;
 }
 
-/* A site's page waits out of sight while it's checked for a refusal (card 130), so one never flashes. */
+/* A site's page waits out of sight while it's checked for a refusal, so one never flashes. */
 .slides-companion-spotlight-checking {
   visibility: hidden;
 }

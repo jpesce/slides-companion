@@ -1,8 +1,8 @@
 // A page opened over the slide from a link (spotlight.js). Registered by background.js on every
-// site once the presenter lets every site open over the slide (card 56), so it runs in every frame
+// site once the presenter lets every site open over the slide, so it runs in every frame
 // but acts only in that page: the frame spotlight.js names, right inside Slides. The slideshow can't
 // hear keys in another site, so Esc comes back to it from here; and it says where the page is, for
-// Open in new tab, and Back and Forward (card 58).
+// Open in new tab, and Back and Forward.
 {
   const NAME = 'slides-companion-page';
   if (window.name.split(' ')[0] === NAME && location.ancestorOrigins?.[0] === 'https://docs.google.com') {

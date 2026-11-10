@@ -1,6 +1,6 @@
 // Draws the illustration at the top of each feature's page in Settings and writes them to
-// extension/illustrations.js (`npm run illustrations`). Card 200 records where the style comes from:
-// Android Settings' illustration frame, a slide drawn as Android draws a screen (an outline and
+// extension/illustrations.js (`npm run illustrations`). The style comes from Android Settings'
+// illustration frame, a slide drawn as Android draws a screen (an outline and
 // simple blocks), one accent, and moves on Material's and Android's curves. Each is an SVG
 // animation (SMIL) that loops and ends as it starts.
 import fs from 'node:fs';

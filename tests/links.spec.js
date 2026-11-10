@@ -66,7 +66,7 @@ test('clicking a link during a slideshow opens its page over the slide, and Esc 
   const viewport = page.viewportSize();
   expect(await website(show).boundingBox()).toEqual({ x: 48, y: 80, width: viewport.width - 96, height: viewport.height - 160 });
 
-  // Without every site allowed (card 56), the page can't say where it is: no Back or Forward.
+  // Without every site allowed, the page can't say where it is: no Back or Forward.
   await expect(stage(show).locator('.slides-companion-spotlight-back')).toBeHidden();
 
   await page.keyboard.press('Escape');
@@ -191,7 +191,7 @@ test('Shorts, live videos and Drive files open in their players', async ({ conte
   }
 });
 
-// Card 160: Chrome's PDF viewer isn't let into the page's frame, and a link in it would take the
+// Chrome's PDF viewer isn't let into the page's frame, and a link in it would take the
 // whole tab. Google's servers fetch the PDF, so it's a real one, online.
 const PDF = 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf';
 test('a PDF opens in Google’s viewer, in Slides’ language, where Esc goes back too', async ({ context }) => {
@@ -226,7 +226,7 @@ test('a PDF opens in Google’s viewer, in Slides’ language, where Esc goes ba
   await tab.close();
 });
 
-// Card 170: a PDF at an address that doesn't say so fails the refusal check, as it fails in the
+// A PDF at an address that doesn't say so fails the refusal check, as it fails in the
 // page's frame; Google's viewer, asked out of sight, finds it's a PDF, and it shows there.
 test('a PDF whose address doesn’t end in .pdf (arXiv’s) shows in Google’s viewer too', async ({ context }) => {
   const ARXIV = 'https://arxiv.org/pdf/1706.03762';
@@ -323,7 +323,7 @@ test('a page can’t take the keys until the pointer goes over it, so Esc still 
 });
 
 // Slide 5 has a photo, flying in on the first click, linked to the next slide.
-// Card 130: without every site allowed, a site that refuses to be shown inside another page.
+// Without every site allowed, a site that refuses to be shown inside another page.
 const REFUSALS = [
   ['X-Frame-Options', { 'x-frame-options': 'DENY' }],
   ['Content-Security-Policy', { 'content-security-policy': "frame-ancestors 'none'" }],
@@ -428,7 +428,7 @@ test('Allow all sites asks Chrome from the message, and once allowed the page sh
   await expect.poll(() => refusalFrame(page)?.evaluate(() => document.readyState)).toBe('complete');
   // Chrome's question can't be answered in a test: the presenter says yes (noted in the extension's
   // storage, as the message goes once it's answered), and the site lets itself be shown, as every
-  // site does once allowed (card 56).
+  // site does once allowed.
   await refusalFrame(page).evaluate(() => {
     chrome.permissions.request = async (asked) => (await chrome.storage.local.set({ asked }), true);
   });
