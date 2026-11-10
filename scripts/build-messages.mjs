@@ -55,7 +55,7 @@ ${lines.join('\n')}
 
 export const build = () => fs.writeFileSync(OUT, render());
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   build();
   console.log(`Wrote ${OUT.pathname}`);
 }
