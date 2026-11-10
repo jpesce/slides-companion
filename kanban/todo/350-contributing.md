@@ -8,7 +8,9 @@
 - Which file runs where: the manifest has five groups of content scripts, some in the page's own world.
 - How to report a security problem privately. This matters here: "Allow all sites" lifts sites' framing protections (card 440).
 
-Smaller things: CLAUDE.md says cards are named `NN-slug.md`, but they have three digits. `.DS_Store` isn't in `.gitignore` (one sits in `kanban/` on the maintainer's computer). Commit subjects run up to 592 characters, which `git log --oneline` can't show.
+Also, commit subjects run up to 592 characters, which `git log --oneline` can't show.
+
+**Done already:** `package.json` has `"engines": { "node": ">=20.11" }`, `.nvmrc` asks for the current LTS (`lts/*`), `.gitignore` has `.DS_Store`, and CLAUDE.md names cards `NNN-slug.md`. The guide still has to say which Node to use.
 
 **Evidence of demand:** the docs and tooling reviews of 9 November 2026, asked for by the maintainer.
 
@@ -24,12 +26,11 @@ Smaller things: CLAUDE.md says cards are named `NN-slug.md`, but they have three
 - CLAUDE.md keeps only what's for the agent, and points to CONTRIBUTING.md for the rest. The maintainer approves the new CLAUDE.md, since it steers every session.
 - SECURITY.md: report through GitHub's private vulnerability reporting (turn it on in the repo's settings).
 - Short issue templates (bug, idea) and a pull request template in `.github/`.
-- Add `"engines": { "node": ">=20.11" }` and `.nvmrc`, and add `.DS_Store` to `.gitignore`.
 - The README links CONTRIBUTING.md instead of CLAUDE.md.
 
 **Done when:**
 - [ ] CONTRIBUTING.md covers everything listed above, and someone new could get from a fresh clone to a passing test with it alone.
 - [ ] CLAUDE.md is agent-only, points to CONTRIBUTING.md, and the maintainer has approved it.
 - [ ] SECURITY.md, the issue templates and the pull request template exist; private vulnerability reporting is on.
-- [ ] `package.json` has `engines`, `.nvmrc` exists, and `.DS_Store` is ignored.
+- [x] `package.json` has `engines`, `.nvmrc` exists, and `.DS_Store` is ignored.
 - [ ] The README points contributors to CONTRIBUTING.md.

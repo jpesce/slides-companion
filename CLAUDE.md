@@ -20,7 +20,7 @@ A free Chrome extension (Manifest V3) that improves presenting in Google Slides.
 
 The board is `kanban/`: one markdown file per deliverable.
 
-- `kanban/todo/`: ready or upcoming work, named `NN-slug.md`. Lower number means higher priority; numbers step by 10 so a card can be slotted between two others.
+- `kanban/todo/`: ready or upcoming work, named `NNN-slug.md`. Lower number means higher priority; numbers step by 10 so a card can be slotted between two others.
 - `kanban/doing/`: what's in progress. Keep it to one card.
 - There is no done folder. Finished cards are deleted; git history is the record (`git log --diff-filter=D --stat -- kanban/`).
 
