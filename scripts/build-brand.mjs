@@ -194,18 +194,22 @@ export const TOOLBAR = {
 };
 
 // The picture of one companion: his fur, and two eyes whose pupils sit at rest. `prefix` names the
-// classes, so a page that shows him (Slides) can find his pupils without clashing with its own.
-// Only the toolbar companion keeps a rim of white around his pupils (`margin`); at the companion's
-// size, the pupils sit where they were drawn.
+// classes, so a page that shows him (Slides) can find his parts without clashing with its own, and
+// groups them the way companion.js moves them: the whole body (squashed from its base), the face
+// inside it (which follows the body a beat late), each eye (which widens), and inside each eye what
+// its lids cover. Only the toolbar companion keeps a rim of white around his pupils (`margin`); at
+// the companion's size, the pupils sit where they were drawn.
 function body({ eyes, pupil, margin }, prefix = '') {
   const fur = `<path d="${furPath(BODY)}" fill="${INK}" stroke="${INK}" stroke-width="6" stroke-linejoin="round"/>`;
   const pupils = eyes.map((e) => {
     const r = Math.min(e.rx, e.ry) * pupil;
     const rest = [e.rest[0] * e.rx, e.rest[1] * e.ry];
     const [ox, oy] = margin == null ? rest : clampPupil(e, r, rest, margin);
-    return `<path d="${wobble(e)}" fill="#fff"/><circle${prefix ? ` class="${prefix}pupil"` : ''} cx="${(e.x + ox).toFixed(1)}" cy="${(e.y + oy).toFixed(1)}" r="${r.toFixed(1)}" fill="${INK}"/>`;
+    const eye = `<path d="${wobble(e)}" fill="#fff"/><circle${prefix ? ` class="${prefix}pupil"` : ''} cx="${(e.x + ox).toFixed(1)}" cy="${(e.y + oy).toFixed(1)}" r="${r.toFixed(1)}" fill="${INK}"/>`;
+    return prefix ? `<g class="${prefix}eye"><g class="${prefix}lids">${eye}</g></g>` : eye;
   });
-  return fur + pupils.join('');
+  if (!prefix) return fur + pupils.join('');
+  return `<g class="${prefix}body">${fur}<g class="${prefix}face">${pupils.join('')}</g></g>`;
 }
 const SVG = 'xmlns="http://www.w3.org/2000/svg"';
 const view = `${VIEW.x} ${VIEW.y} ${VIEW.size} ${VIEW.size}`;
@@ -245,8 +249,8 @@ export const PNGS = [
   ['brand/companion-1024.png', 'companion.svg', 1024],
 ];
 
-// The toolbar companion for companion.js: his picture, with the classes it moves his pupils by,
-// and where his eyes are, in the picture's units.
+// The toolbar companion for companion.js: his picture, with the classes it moves him by, and where
+// his eyes and base are, in the picture's units.
 export function companionScript() {
   const eyes = TOOLBAR.eyes.map(({ x, y, rx, ry, tilt }) => ({
     x: +x.toFixed(1),
@@ -257,13 +261,16 @@ export function companionScript() {
     r: +(Math.min(rx, ry) * TOOLBAR.pupil).toFixed(1),
   }));
   const svg = `<svg ${SVG} viewBox="${view}" aria-hidden="true">${body(TOOLBAR, 'slides-companion-')}</svg>`;
+  // The middle of the bun's flattened bottom, which he sits on and squashes towards.
+  const base = { x: BODY.cx, y: +(BODY.cy + BODY.shape.h * BODY.shape.bottom * BODY.R).toFixed(1) };
   return `// Made by scripts/build-brand.mjs (npm run brand): change that, not this.
-// The toolbar companion (companion.js): his picture, and where his eyes are in its units.
+// The toolbar companion (companion.js): his picture, and where his eyes and base are in its units.
 globalThis.slidesCompanion ??= {};
 globalThis.slidesCompanion.companionDrawing = {
   svg: '${svg}',
   view: ${JSON.stringify(VIEW)},
   eyes: ${JSON.stringify(eyes)},
+  base: ${JSON.stringify(base)},
   margin: ${TOOLBAR.margin},
 };
 `;
