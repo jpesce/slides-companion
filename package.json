@@ -11,6 +11,7 @@
     "chromium": "node scripts/chromium.mjs",
     "demo": "node scripts/demo/record.mjs && node scripts/demo/edit.mjs",
     "illustrations": "node scripts/build-illustrations.mjs",
+    "brand": "node scripts/build-brand.mjs",
     "messages": "node scripts/build-messages.mjs",
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write . && eslint --fix .",

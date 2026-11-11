@@ -1,4 +1,4 @@
-/* Sized like Slides' toolbar buttons (e.g. Undo, Hide the menus): 30px with a 20px icon. */
+/* Sized like Slides' toolbar buttons (e.g. Undo, Hide the menus): 30px. */
 .slides-companion-button {
   display: flex;
   align-items: center;
@@ -17,7 +17,11 @@
   background-color: rgba(68, 71, 70, 0.08);
 }
 
+/* The companion is drawn at 25px rather than the 20px of Slides' glyphs: smaller, his eyes and
+   where he looks don't read. A few hair tips reach past the picture's square, and still stay inside
+   the button. */
 .slides-companion-button svg {
-  width: 20px;
-  height: 20px;
+  width: 25px;
+  height: 25px;
+  overflow: visible;
 }

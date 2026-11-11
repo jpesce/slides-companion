@@ -40,6 +40,10 @@ Formerly Image Spotlight for Google Slides.
 
 Google Slides is a trademark of Google LLC. This extension is not made or endorsed by Google.
 
+## Icon
+
+The store's icon (Store listing › Graphic assets) is `extension/icons/icon128.png`, made by `npm run brand` (see [brand/README.md](brand/README.md)). Upload it again whenever the icon changes.
+
 ## Video
 
 The store's "YouTube video" field (Store listing › Graphic assets) shows a video at the top of the listing, before the screenshots. Ours is the demo video, `build/demo/slides-companion-demo.mp4`, made by `npm run demo` (see `scripts/demo/`). It has no sound, and its captions sit at the top, clear of YouTube's controls.

@@ -11,9 +11,10 @@ export default [
       'playwright-report/',
       'test-results/',
       '.chromium-profile/',
-      // Generated: npm run messages and npm run illustrations.
+      // Generated: npm run messages, npm run illustrations and npm run brand.
       'extension/messages.js',
       'extension/illustrations.js',
+      'extension/companion-drawing.js',
     ],
   },
   js.configs.recommended,

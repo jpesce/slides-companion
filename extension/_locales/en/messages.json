@@ -13,7 +13,7 @@
   },
   "settingsLabel": {
     "message": "Slides Companion settings",
-    "description": "The tooltip of our logo at the top of Slides' side toolbar, which opens Settings, and the Settings dialog's name for screen readers."
+    "description": "The tooltip of the companion, our mascot, at the top of Slides' side toolbar, which opens Settings, and the Settings dialog's name for screen readers."
   },
 
   "spotlightMenuItem": {

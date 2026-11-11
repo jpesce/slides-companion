@@ -1,5 +1,5 @@
 <p align="center">
-  <img width="100" src="https://github.com/user-attachments/assets/6fe34184-6b7b-4d24-8382-f31046a871b8" alt="Slides Companion"/>
+  <img width="100" src="brand/icon-512.png" alt="Slides Companion"/>
   <h1 align="center"><b>Slides Companion</b></h1>
 </p>
 

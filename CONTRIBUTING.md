@@ -32,6 +32,7 @@ While `npm run dev` runs, saving any file in `extension/` reloads the extension 
 extension/   the extension itself (load this folder in Chrome)
 tests/       Playwright tests, run in a separate Chromium
 scripts/     build, release, dev and demo helpers
+brand/       the companion, our mascot: the icon and every picture of him
 kanban/      the work board, one card per deliverable
 ```
 
@@ -40,7 +41,7 @@ In `extension/`, `manifest.json` loads each script where it's needed:
 | Where | Scripts |
 |---|---|
 | The editor, in the page's own world, from the start | `live-edits-main.js` |
-| The editor | `settings.js`, `messages.js`, `i18n.js`, `content.js` and `menus.js` (shared by every feature), then `illustrations.js`, `settings-dialog.js`, `companion.js` (the toolbar button), `spotlight.js`, `scroll.js`, `live-edits.js`, `notes.js`, `shortcuts.js` |
+| The editor | `settings.js`, `messages.js`, `i18n.js`, `content.js` and `menus.js` (shared by every feature), then `illustrations.js`, `settings-dialog.js`, `companion-drawing.js` and `companion.js` (the toolbar button), `spotlight.js`, `scroll.js`, `live-edits.js`, `notes.js`, `shortcuts.js` |
 | The slideshow, in every frame, in the page's own world | `live-edits-frame.js` |
 | The slideshow, in every frame | the shared scripts, then `zoom.js`, `ink.js`, `spotlight.js`, `notes.js`, `shortcuts.js` |
 | Presenter view (a blank page Slides opens) | `settings.js`, `messages.js`, `i18n.js`, `countdown.js` |
@@ -85,6 +86,7 @@ The tests check that every language has every message, with the same placeholder
 
 ## Pictures and the demo video
 
+- `npm run brand` draws the companion, our mascot, into `brand/`, Chrome's icons in `extension/icons/` and the toolbar button's picture in `extension/companion-drawing.js`. [brand/README.md](brand/README.md) says which file goes where.
 - `npm run illustrations` draws the picture at the top of each feature's page in Settings, into `extension/illustrations.js`.
 - `npm run demo` records the demo video on its own deck (set `DEMO_DECK_URL` for another) and edits it into `build/demo/`. It needs [ffmpeg](https://ffmpeg.org), and a quiet computer: a busy one stretches the scenes. [STORE.md](STORE.md) says where the video goes.
 
