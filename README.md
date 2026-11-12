@@ -1,6 +1,6 @@
 <p align="center">
   <img width="100" src="brand/icon-512.png" alt="Slides Companion"/>
-  <h1 align="center"><b>Slides Companion</b></h1>
+  <h1 align="center"><b>Slides Companion for Google Slides™</b></h1>
 </p>
 
 <p align="center">
@@ -41,11 +41,11 @@ Looking for something it doesn't do, like a phone remote or audience polls? [How
 > This method is recommended only for developers and advanced users.<br/>
 > For the best experience, install the extension from the [Chrome Web Store](https://chromewebstore.google.com/detail/image-spotlight-for-googl/habmkngfcidcchgmdpampgcbmnllkbhd).
 
-Download a [release](https://github.com/jpesce/slides-companion/releases), unzip it, and [load it as an unpacked extension](https://developer.chrome.com/docs/extensions/get-started/tutorial/hello-world#load-unpacked).
+Download a [release](https://github.com/jpesce/slides-companion-for-google-slides/releases), unzip it, and [load it as an unpacked extension](https://developer.chrome.com/docs/extensions/get-started/tutorial/hello-world#load-unpacked).
 
 ## Contributing
 
-Found a bug, or missing something? [Open an issue](https://github.com/jpesce/slides-companion/issues). To change the code, [CONTRIBUTING.md](CONTRIBUTING.md) has the project's principles, setup, tests and how a release goes out. In short:
+Found a bug, or missing something? [Open an issue](https://github.com/jpesce/slides-companion-for-google-slides/issues). To change the code, [CONTRIBUTING.md](CONTRIBUTING.md) has the project's principles, setup, tests and how a release goes out. In short:
 
 ```bash
 npm install

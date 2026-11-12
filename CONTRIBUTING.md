@@ -1,6 +1,6 @@
 # Contributing to Slides Companion
 
-Thanks for helping. Found a bug, or missing something while presenting? [Open an issue](https://github.com/jpesce/slides-companion/issues): the forms there ask for what helps most. For a bigger change, open an issue first, so we can agree on the approach before you spend time on code.
+Thanks for helping. Found a bug, or missing something while presenting? [Open an issue](https://github.com/jpesce/slides-companion-for-google-slides/issues): the forms there ask for what helps most. For a bigger change, open an issue first, so we can agree on the approach before you spend time on code.
 
 ## What the extension stands for
 

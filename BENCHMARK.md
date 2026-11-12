@@ -2,7 +2,7 @@
 
 Slides Companion adds presenter tools to Google Slides™. Many other projects tackle the same problems, and some do things we don't. This page sets them side by side, so you can pick what fits your talk, and so we remember what's out there.
 
-_Checked on 8 November 2026._ Figures come from each project's own page: the Chrome Web Store's user count and rating, the Google Workspace Marketplace's install count (a running total, so it isn't comparable with Chrome's user counts), and GitHub stars. We read each listing, and the published code where there is some, but we didn't run every tool. "Per its listing" marks what we took on the project's word. Something wrong or missing? [Open an issue](https://github.com/jpesce/slides-companion/issues) and we'll fix it.
+_Checked on 8 November 2026._ Figures come from each project's own page: the Chrome Web Store's user count and rating, the Google Workspace Marketplace's install count (a running total, so it isn't comparable with Chrome's user counts), and GitHub stars. We read each listing, and the published code where there is some, but we didn't run every tool. "Per its listing" marks what we took on the project's word. Something wrong or missing? [Open an issue](https://github.com/jpesce/slides-companion-for-google-slides/issues) and we'll fix it.
 
 **How Slides Companion works, in short:** a free, open-source (GPL-3.0) Chrome extension. It runs entirely in your browser, with no account and no server, on top of Slides' own slideshow. So your videos, animations and clicker keep working. That choice also sets its limits: anything that needs a server, like a phone remote or audience polls, is something it doesn't do (see [What Slides Companion doesn't do](#what-slides-companion-doesnt-do)).
 
@@ -210,6 +210,6 @@ So you know when to reach for something else:
 
 ## Adding a project
 
-Know a project that belongs here? [Open an issue](https://github.com/jpesce/slides-companion/issues) or a pull request with its link. Please keep this page fair: what each project does well, in its own words where we can't check.
+Know a project that belongs here? [Open an issue](https://github.com/jpesce/slides-companion-for-google-slides/issues) or a pull request with its link. Please keep this page fair: what each project does well, in its own words where we can't check.
 
 Google Slides is a trademark of Google LLC. Slides Companion is not made or endorsed by Google, and every other name here belongs to its owner.

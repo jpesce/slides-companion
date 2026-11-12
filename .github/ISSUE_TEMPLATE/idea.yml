@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Slides Companion works entirely in your browser, with no servers or accounts, so things like a phone remote or audience polls are out of its reach. [BENCHMARK.md](https://github.com/jpesce/slides-companion/blob/main/BENCHMARK.md) lists projects that do them.
+        Slides Companion works entirely in your browser, with no servers or accounts, so things like a phone remote or audience polls are out of its reach. [BENCHMARK.md](https://github.com/jpesce/slides-companion-for-google-slides/blob/main/BENCHMARK.md) lists projects that do them.
   - type: textarea
     id: problem
     attributes:
