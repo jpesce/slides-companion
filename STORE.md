@@ -10,7 +10,7 @@ The store finds extensions mostly by the words in their name. So after our own n
 
 ## Description
 
-Free presenter tools for Google Slides™. Slides Companion works on top of Slides' own slideshow, so your videos, animations and clicker keep working, and it looks like part of Slides.
+Free presenter tools for Google Slides™. Slides Companion works on top of Slides' own slideshow, so your videos, animations and clicker keep working.
 
 SPOTLIGHT
 Select an image and press Space to see it full screen, then go through the slide's other images. During a slideshow, just click an image. Right-click an image to download it as it was added to the deck.
@@ -36,7 +36,6 @@ Edits to the deck, by you or anyone else, reach a slideshow that's already runni
 Each feature has its own page in Settings: click the extension's button in Slides' side toolbar. In 33 languages, following Slides' own.
 
 100% free and open source. No account, no servers: everything happens in your browser.
-Formerly Image Spotlight for Google Slides.
 
 Google Slides is a trademark of Google LLC. This extension is not made or endorsed by Google.
 
