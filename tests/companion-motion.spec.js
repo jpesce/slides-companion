@@ -93,3 +93,57 @@ test(
     await page.mouse.up();
   },
 );
+
+// Rubs the mouse back and forth across him, a stroke every eighth of a second.
+async function rub(page, button, strokes) {
+  const box = await button.boundingBox();
+  const y = box.y + box.height / 2;
+  for (let stroke = 0; stroke < strokes; stroke++) {
+    for (let step = 0; step <= 8; step++) {
+      const share = stroke % 2 ? 1 - step / 8 : step / 8;
+      await page.mouse.move(box.x + box.width * share, y);
+      await page.clock.runFor(16);
+    }
+  }
+}
+
+test(
+  'the companion smiles when petted, and not when the mouse goes past him',
+  { tag: '@offline' },
+  async ({ page }) => {
+    const button = await companion(page);
+    const open = await openings(page);
+    const box = await button.boundingBox();
+    const y = box.y + box.height / 2;
+
+    // On the way to another button, the mouse crosses him once.
+    for (let x = box.x - 100; x <= box.x + box.width + 100; x += 10) {
+      await page.mouse.move(x, y);
+      await page.clock.runFor(8);
+    }
+    await page.clock.runFor(300);
+    expect(await openings(page)).toEqual(open);
+
+    // Rubbed, his eyes close into happy arcs, and stay closed while the petting goes on.
+    await rub(page, button, 6);
+    for (const opening of await openings(page)) expect(opening).toBeLessThan(80);
+    await rub(page, button, 6);
+    for (const opening of await openings(page)) expect(opening).toBeLessThan(80);
+
+    // A moment after it stops, they open again.
+    await page.clock.runFor(2500);
+    (await openings(page)).forEach((opening, i) => expect(opening).toBeCloseTo(open[i], 0));
+  },
+);
+
+test(
+  "with reduced motion, the companion doesn't smile when petted",
+  { tag: '@offline' },
+  async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    const button = await companion(page);
+    const open = await openings(page);
+    await rub(page, button, 12);
+    expect(await openings(page)).toEqual(open);
+  },
+);

@@ -1,6 +1,6 @@
 // The companion: our mascot, pinned to the top of Slides' side toolbar, whose eyes follow the
-// mouse, who blinks, and who squashes when pressed. His picture and where his eyes are come from
-// companion-drawing.js (npm run brand).
+// mouse, who blinks, who squashes when pressed, and who smiles when petted. His picture and where
+// his eyes are come from companion-drawing.js (npm run brand).
 {
   const DRAWING = globalThis.slidesCompanion.companionDrawing;
 
@@ -70,12 +70,13 @@
   // ---- How he moves ----
   // His pupils follow the mouse; he blinks now and then, and when his gaze swings a long way (a
   // blink hides a change of gaze, as animators time one); pressed, he gives under the finger and
-  // squeezes his eyes into happy arcs, and let go, he springs back past his shape and wobbles to rest, his face
-  // settling a beat after his body. All of it is springs and timed blinks, stepped once a frame and
-  // only while something is still moving. A spring carries on from wherever it is, at the speed
-  // it's going, so a press that interrupts a bounce, or a glance in the middle of a blink, flows on
-  // from it instead of jumping. Nothing moves but his pupils when the system asks for reduced
-  // motion, and those jump straight to where they look.
+  // squeezes his eyes into happy arcs, and let go, he springs back past his shape and wobbles to
+  // rest, his face settling a beat after his body; petted, rubbed with the mouse, he closes his
+  // eyes into the same arcs and opens them slowly once it stops. All of it is springs and timed
+  // blinks, stepped once a frame and only while something is still moving. A spring carries on
+  // from wherever it is, at the speed it's going, so a press that interrupts a bounce, or a glance
+  // in the middle of a blink, flows on from it instead of jumping. Nothing moves but his pupils
+  // when the system asks for reduced motion, and those jump straight to where they look.
 
   // A damped spring: `omega` is how quick it is (radians a second), `zeta` how much it overshoots
   // (1 doesn't, lower wobbles more).
@@ -120,7 +121,15 @@
     face: [16, 0.42],
     // Pointed at, his pupils widen a little, as when something interests him.
     interest: [14, 1],
+    // Petted, his eyes close into a smile quickly, and open again slowly, contented.
+    smile: [24, 1],
+    unsmile: [9, 1],
   };
+  // Petting: how far the mouse has travelled over him, in his own widths, fading with this time
+  // constant (seconds). Going past him on the way to another button travels about one width;
+  // rubbing him travels several a second. Past `smile` he smiles, and he holds it for at least
+  // `hold` milliseconds and until the count fades below `calm`.
+  const PET = { fade: 0.6, smile: 3, calm: 1, hold: 700 };
   // How far he squashes when pressed (and, by the overshoot, stretches when let go): shorter and
   // wider in about the same area, from his base.
   const SQUASH = { y: 0.13, x: 0.09 };
@@ -130,6 +139,11 @@
   // double, the second starting before the eyes are fully open again.
   const BLINK = { close: 80, hold: 17, open: 180, lowerLag: 17, double: 0.125 };
   const BLINK_EVERY = [2600, 7200];
+  // The happy arc his eyes squeeze into, in shares of the eye: where its middle sits below the
+  // eye's centre, how far its ends bend down, its half thickness, and its half length; and where
+  // the pupils sink to, out of its way. Thick enough to read at the toolbar's 25 pixels, where a
+  // thin arc breaks up.
+  const SMILE = { middle: 0.04, bend: 0.55, half: 0.25, width: 0.86, sink: 1.0 };
   // A glance that swings this far (radians), within this long, brings a blink, but not more often
   // than every `rest` milliseconds.
   const GLANCE = { angle: 1.75, within: 400, chance: 0.7, rest: 1400 };
@@ -151,27 +165,37 @@
   //  - Open, both edges sit just outside the eye's hand-drawn wobble.
   //  - Blinking (`blink` the upper lid, `rise` the lower one), the upper edge comes down and takes
   //    the lower one's curve as it lands, so they meet all along.
-  //  - Squeezed (`squeeze`, when he's pressed), both edges take the same strong arch a little apart:
-  //    what's left of each eye is an arc, the ^ ^ of a happy face, with the pupils hidden.
+  //  - Squeezed (`squeeze`, when he's pressed or petted), what's left of each eye is a thick arc
+  //    with round ends, the ^ ^ of a happy face, low in the eye as if his cheeks pushed it up.
+  //    The lower lid leads, rising into the smile, and the upper one follows: the other way
+  //    round, a flat upper lid coming down first, he looks cross for a frame or two.
   function aperture(eye, blink, rise, squeeze) {
     const meet = 0.2;
     const lowerMiddle = 1.25 + (meet - 1.25) * 0.3 * rise;
     const lowerCurve = -0.15;
     const upperMiddle = -1.3 + (lowerMiddle + 1.3) * blink;
     const upperCurve = 0.32 + (lowerCurve - 0.32) * blink ** 2;
-    const toward = (from, to) => from + (to - from) * squeeze;
-    const edges = [
-      [toward(upperMiddle, -0.95), toward(upperCurve, 0.8)],
-      [toward(lowerMiddle, -0.5), toward(lowerCurve, 0.8)],
-    ];
+    const lead = 1 - (1 - squeeze) ** 2;
+    const follow = squeeze ** 1.3;
+    const narrow = squeeze ** 2;
+    const lerp = (from, to, t) => from + (to - from) * t;
+    // The arc's half length, in the picture's units, and the share of it its round ends take.
+    const length = eye.rx * SMILE.width;
+    const end = Math.min(1, (SMILE.half * eye.ry) / length);
     const above = [];
     const below = [];
-    for (let i = 0; i <= 12; i++) {
-      const u = i / 6 - 1;
-      const x = (u * eye.rx * 1.25).toFixed(1);
-      const [yUpper, yLower] = edges.map(([middle, curve]) => (middle + curve * u * u) * eye.ry);
-      above.push(`${x} ${yUpper.toFixed(1)}`);
-      below.unshift(`${x} ${Math.max(yUpper, yLower).toFixed(1)}`);
+    // Spaced closer towards the ends, where the arc's round ends need the points.
+    const steps = 24;
+    for (let i = 0; i <= steps; i++) {
+      const u = -Math.cos((Math.PI * i) / steps);
+      const x = lerp(eye.rx * 1.25, length, narrow) * u;
+      const middle = (SMILE.middle + SMILE.bend * u * u) * eye.ry;
+      const along = Math.max(0, (Math.abs(u) - (1 - end)) / end);
+      const half = SMILE.half * eye.ry * Math.sqrt(Math.max(0, 1 - along * along));
+      const yUpper = lerp((upperMiddle + upperCurve * u * u) * eye.ry, middle - half, follow);
+      const yLower = lerp((lowerMiddle + lowerCurve * u * u) * eye.ry, middle + half, lead);
+      above.push(`${x.toFixed(1)} ${yUpper.toFixed(1)}`);
+      below.unshift(`${x.toFixed(1)} ${Math.max(yUpper, yLower).toFixed(1)}`);
     }
     return `M${above.join(' L')} L${below.join(' L')} Z`;
   }
@@ -238,7 +262,11 @@
     const squash = new Spring(SPRINGS.press);
     const face = new Spring(SPRINGS.face);
     const interest = new Spring(SPRINGS.interest);
-    const springs = [...gaze.flat(), squash, face, interest];
+    const joy = new Spring(SPRINGS.smile);
+    const springs = [...gaze.flat(), squash, face, interest, joy];
+    let petting = 0;
+    let pettedAt = 0;
+    let smiledAt = 0;
     let mouse = null;
     let moved = false;
     let blinks = [];
@@ -258,7 +286,7 @@
     }
 
     function blink(now = performance.now()) {
-      if (still.matches || pressedAt || now - lastBlink < 200) return;
+      if (still.matches || pressedAt || smiledAt || now - lastBlink < 200) return;
       lastBlink = now;
       blinks.push(now);
       if (Math.random() < BLINK.double)
@@ -319,9 +347,15 @@
       }
       last = now;
 
+      if (smiledAt && now - smiledAt > PET.hold && pettingAt(now) < PET.calm) {
+        smiledAt = 0;
+        joy.tune(SPRINGS.unsmile);
+        joy.target = 0;
+      }
+
       const { upper, lower } = blinking(now);
       const s = squash.x;
-      const squeeze = Math.min(1, Math.max(0, s));
+      const squeeze = Math.min(1, Math.max(0, s, joy.x));
       const stretch = Math.max(0, -s);
       // The body squashes from its base, and dips a touch as he blinks.
       const sx = 1 + SQUASH.x * s;
@@ -347,12 +381,48 @@
         const r = radius(eye);
         const at = [gaze[i][0].x - eye.x, gaze[i][1].x - eye.y + 0.25 * eye.ry * upper];
         const [dx, dy] = keepInside(eye, r, at, false);
-        pupils[i].setAttribute('cx', (eye.x + dx).toFixed(1));
-        pupils[i].setAttribute('cy', (eye.y + dy).toFixed(1));
+        // Squeezing, they sink below the arc as the lower lid rises over them, so it swallows
+        // them rather than leaving a sliver of pupil in the arc.
+        const sink = 1 - (1 - squeeze) ** 2;
+        const px = dx * (1 - sink);
+        const py = dy + (SMILE.sink * eye.ry - dy) * sink;
+        pupils[i].setAttribute('cx', (eye.x + px).toFixed(1));
+        pupils[i].setAttribute('cy', (eye.y + py).toFixed(1));
         pupils[i].setAttribute('r', r.toFixed(1));
       });
 
-      if (!still.matches && (blinks.length || springs.some((spring) => !spring.resting))) wake();
+      // While he smiles, frames keep coming, so he notices when the petting stops.
+      const moving = blinks.length || smiledAt || springs.some((spring) => !spring.resting);
+      if (!still.matches && moving) wake();
+    }
+
+    function pettingAt(now) {
+      return petting * Math.exp(-(now - pettedAt) / 1000 / PET.fade);
+    }
+
+    // The mouse's way from `from` to `to` counts as petting when either end is over him, or just
+    // around him, so a stroke a little wider than he is still counts in full. One move counts
+    // for a width at most: a flick that lands on him from across the page arrives as one long
+    // move, while rubbing arrives as many short ones.
+    function pet(from, to, now) {
+      if (still.matches || !from) return;
+      const rect = svg.getBoundingClientRect();
+      if (!rect.width) return;
+      const margin = rect.width / 4;
+      const over = ({ x, y }) =>
+        x > rect.left - margin &&
+        x < rect.right + margin &&
+        y > rect.top - margin &&
+        y < rect.bottom + margin;
+      if (!over(from) && !over(to)) return;
+      petting = pettingAt(now) + Math.min(1, Math.hypot(to.x - from.x, to.y - from.y) / rect.width);
+      pettedAt = now;
+      if (petting < PET.smile || smiledAt) return;
+      smiledAt = now;
+      blinks = [];
+      joy.tune(SPRINGS.smile);
+      joy.target = 1;
+      wake();
     }
 
     // The pupils start where they're drawn, at rest.
@@ -384,7 +454,9 @@
     document.addEventListener(
       'mousemove',
       (event) => {
+        const from = mouse;
         mouse = { x: event.clientX, y: event.clientY };
+        pet(from, mouse, performance.now());
         moved = true;
         wake();
       },

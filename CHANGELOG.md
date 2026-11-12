@@ -18,7 +18,7 @@ Presenter tools for Google Slides, still free, open source, and working entirely
 - **Live edits:** edits to the deck, by you or anyone else, reach a slideshow that's already running.
 - **Keyboard:** our shortcuts are listed in Slides' Keyboard shortcuts dialog, and our menu items work with the arrow keys and access keys like Slides' own.
 - **Languages:** the extension speaks Slides' language, in 33 languages, right to left in Arabic and Hebrew.
-- **A new look:** the binoculars are gone. Meet the companion, a small furry friend who peeks up from the extension's icon and sits at the top of Slides' side toolbar, watching your mouse. He blinks now and then, and squishes happily when you click him (he keeps still if your computer is set to reduce motion).
+- **A new look:** the binoculars are gone. Meet the companion, a small furry friend who peeks up from the extension's icon and sits at the top of Slides' side toolbar, watching your mouse. He blinks now and then, squishes happily when you click him, and closes his eyes in a smile when you pet him with the mouse (he keeps still if your computer is set to reduce motion).
 - The toolbar popup is gone: everything now lives inside Slides.
 
 ## v0.1.2 - 2025-05-23
