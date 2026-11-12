@@ -615,20 +615,19 @@ const scenes = {};
     const d = Math.hypot(x - CX, y - CY);
     return `${(((x - CX) / d) * room[0]).toFixed(1)} ${(((y - CY) / d) * room[1]).toFixed(1)}`;
   };
-  // The pointer: on the slide, across it, then onto him, a little below and left of his middle.
+  // The pointer: from the slide onto him in one arc, a little below and left of his middle.
   const A = [214, 150],
-    B = [318, 128],
     C = [406, 71];
-  const CLICK = 3.2;
+  const CLICK = 2.5;
   // Each pupil, moved by where he looks.
   let eye = 0;
   const face = drawing.replace(/<circle class="slides-companion-pupil"([^>]*)\/>/g, (_, rest) => {
     eye++;
     return `<circle${rest}>${tf(
       'translate',
-      [look(A), look(A), look(B), look(B), look(C), look(C), look(A), look(A)],
-      [0, 0.5, 1.3, 1.7, 2.7, 4.5, 5.4, T],
-      [HOLD, EASY, HOLD, EASY, HOLD, EASY, HOLD],
+      [look(A), look(A), look(C), look(C), look(A), look(A)],
+      [0, 0.6, 1.9, 4.1, 5.0, T],
+      [HOLD, EASY, HOLD, EASY, HOLD],
     )}</circle>`;
   });
   if (eye !== TOOLBAR.eyes.length)
@@ -640,7 +639,7 @@ const scenes = {};
   const icons = (xs) =>
     xs.map((x) => `<rect x="${x}" y="53" width="14" height="14" rx="4" fill="#c4c7c5"/>`).join('');
   scenes.companion = {
-    still: 3.0,
+    still: 2.3,
     svg: frame(
       'companion',
       `
@@ -657,12 +656,11 @@ const scenes = {};
     </g></g>
     ${cursor(
       [
-        [...A, 0, 0.4],
-        [...B, 1.2, 1.6],
-        [...C, 2.6, 4.4],
-        [...A, 5.3, T],
+        [...A, 0, 0.6],
+        [...C, 2.0, 4.0],
+        [...A, 5.0, T],
       ],
-      [[HAND, 2.45, 4.5]],
+      [[HAND, 1.85, 4.1]],
       [CLICK],
     )}`,
     ),
