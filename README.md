@@ -22,7 +22,7 @@ https://github.com/user-attachments/assets/ec264cc1-df3a-48b8-a82a-06445b620273
 - ✏️ **Live edits:** changes to the deck reach a slideshow that's already running.
 - 🖼️ **Download image:** save any picture as it was added to the deck.
 
-It speaks Slides' language (33 of them), and its keyboard shortcuts are listed with Slides' own. 🕊️ Free and open source, with no account and no servers: everything happens in your browser.
+🕊️ Free and open source, with no account and no servers: everything happens in your browser.
 
 Each feature has its own page in Settings, with what it does and its choices: click the extension's button at the top of Slides' side toolbar, whose eyes follow your mouse.
 
@@ -59,3 +59,9 @@ npm test
 Free and open source under the GNU General Public License v3.0: yours to use, learn from, share and improve. See [LICENSE](./LICENSE).
 
 Google Slides is a trademark of Google LLC. This extension is not made or endorsed by Google.
+
+---
+
+Available in 33 languages
+
+<sub>Bahasa Indonesia · Bahasa Melayu · čeština · dansk · Deutsch · English · español (España) · español (Latinoamérica) · Filipino · français · italiano · magyar · Nederlands · norsk · polski · português (Brasil) · português (Portugal) · română · suomi · svenska · Tiếng Việt · Türkçe · Ελληνικά · русский · українська · עברית · हिन्दी · العربية · ไทย · 中文（简体） · 中文（繁體） · 日本語 · 한국어</sub>
