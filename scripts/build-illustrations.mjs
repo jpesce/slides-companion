@@ -4,6 +4,7 @@
 // simple blocks), one accent, and moves on Material's and Android's curves. Each is an SVG
 // animation (SMIL) that loops and ends as it starts.
 import fs from 'node:fs';
+import { pupilRoom, TOOLBAR } from './build-brand.mjs';
 
 const OUT = new URL('../extension/illustrations.js', import.meta.url);
 // The frame is 176 tall, cropped 2px off the top and bottom of a 180 drawing, so the tallest page
@@ -586,6 +587,81 @@ const scenes = {};
       ${anim('opacity', [0, 0, 1, 1, 0, 0], [0, shown, shown + 0.5, reset, reset + 0.3, T], [HOLD, DISSOLVE, HOLD, STD_ACCEL, HOLD])}
       ${bar(129, 77, 80, 6, '#c4c7c5')}
     </g>`,
+    )}`,
+    ),
+  };
+}
+
+// The companion: at the end of Slides' toolbar, his eyes follow the pointer around the slide, and
+// it clicks him, which opens Settings: he squashes under it and springs back, as in Slides. He's the
+// toolbar companion's own drawing (companion-drawing.js, from build-brand.mjs), at the size he has
+// in a toolbar this tall.
+{
+  globalThis.slidesCompanion ??= {};
+  await import('../extension/companion-drawing.js');
+  const { svg: drawing, view, base } = globalThis.slidesCompanion.companionDrawing;
+  const SIZE = 40,
+    CX = 418,
+    CY = 60;
+  // Where he sits on the toolbar, which he squashes towards.
+  const BASE_Y = CY - SIZE / 2 + ((base.y - view.y) / view.size) * SIZE;
+  // How far his pupils can look, in the drawing's units: the least room either eye has.
+  const room = TOOLBAR.eyes
+    .map((e) => pupilRoom(e, Math.min(e.rx, e.ry) * TOOLBAR.pupil, TOOLBAR.margin))
+    .reduce(([ax, ay], [bx, by]) => [Math.min(ax, bx), Math.min(ay, by)]);
+  const look = ([x, y]) => {
+    const d = Math.hypot(x - CX, y - CY);
+    return `${(((x - CX) / d) * room[0]).toFixed(1)} ${(((y - CY) / d) * room[1]).toFixed(1)}`;
+  };
+  // The pointer: on the slide, across it, then onto him, a little below and left of his middle.
+  const A = [214, 150],
+    B = [318, 128],
+    C = [406, 71];
+  const CLICK = 3.2;
+  // Each pupil, moved by where he looks.
+  let eye = 0;
+  const face = drawing.replace(/<circle class="slides-companion-pupil"([^>]*)\/>/g, (_, rest) => {
+    eye++;
+    return `<circle${rest}>${tf(
+      'translate',
+      [look(A), look(A), look(B), look(B), look(C), look(C), look(A), look(A)],
+      [0, 0.5, 1.3, 1.7, 2.7, 4.5, 5.4, T],
+      [HOLD, EASY, HOLD, EASY, HOLD, EASY, HOLD],
+    )}</circle>`;
+  });
+  if (eye !== TOOLBAR.eyes.length)
+    throw new Error(`Found ${eye} of the companion's pupils in companion-drawing.js`);
+  // Without the classes companion.js and its styles find him by, so this copy is only a picture.
+  const [, inner] = face
+    .replace(/ class="slides-companion-[a-z]+"/g, '')
+    .match(/<svg[^>]*>(.*)<\/svg>/s);
+  const icons = (xs) =>
+    xs.map((x) => `<rect x="${x}" y="53" width="14" height="14" rx="4" fill="#c4c7c5"/>`).join('');
+  scenes.companion = {
+    still: 3.0,
+    svg: frame(
+      'companion',
+      `
+    <!-- The editor: Slides' toolbar, and the slide under it. -->
+    <rect x="40" y="26" width="415" height="190" rx="12" fill="#fff" stroke="#c4c7c5" stroke-width="2"/>
+    <rect x="52" y="36" width="391" height="48" rx="24" fill="#f0f4f9"/>
+    ${icons([70, 98, 126])}<path d="M154 50V70M268 50V70" stroke="#c4c7c5"/>${icons([168, 196, 224])}${icons([282, 310])}
+    ${bar(338, 56, 44, 8, '#c4c7c5')}
+    ${at(150, 100, 0.8, slide('companion-a', 84, 72, 80))}
+    <!-- The companion, squashing towards where he sits as he's clicked. -->
+    <g transform="translate(${CX} ${BASE_Y.toFixed(1)})"><g>
+      ${tf('scale', ['1 1', '1 1', '1.06 0.88', '0.97 1.04', '1 1', '1 1'], [0, CLICK, CLICK + 0.1, CLICK + 0.3, CLICK + 0.5, T], [HOLD, EASY, EASY, EASY, HOLD])}
+      <svg x="${-SIZE / 2}" y="${(CY - SIZE / 2 - BASE_Y).toFixed(1)}" width="${SIZE}" height="${SIZE}" viewBox="${view.x} ${view.y} ${view.size} ${view.size}">${inner}</svg>
+    </g></g>
+    ${cursor(
+      [
+        [...A, 0, 0.4],
+        [...B, 1.2, 1.6],
+        [...C, 2.6, 4.4],
+        [...A, 5.3, T],
+      ],
+      [[HAND, 2.45, 4.5]],
+      [CLICK],
     )}`,
     ),
   };

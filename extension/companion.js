@@ -464,25 +464,39 @@
     });
   }
 
-  function mount(sideToolbar) {
-    // A previous copy of this script (e.g. before an extension reload) may have left one behind.
-    document.querySelector('.slides-companion-button')?.remove();
-    const button = createCompanion();
+  // He shows unless the presenter keeps Slides' toolbar as Slides made it (Settings), and comes and
+  // goes in every open Slides tab as soon as they choose. His animation stops once he's gone.
+  const { settings } = globalThis.slidesCompanion;
+  let sideToolbar = null;
+  let button = null;
+  function update() {
+    const shown = settings.get('showCompanion') && sideToolbar;
+    if (shown && button?.isConnected) return;
+    hideTooltip();
+    // Any other copy goes too: a previous copy of this script (e.g. before an extension reload)
+    // may have left one behind, or put one in after this one started.
+    for (const old of document.querySelectorAll('.slides-companion-button')) old.remove();
+    button = null;
+    if (!shown) return;
+    button = createCompanion();
     sideToolbar.insertBefore(button, sideToolbar.firstChild);
     animate(button);
   }
 
-  // The side toolbar may render after the content script runs.
-  const existing = document.querySelector('#docs-side-toolbar');
-  if (existing) {
-    mount(existing);
-  } else {
+  settings.ready.then(() => {
+    chrome.storage.onChanged.addListener((changes, area) => {
+      if (area === 'sync' && 'showCompanion' in changes) update();
+    });
+    // The side toolbar may render after the content script runs.
+    const find = () => {
+      sideToolbar = document.querySelector('#docs-side-toolbar');
+      if (sideToolbar) update();
+      return sideToolbar;
+    };
+    if (find()) return;
     const observer = new MutationObserver(() => {
-      const sideToolbar = document.querySelector('#docs-side-toolbar');
-      if (!sideToolbar) return;
-      observer.disconnect();
-      mount(sideToolbar);
+      if (find()) observer.disconnect();
     });
     observer.observe(document.body, { childList: true, subtree: true });
-  }
+  });
 }

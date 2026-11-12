@@ -18,7 +18,22 @@ const FEATURES = [
   ['Pen', 'Keep what you draw'],
   ['Timer', 'Count down to finish on time'],
   ['Live edits', 'Shown while you present'],
+  ['Companion', 'Your shortcut to Settings'],
 ];
+const showCompanion = (page) =>
+  dialog(page).getByRole('checkbox', { name: /Show the companion in Slides’ toolbar/ });
+
+// The extension's button in the browser's toolbar, in every tab: whether it's on, and its tooltip.
+const browserButtons = (serviceWorker) =>
+  serviceWorker.evaluate(async () =>
+    Promise.all(
+      (await chrome.tabs.query({})).map(async (tab) => ({
+        slides: /^https:\/\/docs\.google\.com\/presentation\//.test(tab.url ?? ''),
+        enabled: await chrome.action.isEnabled(tab.id),
+        title: await chrome.action.getTitle({ tabId: tab.id }),
+      })),
+    ),
+  );
 
 async function openDeck(context) {
   const page = await context.newPage();
@@ -59,6 +74,8 @@ test('the companion shows a tooltip and opens Settings', async ({ context }) => 
   await expect(dialog(page).getByRole('radio', { name: /2 minutes before the end/ })).toBeChecked();
   await feature(page, 'Live edits').click();
   await expect(dialog(page).getByRole('radio', { name: /Right away/ })).toBeChecked();
+  await feature(page, 'Companion').click();
+  await expect(showCompanion(page)).toBeChecked();
 });
 
 test('each feature has a page of its own, saying what the feature does, and the choices on every page are saved', async ({
@@ -167,11 +184,11 @@ test('↑ and ↓ go through the features, Home and End to the first and last, a
   await expect(feature(page, 'Links')).toHaveAttribute('aria-selected', 'true');
   await expect(dialog(page).getByRole('tabpanel', { name: 'Links' })).toBeVisible();
   await page.keyboard.press('End');
-  await expect(feature(page, 'Live edits')).toBeFocused();
+  await expect(feature(page, 'Companion')).toBeFocused();
   await page.keyboard.press('ArrowDown');
   await expect(feature(page, 'Spotlight')).toBeFocused();
   await page.keyboard.press('ArrowUp');
-  await expect(feature(page, 'Live edits')).toBeFocused();
+  await expect(feature(page, 'Companion')).toBeFocused();
   await page.keyboard.press('Home');
   await expect(feature(page, 'Spotlight')).toBeFocused();
   await page.keyboard.press('ArrowDown');
@@ -374,4 +391,72 @@ test('Esc pressed on Allow all sites closes the dialog', async ({ context }) => 
   await expect(allowAllSites(page)).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(dialog(page)).toHaveCount(0);
+});
+
+test('hiding the companion takes him out of every open Slides tab, and the browser’s button opens Settings without him', async ({
+  context,
+  serviceWorker,
+}) => {
+  const page = await openDeck(context);
+  const other = await openDeck(context);
+  // In Slides, the button is on, named as the companion is.
+  await expect
+    .poll(async () => (await browserButtons(serviceWorker)).filter((tab) => tab.slides))
+    .toEqual([
+      { slides: true, enabled: true, title: 'Slides Companion settings' },
+      { slides: true, enabled: true, title: 'Slides Companion settings' },
+    ]);
+
+  await companion(page).click();
+  await feature(page, 'Companion').click();
+  await showCompanion(page).uncheck();
+  await dialog(page).getByRole('button', { name: 'OK' }).click();
+  await expect(companion(page)).toHaveCount(0);
+  await expect(companion(other)).toHaveCount(0);
+
+  // A click on the button: Chrome hands background.js the tab, which it asks to open Settings. A
+  // test can't click the browser's toolbar, so it calls what the click does, in the other tab.
+  await other.evaluate(() => {
+    document.title = 'The other tab';
+    window.hadTheKeys = document.activeElement;
+  });
+  await serviceWorker.evaluate(async () => {
+    const [tab] = await chrome.tabs.query({ title: 'The other tab' });
+    await globalThis.openSettingsIn(tab.id);
+  });
+  await expect(dialog(other)).toBeVisible();
+  await expect(dialog(page)).toHaveCount(0);
+  await feature(other, 'Companion').click();
+  await expect(showCompanion(other)).not.toBeChecked();
+  await showCompanion(other).check();
+  await dialog(other).getByRole('button', { name: 'OK' }).click();
+  await expect(companion(other)).toBeVisible();
+  // The keys go back to what had them, so Slides' shortcuts work straight away.
+  expect(await other.evaluate(() => document.activeElement === window.hadTheKeys)).toBe(true);
+  await expect(companion(page)).toBeVisible();
+  await expect(page.locator('#docs-side-toolbar > :first-child')).toHaveClass(
+    /slides-companion-button/,
+  );
+});
+
+test('away from Slides, the browser’s button is greyed out and says where to go @offline', async ({
+  context,
+  serviceWorker,
+}) => {
+  const page = await context.newPage();
+  await page.goto('data:text/html,<title>Elsewhere</title>');
+  // background.js turns the button off as Chrome installs the extension, which may still be going.
+  const elsewhere = {
+    slides: false,
+    enabled: false,
+    title: 'Open a presentation in Google Slides to change Slides Companion’s settings',
+  };
+  await expect
+    .poll(async () => {
+      const tabs = await browserButtons(serviceWorker);
+      return (
+        tabs.length > 0 && tabs.every((tab) => JSON.stringify(tab) === JSON.stringify(elsewhere))
+      );
+    })
+    .toBe(true);
 });

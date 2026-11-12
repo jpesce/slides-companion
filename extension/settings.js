@@ -25,6 +25,9 @@ if (!globalThis.slidesCompanion?.settings) {
     // An edit made during a slideshow from the editor shows in it: 'now' as soon as it's calm,
     // 'later' once the slide on screen isn't the one edited, 'off' not until the next slideshow.
     liveEdits: 'now',
+    // The companion sits in Slides' toolbar and opens Settings. Off, Slides' toolbar stays as
+    // Slides made it, and the extension's button in the browser opens Settings.
+    showCompanion: true,
   };
 
   let values = { ...DEFAULTS };

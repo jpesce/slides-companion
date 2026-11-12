@@ -135,5 +135,12 @@
   "shortcutZoomOut": { "message": "Perkecil saat presentasi" },
   "shortcutFloatingNotes": { "message": "Buka atau tutup catatan mengambang saat presentasi" },
   "shortcutClosePage": { "message": "Tutup halaman yang terbuka di atas slide" },
-  "shortcutOr": { "message": "atau" }
+  "shortcutOr": { "message": "atau" },
+
+  "companionName": { "message": "Teman" },
+  "companionSummary": { "message": "Jalan pintas ke Setelan" },
+  "companionAbout": { "message": "Teman duduk di toolbar Google Slide dan membuka setelan ini saat Anda mengkliknya." },
+  "showCompanion": { "message": "Tampilkan Teman di toolbar Google Slide" },
+  "showCompanionHint": { "message": "tanpa dia, buka Setelan dari Slides Companion di menu Ekstensi browser Anda" },
+  "actionTitle": { "message": "Buka presentasi di Google Slide untuk mengubah setelan Slides Companion" }
 }

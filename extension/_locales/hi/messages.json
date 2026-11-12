@@ -135,5 +135,12 @@
   "shortcutZoomOut": { "message": "प्रज़ेंट करते समय ज़ूम आउट करें" },
   "shortcutFloatingNotes": { "message": "प्रज़ेंट करते समय फ़्लोटिंग नोट खोलें या बंद करें" },
   "shortcutClosePage": { "message": "स्लाइड के ऊपर खुला पेज बंद करें" },
-  "shortcutOr": { "message": "या" }
+  "shortcutOr": { "message": "या" },
+
+  "companionName": { "message": "साथी" },
+  "companionSummary": { "message": "सेटिंग तक पहुंचने का आसान तरीका" },
+  "companionAbout": { "message": "साथी, Slides के टूलबार में बैठा रहता है और उस पर क्लिक करने पर ये सेटिंग खोलता है." },
+  "showCompanion": { "message": "Slides के टूलबार में साथी को दिखाएं" },
+  "showCompanionHint": { "message": "उसके बिना, ब्राउज़र के एक्सटेंशन मेन्यू में Slides Companion से सेटिंग खोलें" },
+  "actionTitle": { "message": "Slides Companion की सेटिंग बदलने के लिए, Google Slides में कोई प्रज़ेंटेशन खोलें" }
 }

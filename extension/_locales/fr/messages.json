@@ -138,5 +138,12 @@
   "shortcutZoomOut": { "message": "Faire un zoom arrière pendant la présentation" },
   "shortcutFloatingNotes": { "message": "Ouvrir ou fermer les commentaires flottants pendant la présentation" },
   "shortcutClosePage": { "message": "Fermer une page ouverte par-dessus la diapositive" },
-  "shortcutOr": { "message": "ou" }
+  "shortcutOr": { "message": "ou" },
+
+  "companionName": { "message": "Compagnon" },
+  "companionSummary": { "message": "Votre raccourci vers les paramètres" },
+  "companionAbout": { "message": "Le compagnon se trouve dans la barre d’outils de Slides et ouvre ces paramètres quand vous cliquez dessus." },
+  "showCompanion": { "message": "Afficher le compagnon dans la barre d’outils de Slides" },
+  "showCompanionHint": { "message": "sans lui, ouvrez les paramètres depuis Slides Companion dans le menu Extensions du navigateur" },
+  "actionTitle": { "message": "Ouvrez une présentation dans Google Slides pour modifier les paramètres de Slides Companion" }
 }

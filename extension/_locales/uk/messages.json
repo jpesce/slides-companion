@@ -138,5 +138,12 @@
   "shortcutZoomOut": { "message": "Зменшити масштаб під час показу" },
   "shortcutFloatingNotes": { "message": "Відкрити або закрити плаваючі нотатки під час показу" },
   "shortcutClosePage": { "message": "Закрити сторінку, відкриту поверх слайда" },
-  "shortcutOr": { "message": "або" }
+  "shortcutOr": { "message": "або" },
+
+  "companionName": { "message": "Компаньйон" },
+  "companionSummary": { "message": "Швидкий шлях до налаштувань" },
+  "companionAbout": { "message": "Компаньйон сидить на панелі інструментів Google Презентацій і відкриває ці налаштування, коли ви на нього натискаєте." },
+  "showCompanion": { "message": "Показувати компаньйона на панелі інструментів Google Презентацій" },
+  "showCompanionHint": { "message": "без нього налаштування відкриваються через Slides Companion у меню «Розширення» браузера" },
+  "actionTitle": { "message": "Відкрийте презентацію в Google Презентаціях, щоб змінити налаштування Slides Companion" }
 }

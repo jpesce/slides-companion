@@ -135,5 +135,12 @@
   "shortcutZoomOut": { "message": "Thu nhỏ khi đang trình bày" },
   "shortcutFloatingNotes": { "message": "Mở hoặc đóng ghi chú nổi khi đang trình bày" },
   "shortcutClosePage": { "message": "Đóng trang web đã mở trên trang trình bày" },
-  "shortcutOr": { "message": "hoặc" }
+  "shortcutOr": { "message": "hoặc" },
+
+  "companionName": { "message": "Bạn đồng hành" },
+  "companionSummary": { "message": "Lối tắt đến phần cài đặt" },
+  "companionAbout": { "message": "Bạn đồng hành ngồi trên thanh công cụ của Google Trang trình bày và mở phần cài đặt này khi bạn nhấp vào." },
+  "showCompanion": { "message": "Hiện bạn đồng hành trên thanh công cụ của Google Trang trình bày" },
+  "showCompanionHint": { "message": "khi ẩn, hãy mở phần cài đặt từ Slides Companion trong trình đơn Tiện ích của trình duyệt" },
+  "actionTitle": { "message": "Mở một bản trình bày trong Google Trang trình bày để thay đổi cài đặt của Slides Companion" }
 }

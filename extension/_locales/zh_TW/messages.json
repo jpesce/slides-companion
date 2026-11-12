@@ -138,5 +138,12 @@
   "shortcutZoomOut": { "message": "簡報時縮小" },
   "shortcutFloatingNotes": { "message": "簡報時開啟/關閉浮動備忘稿" },
   "shortcutClosePage": { "message": "關閉在投影片上方開啟的網頁" },
-  "shortcutOr": { "message": "或" }
+  "shortcutOr": { "message": "或" },
+
+  "companionName": { "message": "小夥伴" },
+  "companionSummary": { "message": "開啟設定的捷徑" },
+  "companionAbout": { "message": "小夥伴待在 Google 簡報的工具列中，按一下它就能開啟這些設定。" },
+  "showCompanion": { "message": "在 Google 簡報的工具列中顯示小夥伴" },
+  "showCompanionHint": { "message": "隱藏後，可透過瀏覽器「擴充功能」選單中的 Slides Companion 開啟設定" },
+  "actionTitle": { "message": "在 Google 簡報中開啟簡報，即可變更 Slides Companion 的設定" }
 }

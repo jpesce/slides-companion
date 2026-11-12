@@ -138,5 +138,12 @@
   "shortcutZoomOut": { "message": "Zooma ut när du presenterar" },
   "shortcutFloatingNotes": { "message": "Öppna eller stäng flytande anteckningar när du presenterar" },
   "shortcutClosePage": { "message": "Stäng en sida som har öppnats ovanpå bilden" },
-  "shortcutOr": { "message": "eller" }
+  "shortcutOr": { "message": "eller" },
+
+  "companionName": { "message": "Följeslagare" },
+  "companionSummary": { "message": "Din genväg till inställningarna" },
+  "companionAbout": { "message": "Följeslagaren sitter i verktygsfältet i Presentationer och öppnar de här inställningarna när du klickar på honom." },
+  "showCompanion": { "message": "Visa följeslagaren i verktygsfältet i Presentationer" },
+  "showCompanionHint": { "message": "utan honom öppnar du inställningarna från Slides Companion i webbläsarens meny Tillägg" },
+  "actionTitle": { "message": "Öppna en presentation i Google Presentationer för att ändra inställningarna för Slides Companion" }
 }

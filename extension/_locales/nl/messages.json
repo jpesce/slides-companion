@@ -138,5 +138,12 @@
   "shortcutZoomOut": { "message": "Uitzoomen tijdens het presenteren" },
   "shortcutFloatingNotes": { "message": "Zwevende notities openen of sluiten tijdens het presenteren" },
   "shortcutClosePage": { "message": "Een pagina sluiten die over de dia is geopend" },
-  "shortcutOr": { "message": "of" }
+  "shortcutOr": { "message": "of" },
+
+  "companionName": { "message": "Maatje" },
+  "companionSummary": { "message": "Je snelkoppeling naar de instellingen" },
+  "companionAbout": { "message": "Het maatje zit in de werkbalk van Presentaties en opent deze instellingen als je erop klikt." },
+  "showCompanion": { "message": "Het maatje tonen in de werkbalk van Presentaties" },
+  "showCompanionHint": { "message": "zonder hem open je de instellingen via Slides Companion in het menu Extensies van je browser" },
+  "actionTitle": { "message": "Open een presentatie in Google Presentaties om de instellingen van Slides Companion te wijzigen" }
 }

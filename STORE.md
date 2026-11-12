@@ -33,7 +33,7 @@ Your speaker notes in a small window that floats over the full-screen slideshow,
 LIVE EDITS
 Edits to the deck, by you or anyone else, reach a slideshow that's already running. Showing a deck on an office TV? Start the slideshow from the editor on the TV, and edits show there within seconds. (A "Publish to the web" link takes Google 30 to 60 minutes to update.)
 
-Each feature has its own page in Settings: click the extension's button in Slides' side toolbar. In 33 languages, following Slides' own.
+Each feature has its own page in Settings: click the companion in Slides' toolbar, or the extension's button in your browser. Rather keep Slides exactly as Google made it? Hide the companion in Settings. In 33 languages, following Slides' own.
 
 100% free and open source. No account, no servers: everything happens in your browser.
 

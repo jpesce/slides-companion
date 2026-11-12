@@ -138,5 +138,12 @@
   "shortcutZoomOut": { "message": "演示时缩小" },
   "shortcutFloatingNotes": { "message": "演示时打开/关闭浮动备注" },
   "shortcutClosePage": { "message": "关闭在幻灯片上方打开的网页" },
-  "shortcutOr": { "message": "或" }
+  "shortcutOr": { "message": "或" },
+
+  "companionName": { "message": "小伙伴" },
+  "companionSummary": { "message": "打开设置的快捷方式" },
+  "companionAbout": { "message": "小伙伴待在 Google 幻灯片的工具栏里，点击它即可打开这些设置。" },
+  "showCompanion": { "message": "在 Google 幻灯片的工具栏中显示小伙伴" },
+  "showCompanionHint": { "message": "隐藏后，可通过浏览器“扩展程序”菜单中的 Slides Companion 打开设置" },
+  "actionTitle": { "message": "在 Google 幻灯片中打开演示文稿即可更改 Slides Companion 的设置" }
 }

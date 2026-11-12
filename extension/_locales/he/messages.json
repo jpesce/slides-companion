@@ -141,5 +141,12 @@
   "shortcutZoomOut": { "message": "הקטנת התצוגה במהלך ההצגה" },
   "shortcutFloatingNotes": { "message": "פתיחה או סגירה של ההערות הצפות במהלך ההצגה" },
   "shortcutClosePage": { "message": "סגירת דף שנפתח מעל השקף" },
-  "shortcutOr": { "message": "או" }
+  "shortcutOr": { "message": "או" },
+
+  "companionName": { "message": "המלווה" },
+  "companionSummary": { "message": "קיצור הדרך להגדרות" },
+  "companionAbout": { "message": "המלווה יושב בסרגל הכלים של Slides ופותח את ההגדרות האלה כשלוחצים עליו." },
+  "showCompanion": { "message": "הצגת המלווה בסרגל הכלים של Slides" },
+  "showCompanionHint": { "message": "בלעדיו, פותחים את ההגדרות דרך Slides Companion בתפריט התוספים של הדפדפן" },
+  "actionTitle": { "message": "כדי לשנות את ההגדרות של Slides Companion, צריך לפתוח מצגת ב-Google Slides" }
 }

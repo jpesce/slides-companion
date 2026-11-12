@@ -135,5 +135,12 @@
   "shortcutZoomOut": { "message": "ย่อขณะนำเสนอ" },
   "shortcutFloatingNotes": { "message": "เปิดหรือปิดบันทึกแบบลอยขณะนำเสนอ" },
   "shortcutClosePage": { "message": "ปิดหน้าเว็บที่เปิดอยู่บนสไลด์" },
-  "shortcutOr": { "message": "หรือ" }
+  "shortcutOr": { "message": "หรือ" },
+
+  "companionName": { "message": "เพื่อนคู่ใจ" },
+  "companionSummary": { "message": "ทางลัดไปยังการตั้งค่า" },
+  "companionAbout": { "message": "เพื่อนคู่ใจนั่งอยู่ในแถบเครื่องมือของ Google สไลด์ และจะเปิดการตั้งค่านี้เมื่อคุณคลิก" },
+  "showCompanion": { "message": "แสดงเพื่อนคู่ใจในแถบเครื่องมือของ Google สไลด์" },
+  "showCompanionHint": { "message": "หากซ่อนไว้ ให้เปิดการตั้งค่าจาก Slides Companion ในเมนูส่วนขยายของเบราว์เซอร์" },
+  "actionTitle": { "message": "เปิดงานนำเสนอใน Google สไลด์เพื่อเปลี่ยนการตั้งค่า Slides Companion" }
 }

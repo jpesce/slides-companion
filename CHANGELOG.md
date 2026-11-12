@@ -6,7 +6,7 @@ What changed in each version, newest first. Each version's section becomes its t
 
 **Image Spotlight is now Slides Companion**
 
-Presenter tools for Google Slides, still free, open source, and working entirely in your browser. Spotlight is still here, rebuilt, alongside new tools for presenting. Settings open from the extension's button in Slides' side toolbar.
+Presenter tools for Google Slides, still free, open source, and working entirely in your browser. Spotlight is still here, rebuilt, alongside new tools for presenting. Settings open from the companion in Slides' toolbar, or from the extension's button in your browser.
 
 - **Spotlight:** select an image and press <kbd>Space</kbd>, or right-click it and choose Spotlight image, to see it full screen. Go through the slide's other images with the arrow keys or the bar below the picture. During a slideshow, click an image to spotlight it. Choose whether grouped images show as one picture or each on its own.
 - **Download image:** right-click an image and save it as it was added to the deck, under the deck's name.
@@ -18,8 +18,8 @@ Presenter tools for Google Slides, still free, open source, and working entirely
 - **Live edits:** edits to the deck, by you or anyone else, reach a slideshow that's already running.
 - **Keyboard:** our shortcuts are listed in Slides' Keyboard shortcuts dialog, and our menu items work with the arrow keys and access keys like Slides' own.
 - **Languages:** the extension speaks Slides' language, in 33 languages, right to left in Arabic and Hebrew.
-- **A new look:** the binoculars are gone. Meet the companion, a small furry friend who peeks up from the extension's icon and sits at the top of Slides' side toolbar, watching your mouse. He blinks now and then, and squishes happily when you click him (he keeps still if your computer is set to reduce motion).
-- The toolbar popup is gone: everything now lives inside Slides.
+- **A new look:** the binoculars are gone. Meet the companion, a small furry friend who peeks up from the extension's icon and sits at the top of Slides' side toolbar, watching your mouse. He blinks now and then, and squishes happily when you click him (he keeps still if your computer is set to reduce motion). Rather keep Slides' toolbar as Google made it? Hide him in Settings.
+- The extension's button in your browser no longer opens a popup: in a Slides tab it opens Settings right there, and elsewhere it's greyed out.
 
 ## v0.1.2 - 2025-05-23
 

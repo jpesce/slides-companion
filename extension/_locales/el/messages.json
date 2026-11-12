@@ -141,5 +141,12 @@
   "shortcutZoomOut": { "message": "Σμίκρυνση κατά την παρουσίαση" },
   "shortcutFloatingNotes": { "message": "Άνοιγμα ή κλείσιμο αιωρούμενων σημειώσεων κατά την παρουσίαση" },
   "shortcutClosePage": { "message": "Κλείσιμο σελίδας που άνοιξε πάνω από τη διαφάνεια" },
-  "shortcutOr": { "message": "ή" }
+  "shortcutOr": { "message": "ή" },
+
+  "companionName": { "message": "Σύντροφος" },
+  "companionSummary": { "message": "Η συντόμευσή σας για τις ρυθμίσεις" },
+  "companionAbout": { "message": "Ο σύντροφος κάθεται στη γραμμή εργαλείων των Παρουσιάσεων και ανοίγει αυτές τις ρυθμίσεις όταν κάνετε κλικ πάνω του." },
+  "showCompanion": { "message": "Εμφάνιση του συντρόφου στη γραμμή εργαλείων των Παρουσιάσεων" },
+  "showCompanionHint": { "message": "χωρίς αυτόν, ανοίξτε τις ρυθμίσεις από το Slides Companion στο μενού «Επεκτάσεις» του προγράμματος περιήγησης" },
+  "actionTitle": { "message": "Ανοίξτε μια παρουσίαση στις Παρουσιάσεις Google για να αλλάξετε τις ρυθμίσεις του Slides Companion" }
 }

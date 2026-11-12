@@ -138,5 +138,12 @@
   "shortcutZoomOut": { "message": "Micșorează în timpul prezentării" },
   "shortcutFloatingNotes": { "message": "Deschide sau închide notițele flotante în timpul prezentării" },
   "shortcutClosePage": { "message": "Închide o pagină deschisă peste slide" },
-  "shortcutOr": { "message": "sau" }
+  "shortcutOr": { "message": "sau" },
+
+  "companionName": { "message": "Însoțitor" },
+  "companionSummary": { "message": "Scurtătura ta spre setări" },
+  "companionAbout": { "message": "Însoțitorul stă în bara de instrumente din Prezentări și deschide aceste setări când dai clic pe el." },
+  "showCompanion": { "message": "Afișează însoțitorul în bara de instrumente din Prezentări" },
+  "showCompanionHint": { "message": "fără el, deschide setările din Slides Companion, în meniul Extensii al browserului" },
+  "actionTitle": { "message": "Deschide o prezentare în Prezentări Google ca să schimbi setările Slides Companion" }
 }

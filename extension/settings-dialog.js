@@ -1,6 +1,7 @@
-// The Settings dialog, opened from the companion. Its frame mirrors Slides' Tools › Preferences
-// dialog (a Material 3 dialog): type, colours, controls, buttons and motion. Each feature has a page
-// of its own, chosen from a list down the side as in Google Meet's Settings.
+// The Settings dialog, opened from the companion or the extension's button in the browser. Its
+// frame mirrors Slides' Tools › Preferences dialog (a Material 3 dialog): type, colours, controls,
+// buttons and motion. Each feature has a page of its own, chosen from a list down the side as in
+// Google Meet's Settings.
 {
   // Matches the closing fade in settings-dialog.css.
   const EXIT_MS = 75;
@@ -139,6 +140,17 @@
           ${radio('liveEdits', 'off', 'liveEditsOff', 'liveEditsOffHint')}
         </fieldset>`,
     },
+    {
+      id: 'companion',
+      name: 'companionName',
+      summary: 'companionSummary',
+      icon: icon(
+        'M620-520q25 0 42.5-17.5T680-580q0-25-17.5-42.5T620-640q-25 0-42.5 17.5T560-580q0 25 17.5 42.5T620-520Zm-280 0q25 0 42.5-17.5T400-580q0-25-17.5-42.5T340-640q-25 0-42.5 17.5T280-580q0 25 17.5 42.5T340-520Zm263.5 221.5Q659-337 684-400H276q25 63 80.5 101.5T480-260q68 0 123.5-38.5ZM324-111.5Q251-143 197-197t-85.5-127Q80-397 80-480t31.5-156Q143-709 197-763t127-85.5Q397-880 480-880t156 31.5Q709-817 763-763t85.5 127Q880-563 880-480t-31.5 156Q817-251 763-197t-127 85.5Q563-80 480-80t-156-31.5ZM480-480Zm227 227q93-93 93-227t-93-227q-93-93-227-93t-227 93q-93 93-93 227t93 227q93 93 227 93t227-93Z',
+      ),
+      page: () => `
+        ${about('companionAbout')}
+        ${checkbox('showCompanion', 'showCompanion', 'showCompanionHint')}`,
+    },
   ];
 
   const tabId = (feature) => `slides-companion-settings-tab-${feature.id}`;
@@ -198,7 +210,9 @@
   function openDialog(opener) {
     if (root) return;
     const { settings } = globalThis.slidesCompanion;
-    returnFocusTo = opener ?? null;
+    // Back to the companion, or opened from the browser's button, to what had the keys (Slides'
+    // text event target, which its keyboard shortcuts need).
+    returnFocusTo = opener ?? document.activeElement;
 
     root = document.createElement('div');
     root.className = 'slides-companion-dialog-root';
@@ -271,7 +285,8 @@
       () => closing.remove(),
       matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : EXIT_MS,
     );
-    returnFocusTo?.focus();
+    // The companion may be gone, hidden by these very settings.
+    if (returnFocusTo?.isConnected) returnFocusTo.focus();
   }
 
   function onKeydown(event) {
@@ -385,4 +400,13 @@
 
   globalThis.slidesCompanion ??= {};
   globalThis.slidesCompanion.openSettings = openDialog;
+
+  // The extension's button in the browser's toolbar opens Settings here too (background.js), named
+  // in Slides' language as the companion is.
+  chrome.runtime.onMessage.addListener((message) => {
+    if (message?.type === 'settings-open') openDialog();
+  });
+  chrome.runtime
+    .sendMessage({ type: 'settings-here', title: text('settingsLabel') })
+    .catch(() => {});
 }

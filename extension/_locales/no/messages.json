@@ -138,5 +138,12 @@
   "shortcutZoomOut": { "message": "Zoom ut mens du presenterer" },
   "shortcutFloatingNotes": { "message": "Åpne eller lukk flytende notater mens du presenterer" },
   "shortcutClosePage": { "message": "Lukk en side som er åpnet over lysbildet" },
-  "shortcutOr": { "message": "eller" }
+  "shortcutOr": { "message": "eller" },
+
+  "companionName": { "message": "Følgesvenn" },
+  "companionSummary": { "message": "Snarveien din til innstillingene" },
+  "companionAbout": { "message": "Følgesvennen sitter på verktøylinjen i Presentasjoner og åpner disse innstillingene når du klikker på ham." },
+  "showCompanion": { "message": "Vis følgesvennen på verktøylinjen i Presentasjoner" },
+  "showCompanionHint": { "message": "uten ham åpner du innstillingene fra Slides Companion i Utvidelser-menyen i nettleseren" },
+  "actionTitle": { "message": "Åpne en presentasjon i Google Presentasjoner for å endre innstillingene for Slides Companion" }
 }

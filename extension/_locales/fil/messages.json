@@ -135,5 +135,12 @@
   "shortcutZoomOut": { "message": "Mag-zoom out habang nagpe-present" },
   "shortcutFloatingNotes": { "message": "Buksan o isara ang floating notes habang nagpe-present" },
   "shortcutClosePage": { "message": "Isara ang page na binuksan sa ibabaw ng slide" },
-  "shortcutOr": { "message": "o" }
+  "shortcutOr": { "message": "o" },
+
+  "companionName": { "message": "Kasama" },
+  "companionSummary": { "message": "Ang shortcut mo papunta sa Mga Setting" },
+  "companionAbout": { "message": "Nakaupo ang kasama sa toolbar ng Slides at binubuksan niya ang mga setting na ito kapag kinlik mo siya." },
+  "showCompanion": { "message": "Ipakita ang kasama sa toolbar ng Slides" },
+  "showCompanionHint": { "message": "kapag wala siya, buksan ang Mga Setting mula sa Slides Companion sa menu na Mga Extension ng browser mo" },
+  "actionTitle": { "message": "Magbukas ng presentation sa Google Slides para baguhin ang mga setting ng Slides Companion" }
 }

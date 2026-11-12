@@ -135,5 +135,12 @@
   "shortcutZoomOut": { "message": "Zum keluar semasa membentang" },
   "shortcutFloatingNotes": { "message": "Buka atau tutup nota terapung semasa membentang" },
   "shortcutClosePage": { "message": "Tutup halaman yang dibuka di atas slaid" },
-  "shortcutOr": { "message": "atau" }
+  "shortcutOr": { "message": "atau" },
+
+  "companionName": { "message": "Teman" },
+  "companionSummary": { "message": "Pintasan anda ke Tetapan" },
+  "companionAbout": { "message": "Teman duduk dalam bar alat Google Slides dan membuka tetapan ini apabila anda mengkliknya." },
+  "showCompanion": { "message": "Tunjukkan Teman dalam bar alat Google Slides" },
+  "showCompanionHint": { "message": "tanpanya, buka Tetapan daripada Slides Companion dalam menu Sambungan penyemak imbas anda" },
+  "actionTitle": { "message": "Buka pembentangan dalam Google Slides untuk menukar tetapan Slides Companion" }
 }

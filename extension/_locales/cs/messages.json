@@ -138,5 +138,12 @@
   "shortcutZoomOut": { "message": "Oddálit během prezentace" },
   "shortcutFloatingNotes": { "message": "Otevřít nebo zavřít plovoucí poznámky během prezentace" },
   "shortcutClosePage": { "message": "Zavřít stránku otevřenou přes snímek" },
-  "shortcutOr": { "message": "nebo" }
+  "shortcutOr": { "message": "nebo" },
+
+  "companionName": { "message": "Společník" },
+  "companionSummary": { "message": "Rychlá cesta do nastavení" },
+  "companionAbout": { "message": "Společník sedí na panelu nástrojů Prezentací a po kliknutí otevře toto nastavení." },
+  "showCompanion": { "message": "Zobrazovat společníka na panelu nástrojů Prezentací" },
+  "showCompanionHint": { "message": "bez něj otevřete nastavení přes Slides Companion v nabídce Rozšíření v prohlížeči" },
+  "actionTitle": { "message": "Nastavení Slides Companion změníte v prezentaci otevřené v Prezentacích Google" }
 }

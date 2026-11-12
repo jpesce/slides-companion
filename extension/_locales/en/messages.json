@@ -13,7 +13,7 @@
   },
   "settingsLabel": {
     "message": "Slides Companion settings",
-    "description": "The tooltip of the companion, our mascot, at the top of Slides' side toolbar, which opens Settings, and the Settings dialog's name for screen readers."
+    "description": "The tooltip of the companion, our mascot, in Slides' toolbar, and of the extension's button in the browser's toolbar in a Slides tab, both of which open Settings; and the Settings dialog's name for screen readers."
   },
 
   "spotlightMenuItem": {
@@ -509,5 +509,30 @@
   "shortcutOr": {
     "message": "or",
     "description": "Between two keys that do the same, as in “→ or ↓”, as Slides' Keyboard shortcuts dialog says it."
+  },
+
+  "companionName": {
+    "message": "Companion",
+    "description": "A page's name in the list down the side of Settings: the companion, our mascot, a little furry creature (a he) who sits in Slides' toolbar and opens Settings."
+  },
+  "companionSummary": {
+    "message": "Your shortcut to Settings",
+    "description": "The line under its name."
+  },
+  "companionAbout": {
+    "message": "The companion sits in Slides’ toolbar and opens these settings when you click him.",
+    "description": "What the page is about, at the top of it."
+  },
+  "showCompanion": {
+    "message": "Show the companion in Slides’ toolbar",
+    "description": "A checkbox."
+  },
+  "showCompanionHint": {
+    "message": "without him, open Settings from Slides Companion in your browser’s Extensions menu",
+    "description": "The note after it, shown in brackets: without the companion, Settings opens from the extension's button in the browser, which is in the browser's Extensions menu (the puzzle piece beside the address bar) unless it's pinned. Name the menu as Chrome does."
+  },
+  "actionTitle": {
+    "message": "Open a presentation in Google Slides to change Slides Companion’s settings",
+    "description": "The tooltip of the extension's button in the browser's toolbar on pages other than Google Slides, where it's greyed out. Shown in the browser's language, not Slides'."
   }
 }

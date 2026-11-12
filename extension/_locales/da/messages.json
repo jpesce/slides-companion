@@ -138,5 +138,12 @@
   "shortcutZoomOut": { "message": "Zoom ud under præsentationen" },
   "shortcutFloatingNotes": { "message": "Åbn eller luk svævende noter under præsentationen" },
   "shortcutClosePage": { "message": "Luk en side, der er åbnet oven på diasset" },
-  "shortcutOr": { "message": "eller" }
+  "shortcutOr": { "message": "eller" },
+
+  "companionName": { "message": "Følgesvend" },
+  "companionSummary": { "message": "Din genvej til indstillingerne" },
+  "companionAbout": { "message": "Følgesvenden sidder på værktøjslinjen i Slides og åbner disse indstillinger, når du klikker på ham." },
+  "showCompanion": { "message": "Vis følgesvenden på værktøjslinjen i Slides" },
+  "showCompanionHint": { "message": "uden ham åbner du indstillingerne fra Slides Companion i browserens menu Udvidelser" },
+  "actionTitle": { "message": "Åbn en præsentation i Google Slides for at ændre indstillingerne for Slides Companion" }
 }

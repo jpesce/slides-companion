@@ -138,5 +138,12 @@
   "shortcutZoomOut": { "message": "Diminuir o zoom durante a apresentação" },
   "shortcutFloatingNotes": { "message": "Abrir ou fechar as anotações flutuantes durante a apresentação" },
   "shortcutClosePage": { "message": "Fechar uma página aberta sobre o slide" },
-  "shortcutOr": { "message": "ou" }
+  "shortcutOr": { "message": "ou" },
+
+  "companionName": { "message": "Companheiro" },
+  "companionSummary": { "message": "Seu atalho para as configurações" },
+  "companionAbout": { "message": "O companheiro fica na barra de ferramentas do Google Slides e abre estas configurações quando você clica nele." },
+  "showCompanion": { "message": "Mostrar o companheiro na barra de ferramentas do Google Slides" },
+  "showCompanionHint": { "message": "sem ele, abra as configurações pelo Slides Companion no menu Extensões do navegador" },
+  "actionTitle": { "message": "Abra uma apresentação no Google Slides para mudar as configurações do Slides Companion" }
 }

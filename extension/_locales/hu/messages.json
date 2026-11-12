@@ -138,5 +138,12 @@
   "shortcutZoomOut": { "message": "Kicsinyítés prezentálás közben" },
   "shortcutFloatingNotes": { "message": "Lebegő jegyzetek megnyitása vagy bezárása prezentálás közben" },
   "shortcutClosePage": { "message": "A dián megnyitott oldal bezárása" },
-  "shortcutOr": { "message": "vagy" }
+  "shortcutOr": { "message": "vagy" },
+
+  "companionName": { "message": "Társ" },
+  "companionSummary": { "message": "Gyors út a beállításokhoz" },
+  "companionAbout": { "message": "A társ a Diák eszköztárán ül, és ha rákattint, megnyitja ezeket a beállításokat." },
+  "showCompanion": { "message": "A társ megjelenítése a Diák eszköztárán" },
+  "showCompanionHint": { "message": "nélküle a beállításokat a böngésző Bővítmények menüjében, a Slides Companion elemnél nyithatja meg" },
+  "actionTitle": { "message": "A Slides Companion beállításainak módosításához nyisson meg egy prezentációt a Google Diákban" }
 }

@@ -141,5 +141,12 @@
   "shortcutZoomOut": { "message": "التصغير أثناء العرض" },
   "shortcutFloatingNotes": { "message": "فتح الملاحظات العائمة أو إغلاقها أثناء العرض" },
   "shortcutClosePage": { "message": "إغلاق صفحة مفتوحة فوق الشريحة" },
-  "shortcutOr": { "message": "أو" }
+  "shortcutOr": { "message": "أو" },
+
+  "companionName": { "message": "الرفيق" },
+  "companionSummary": { "message": "طريقك المختصر إلى الإعدادات" },
+  "companionAbout": { "message": "يجلس الرفيق في شريط أدوات \"العروض التقديمية\" ويفتح هذه الإعدادات عند النقر عليه." },
+  "showCompanion": { "message": "إظهار الرفيق في شريط أدوات \"العروض التقديمية\"" },
+  "showCompanionHint": { "message": "بدونه، افتح الإعدادات من Slides Companion في قائمة \"الإضافات\" في المتصفّح" },
+  "actionTitle": { "message": "افتح عرضًا تقديميًا في \"العروض التقديمية من Google\" لتغيير إعدادات Slides Companion" }
 }

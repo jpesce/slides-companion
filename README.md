@@ -24,9 +24,17 @@ https://github.com/user-attachments/assets/ec264cc1-df3a-48b8-a82a-06445b620273
 
 🕊️ Free and open source, with no account and no servers: everything happens in your browser.
 
-Each feature has its own page in Settings, with what it does and its choices: click the extension's button at the top of Slides' side toolbar, whose eyes follow your mouse.
+See [how it compares](BENCHMARK.md) with Slides' own tools and other extensions.
 
-Looking for something it doesn't do, like a phone remote or audience polls? [How Slides Companion compares](BENCHMARK.md) sets it side by side with Google Slides' own tools and other projects.
+## Settings
+
+Make it yours. Click the companion in Slides' toolbar to open Settings, and choose how the tools behave: zoom or scroll, links over your slide or in a new tab, how early the timer warns you, and more.
+
+<p align="center">
+  <img width="380" src="brand/companion-toolbar.gif" alt="The companion in Slides' toolbar, his eyes following the pointer, which comes to rest on him and shows Slides Companion settings"/>
+</p>
+
+Yes, he watches your mouse. 👀 Rather keep Slides exactly as Google made it? You can tuck him away too, and open Settings from the extension's button in your browser.
 
 ## Getting started
 
@@ -44,7 +52,7 @@ Download a [release](https://github.com/jpesce/slides-companion-for-google-slide
 
 ## Contributing
 
-Found a bug, or missing something? [Open an issue](https://github.com/jpesce/slides-companion-for-google-slides/issues). To change the code, [CONTRIBUTING.md](CONTRIBUTING.md) has the project's principles, setup, tests and how a release goes out. In short:
+Found a bug, or missing something? [Open an issue](https://github.com/jpesce/slides-companion-for-google-slides/issues). Want to contribute? Everything you need is in [CONTRIBUTING.md](CONTRIBUTING.md). In short:
 
 ```bash
 npm install

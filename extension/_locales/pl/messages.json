@@ -138,5 +138,12 @@
   "shortcutZoomOut": { "message": "Pomniejsz podczas prezentacji" },
   "shortcutFloatingNotes": { "message": "Otwórz lub zamknij pływające notatki podczas prezentacji" },
   "shortcutClosePage": { "message": "Zamknij stronę otwartą na slajdzie" },
-  "shortcutOr": { "message": "lub" }
+  "shortcutOr": { "message": "lub" },
+
+  "companionName": { "message": "Towarzysz" },
+  "companionSummary": { "message": "Skrót do ustawień" },
+  "companionAbout": { "message": "Towarzysz siedzi na pasku narzędzi Prezentacji i po kliknięciu otwiera te ustawienia." },
+  "showCompanion": { "message": "Pokazuj towarzysza na pasku narzędzi Prezentacji" },
+  "showCompanionHint": { "message": "bez niego otworzysz ustawienia przez Slides Companion w menu Rozszerzenia przeglądarki" },
+  "actionTitle": { "message": "Otwórz prezentację w Prezentacjach Google, aby zmienić ustawienia Slides Companion" }
 }

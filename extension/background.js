@@ -125,10 +125,27 @@ async function isPdf(href) {
   return type === null || type === undefined ? null : /^application\/pdf\b/i.test(type);
 }
 
-// What each part of the extension asks, by who may ask it: spotlight.js, in Slides' pages, and
-// page.js, in a page shown over the slide (a frame, never a tab's own page). page.js runs on every
-// site, so a site can't use it to ask for anything else.
-const FROM_SLIDES = new Set(['page-open', 'page-type', 'page-closed', 'page-go']);
+// The extension's button in the browser's toolbar opens Settings, so they're there even with the
+// companion hidden. Only Slides' editor can show them, so the button is off everywhere, its title
+// saying where to go (the manifest's default_title), and settings-dialog.js turns it on in its own
+// tab as it loads, titled in Slides' language. Chrome drops a tab's own button state when the tab
+// loads another page, which turns it off again there. Turned off each time the worker starts (a
+// tab's own state wins over it), as turning the extension off and on fires neither onInstalled
+// nor onStartup; the two listeners start the worker at those moments.
+const buttonOffEverywhere = () => chrome.action.disable().catch(() => {});
+buttonOffEverywhere();
+chrome.runtime.onInstalled.addListener(buttonOffEverywhere);
+chrome.runtime.onStartup.addListener(buttonOffEverywhere);
+// A function declaration, so it's on the worker's global object, where the tests can call it.
+function openSettingsIn(tabId) {
+  return chrome.tabs.sendMessage(tabId, { type: 'settings-open' }, { frameId: 0 }).catch(() => {});
+}
+chrome.action.onClicked.addListener((tab) => openSettingsIn(tab.id));
+
+// What each part of the extension asks, by who may ask it: spotlight.js and settings-dialog.js, in
+// Slides' pages, and page.js, in a page shown over the slide (a frame, never a tab's own page).
+// page.js runs on every site, so a site can't use it to ask for anything else.
+const FROM_SLIDES = new Set(['page-open', 'page-type', 'page-closed', 'page-go', 'settings-here']);
 const FROM_PAGE = new Set(['page-key', 'page-address']);
 const SLIDES_ORIGIN = 'https://docs.google.com';
 
@@ -171,6 +188,12 @@ chrome.runtime.onMessage.addListener((message, sender, respond) => {
     // From spotlight.js, for page.js: go to another page (Back, Forward).
     case 'page-go':
       chrome.tabs.sendMessage(tabId, message, { frameId: message.frameId }).catch(() => {});
+      return;
+    // From settings-dialog.js, in the editor: this tab can show Settings.
+    case 'settings-here':
+      if (sender.frameId !== 0) return;
+      chrome.action.enable(tabId).catch(() => {});
+      chrome.action.setTitle({ tabId, title: String(message.title).slice(0, 100) }).catch(() => {});
       return;
   }
 });

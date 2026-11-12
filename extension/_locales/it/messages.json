@@ -138,5 +138,12 @@
   "shortcutZoomOut": { "message": "Zoom indietro durante la presentazione" },
   "shortcutFloatingNotes": { "message": "Apri o chiudi le note fluttuanti durante la presentazione" },
   "shortcutClosePage": { "message": "Chiudi una pagina aperta sopra la slide" },
-  "shortcutOr": { "message": "o" }
+  "shortcutOr": { "message": "o" },
+
+  "companionName": { "message": "Compagno" },
+  "companionSummary": { "message": "La tua scorciatoia per le impostazioni" },
+  "companionAbout": { "message": "Il compagno sta nella barra degli strumenti di Presentazioni e apre queste impostazioni quando fai clic su di lui." },
+  "showCompanion": { "message": "Mostra il compagno nella barra degli strumenti di Presentazioni" },
+  "showCompanionHint": { "message": "senza di lui, apri le impostazioni da Slides Companion nel menu Estensioni del browser" },
+  "actionTitle": { "message": "Apri una presentazione in Presentazioni Google per modificare le impostazioni di Slides Companion" }
 }

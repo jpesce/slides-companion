@@ -141,5 +141,12 @@
   "shortcutZoomOut": { "message": "Sunarken uzaklaştır" },
   "shortcutFloatingNotes": { "message": "Sunarken kayan notları aç veya kapat" },
   "shortcutClosePage": { "message": "Slaytın üzerinde açılan sayfayı kapat" },
-  "shortcutOr": { "message": "veya" }
+  "shortcutOr": { "message": "veya" },
+
+  "companionName": { "message": "Arkadaş" },
+  "companionSummary": { "message": "Ayarlara kısayolunuz" },
+  "companionAbout": { "message": "Arkadaş, Slaytlar’ın araç çubuğunda oturur ve tıkladığınızda bu ayarları açar." },
+  "showCompanion": { "message": "Arkadaşı Slaytlar’ın araç çubuğunda göster" },
+  "showCompanionHint": { "message": "o olmadan ayarları tarayıcının Uzantılar menüsündeki Slides Companion’dan açabilirsiniz" },
+  "actionTitle": { "message": "Slides Companion ayarlarını değiştirmek için Google Slaytlar’da bir sunu açın" }
 }

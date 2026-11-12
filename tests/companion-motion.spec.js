@@ -13,7 +13,12 @@ async function companion(page, { random = 0.99 } = {}) {
   await page.clock.pauseAt(1000);
   await page.evaluate((random) => {
     Math.random = () => random;
-    globalThis.slidesCompanion = { text: () => 'Settings', openSettings() {} };
+    globalThis.slidesCompanion = {
+      text: () => 'Settings',
+      openSettings() {},
+      settings: { ready: Promise.resolve(), get: (key) => key === 'showCompanion' },
+    };
+    globalThis.chrome = { storage: { onChanged: { addListener() {} } } };
   }, random);
   for (const file of ['companion-drawing.js', 'companion.js'])
     await page.addScriptTag({ content: read(file) });

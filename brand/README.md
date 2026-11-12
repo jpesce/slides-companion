@@ -10,6 +10,7 @@ Slides Companion's mascot: a small, furry black bun with two hand-drawn eyes, lo
 | `icon-store.svg` | The same tile in transparent padding, with a soft white glow so it shows on dark backgrounds, as the Chrome Web Store asks | The 48px and 128px icons in `extension/icons/`, and the store's icon |
 | `companion.svg`, `companion-1024.png` | The whole companion, no tile, on a transparent background | Places where he stands on his own, on a light background |
 | `toolbar-companion.svg` | The companion as drawn for Slides' toolbar, at 25px: bigger eyes and pupils so they read at that size | `extension/companion-drawing.js`, which the toolbar button shows |
+| `companion-toolbar.gif` | The companion at work in Slides' toolbar, his eyes following the pointer, recorded in the real editor by `node scripts/demo/toolbar.mjs` (not `npm run brand`) | The README's Settings section |
 
 `extension/icons/` holds the icon at 16, 32, 48 and 128px. The two small ones fill their square, like the other icons in Chrome's extensions menu; the two big ones are padded.
 

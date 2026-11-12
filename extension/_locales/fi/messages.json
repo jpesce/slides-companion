@@ -138,5 +138,12 @@
   "shortcutZoomOut": { "message": "Loitonna esityksen aikana" },
   "shortcutFloatingNotes": { "message": "Avaa tai sulje kelluvat muistiinpanot esityksen aikana" },
   "shortcutClosePage": { "message": "Sulje dian päälle avattu sivu" },
-  "shortcutOr": { "message": "tai" }
+  "shortcutOr": { "message": "tai" },
+
+  "companionName": { "message": "Kumppani" },
+  "companionSummary": { "message": "Oikotie asetuksiin" },
+  "companionAbout": { "message": "Kumppani istuu Slidesin työkalupalkissa ja avaa nämä asetukset, kun klikkaat sitä." },
+  "showCompanion": { "message": "Näytä kumppani Slidesin työkalupalkissa" },
+  "showCompanionHint": { "message": "ilman sitä avaat asetukset selaimen Laajennukset-valikon Slides Companionista" },
+  "actionTitle": { "message": "Avaa esitys Google Slidesissa, niin voit muuttaa Slides Companionin asetuksia" }
 }

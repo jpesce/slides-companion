@@ -138,5 +138,12 @@
   "shortcutZoomOut": { "message": "プレゼンテーション中に縮小" },
   "shortcutFloatingNotes": { "message": "プレゼンテーション中にフローティング ノートを開く/閉じる" },
   "shortcutClosePage": { "message": "スライドの上に開いたページを閉じる" },
-  "shortcutOr": { "message": "または" }
+  "shortcutOr": { "message": "または" },
+
+  "companionName": { "message": "コンパニオン" },
+  "companionSummary": { "message": "設定へのショートカット" },
+  "companionAbout": { "message": "コンパニオンは Google スライドのツールバーにいて、クリックするとこの設定を開きます。" },
+  "showCompanion": { "message": "Google スライドのツールバーにコンパニオンを表示する" },
+  "showCompanionHint": { "message": "非表示のときは、ブラウザの [拡張機能] メニューにある Slides Companion から設定を開けます" },
+  "actionTitle": { "message": "Slides Companion の設定を変更するには、Google スライドでプレゼンテーションを開いてください" }
 }

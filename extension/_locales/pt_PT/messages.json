@@ -138,5 +138,12 @@
   "shortcutZoomOut": { "message": "Reduzir durante a apresentação" },
   "shortcutFloatingNotes": { "message": "Abrir ou fechar as notas flutuantes durante a apresentação" },
   "shortcutClosePage": { "message": "Fechar uma página aberta sobre o slide" },
-  "shortcutOr": { "message": "ou" }
+  "shortcutOr": { "message": "ou" },
+
+  "companionName": { "message": "Companheiro" },
+  "companionSummary": { "message": "O seu atalho para as definições" },
+  "companionAbout": { "message": "O companheiro fica na barra de ferramentas do Slides e abre estas definições quando clica nele." },
+  "showCompanion": { "message": "Mostrar o companheiro na barra de ferramentas do Slides" },
+  "showCompanionHint": { "message": "sem ele, abra as definições a partir do Slides Companion no menu Extensões do navegador" },
+  "actionTitle": { "message": "Abra uma apresentação no Google Slides para alterar as definições do Slides Companion" }
 }

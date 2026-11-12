@@ -138,5 +138,12 @@
   "shortcutZoomOut": { "message": "Beim Präsentieren herauszoomen" },
   "shortcutFloatingNotes": { "message": "Schwebende Notizen beim Präsentieren öffnen oder schließen" },
   "shortcutClosePage": { "message": "Über der Folie geöffnete Seite schließen" },
-  "shortcutOr": { "message": "oder" }
+  "shortcutOr": { "message": "oder" },
+
+  "companionName": { "message": "Begleiter" },
+  "companionSummary": { "message": "Ihr Weg zu den Einstellungen" },
+  "companionAbout": { "message": "Der Begleiter sitzt in der Symbolleiste von Google Präsentationen und öffnet diese Einstellungen, wenn Sie ihn anklicken." },
+  "showCompanion": { "message": "Begleiter in der Symbolleiste von Google Präsentationen anzeigen" },
+  "showCompanionHint": { "message": "ohne ihn öffnen Sie die Einstellungen über Slides Companion im Menü „Erweiterungen“ Ihres Browsers" },
+  "actionTitle": { "message": "Öffnen Sie eine Präsentation in Google Präsentationen, um die Einstellungen von Slides Companion zu ändern" }
 }
