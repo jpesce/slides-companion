@@ -1124,7 +1124,10 @@
     if (globalThis.slidesCompanion.settings.get('slideshowLinks') !== 'here') return null;
     const link = plainClickOnSlide(event, 'a');
     // Waiting for its animation, the link isn't shown yet: the click goes on to the next step.
-    const address = link && isShowing(link) && linkAddress(link);
+    // Its parent is checked, not the link: Slides draws a link on words as an <a opacity="0">
+    // over them, which checkVisibility() always counts as hidden. The animation is still caught,
+    // since checkVisibility({ opacityProperty }) looks at every ancestor's opacity.
+    const address = link && isShowing(link.parentElement) && linkAddress(link);
     if (!address) return null;
     const shown = pdfViewer(address) ?? shownAddress(address);
     return { address, shown, visited: [shown], at: 0 };

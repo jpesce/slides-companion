@@ -93,6 +93,30 @@ test('clicking a link during a slideshow opens its page over the slide, and Esc 
   expect(context.pages()).toHaveLength(tabs);
 });
 
+// Slide 4's "Linked words", under the video, link to google.com too. Slides draws a link on words
+// as an <a opacity="0"> over them, unlike a picture's link, which holds the picture.
+const LINKED_WORDS = 'h24c32e9018c16eab_0_0';
+
+test('linked words open over the slide too, but not before they show', async ({ context }) => {
+  const { page, show } = await startSlideshow(context);
+  const words = show.locator(`[id="${LINKED_WORDS}"]`);
+  const tabs = context.pages().length;
+  await expect(words.locator('a[opacity="0"]')).toHaveCount(1);
+
+  await clickCentre(page, words.locator('a'));
+  await expect(website(show)).toHaveAttribute('src', 'https://www.google.com/');
+  await page.keyboard.press('Escape');
+  await expect(stage(show)).toHaveCount(0);
+  expect(await slideNumber(show)).toBe(4);
+  expect(context.pages()).toHaveLength(tabs);
+
+  // Waiting for an entrance animation, the words are see-through: the click is the slideshow's.
+  await words.evaluate((box) => (box.style.opacity = '0'));
+  await clickCentre(page, words.locator('a'));
+  await page.waitForTimeout(500);
+  await expect(stage(show)).toHaveCount(0);
+});
+
 test('the page can be browsed, and the ✕ brings the slide back', async ({ context }) => {
   const { page, show } = await startSlideshow(context);
   await clickLink(page, show);
