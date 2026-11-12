@@ -13,17 +13,16 @@ https://github.com/user-attachments/assets/ec264cc1-df3a-48b8-a82a-06445b620273
 
 ## Features
 
-- 🔍 **Spotlight:** select an image and press <kbd>Space</kbd>, or right-click it, to see it full screen, then go through the slide's other images with the arrow keys. During a slideshow, just click an image. Grouped images show as one picture or each on its own, as you choose.
-- 🔗 **Links:** during a slideshow, links open over your slide, and <kbd>Esc</kbd> brings you back right where you left it. Back and Forward work as in a tab, PDFs open in Google's viewer, and YouTube and Drive videos play from where the link starts them. A site that won't show inside another page says so, with a way to allow it or open it in a new tab. Prefer a new tab every time? That's a setting.
-- 🔎 **Zoom & scroll:** zoom into a slide with your trackpad, mouse wheel or <kbd>+</kbd> and <kbd>-</kbd> to show a detail up close, and drag to look around. Or make scrolling do nothing, so brushing the trackpad never skips a slide.
-- 🖊️ **Pen:** what you draw with Slides' pen stays on the slide for the next time you present, until you choose Erase all.
-- ⏱️ **Timer:** in presenter view, click the timer to count down from how long you have, and add a minute on the go. A bar fills as you go and the timer turns orange 1, 2 or 5 minutes before the end. Each deck remembers its time.
-- 📝 **Floating notes:** your speaker notes in a small picture-in-picture window that floats over the full-screen slideshow, so one screen is enough. Meeting apps leave it out when you share only the slideshow's tab or window. Zoom into the notes, or move the window to another screen. Open it from View › Show floating notes, the slideshow's ⋮ menu or <kbd>Shift</kbd>+<kbd>S</kbd>.
-- ✏️ **Live edits:** edits to the deck, by you or anyone else, reach a slideshow that's already running, handy for a deck on an office TV. The slide on screen changes right away, once you've moved on, or not until the next slideshow, as you choose.
-- 🖼️ **Download image:** right-click an image to save it as it was added to the deck.
-- ⌨️ **Keyboard:** our shortcuts are listed in Slides' own Keyboard shortcuts dialog (<kbd>Ctrl</kbd>+<kbd>/</kbd>, or <kbd>⌘</kbd>+<kbd>/</kbd> on a Mac), and our menu items work with the arrow keys and access keys like Slides' own.
-- 🌍 **Languages:** speaks Slides' language, in 33 languages, right to left in Arabic and Hebrew.
-- 🕊️ 100% free and open source. No account, no servers: everything happens in your browser.
+- 🔍 **Spotlight:** see any picture full screen, while presenting or editing.
+- 🔗 **Links:** open links over your slide, and press <kbd>Esc</kbd> to come back.
+- 🔎 **Zoom:** zoom into a detail with your trackpad or mouse, and scrolling never skips a slide.
+- 🖊️ **Pen:** what you draw stays on the slide for next time.
+- ⏱️ **Timer:** count down in presenter view, so you finish on time.
+- 📝 **Floating notes:** your speaker notes in a small window over the slideshow, left out when you share only the slideshow.
+- ✏️ **Live edits:** changes to the deck reach a slideshow that's already running.
+- 🖼️ **Download image:** save any picture as it was added to the deck.
+
+It speaks Slides' language (33 of them), and its keyboard shortcuts are listed with Slides' own. 🕊️ Free and open source, with no account and no servers: everything happens in your browser.
 
 Each feature has its own page in Settings, with what it does and its choices: click the extension's button at the top of Slides' side toolbar, whose eyes follow your mouse.
 
@@ -33,7 +32,7 @@ Looking for something it doesn't do, like a phone remote or audience polls? [How
 
 1. Install from the [Chrome Web Store](https://chromewebstore.google.com/detail/image-spotlight-for-googl/habmkngfcidcchgmdpampgcbmnllkbhd).
 2. Open any Google Slides presentation.
-3. Click an image and press <kbd>Space</kbd> to spotlight it, or start a slideshow and present as usual.
+3. Present as usual: the tools are there when you need them.
 
 ### Manual installation
 
