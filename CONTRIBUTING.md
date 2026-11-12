@@ -88,7 +88,12 @@ The tests check that every language has every message, with the same placeholder
 
 - `npm run brand` draws the companion, our mascot, into `brand/`, Chrome's icons in `extension/icons/` and the toolbar button's picture in `extension/companion-drawing.js`. [brand/README.md](brand/README.md) says which file goes where.
 - `npm run illustrations` draws the picture at the top of each feature's page in Settings, into `extension/illustrations.js`.
-- `npm run demo` records the demo video on its own deck (set `DEMO_DECK_URL` for another) and edits it into `build/demo/`. It needs [ffmpeg](https://ffmpeg.org), and a quiet computer: a busy one stretches the scenes. [STORE.md](STORE.md) says where the video goes.
+- The demo video is animated in After Effects from pictures our scripts capture on its own deck (set `DEMO_DECK_URL` for another), so it can catch up when the extension changes:
+  1. `npm run demo` captures what the edit animates, into `build/demo/stills/`: each slide as vector art, each state of the interface as a screenshot at 4×, and the companion peeking and blinking for the first and last screens. To capture one feature again, run `node scripts/demo/stills.mjs ui live` (or `spotlight`, `links`, `timer`, `notes`).
+  2. In the After Effects project, `build/demo/ae/slides-companion-demo.aep`, reload the changed stills and render the comp "Slides Companion demo" to `build/demo/ae/slides-companion-demo-video.mp4`. `build/` isn't in git, so the maintainer keeps the project.
+  3. `npm run demo:finish` makes the sound, puts it on the render, and writes the store's video and the README's lighter copy into `build/demo/`. It needs [ffmpeg](https://ffmpeg.org). [STORE.md](STORE.md) says where each goes.
+
+  `npm run demo:record` records the features in action, to check that the video moves as the extension does. It needs a quiet computer: a busy one stretches the timing.
 
 ## The board
 

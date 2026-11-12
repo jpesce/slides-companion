@@ -11,7 +11,6 @@ import fs from 'node:fs';
 
 const EMU = 914400; // per inch; the slide is 10 x 5.625 in
 const MASTER = 'simple-light-2';
-const TITLE_ONLY_TITLE = 'p6_i0'; // the "Title only" layout's title
 const FONT = 'Google Sans';
 
 // Material 3's baseline, as Google's own apps use it, in the theme's slots.
@@ -143,25 +142,33 @@ const image = (page, id, url, { x, y, w, h }) => ({
   createImage: { objectId: id, url, elementProperties: box(page, x, y, w, h) },
 });
 
-// Each feature slide, on the "Title only" layout: the feature's name in blue above the title, and
-// what to do below it.
-function featureSlide(id, index, { label, title, body }) {
-  return [
-    {
-      createSlide: {
-        objectId: id,
-        insertionIndex: index,
-        slideLayoutReference: { predefinedLayout: 'TITLE_ONLY' },
-        placeholderIdMappings: [
-          { layoutPlaceholder: { type: 'TITLE', index: 0 }, objectId: `${id}_title` },
-        ],
-      },
+// Each feature slide has a short title about its content, never about the feature (the demo video
+// says what the feature does above the slide), and a footer, as a talk's slides would: the talk's
+// name at the bottom left, the slide's number at the bottom right.
+export const TALK = 'Presenting well';
+const featureSlide = (id, index, title) => [
+  {
+    createSlide: {
+      objectId: id,
+      insertionIndex: index,
+      slideLayoutReference: { predefinedLayout: 'BLANK' },
     },
-    { insertText: { objectId: `${id}_title`, text: title } },
-    ...text(id, `${id}_label`, label, { x: X, y: 0.42, w: W, h: 0.36, size: 14, color: 'ACCENT1' }),
-    ...text(id, `${id}_body`, body, { x: X, y: 1.38, w: W, h: 0.42, size: 16, color: 'DARK2' }),
-  ];
-}
+  },
+  ...text(id, `${id}_title`, title, { x: X, y: 0.3, w: W, h: 0.62, size: 24 }),
+  ...text(id, `${id}_footer`, TALK, { x: X, y: 5.08, w: 4, h: 0.36, size: 10, color: 'DARK2' }),
+  ...text(id, `${id}_page`, String(index + 1), {
+    x: 8.5,
+    y: 5.08,
+    w: 1,
+    h: 0.36,
+    size: 10,
+    color: 'DARK2',
+    align: 'END',
+  }),
+];
+// The top that centres a block of the given height between the title and the slide number.
+const BODY = { top: 1.2, bottom: 5.0 };
+const middleOf = (h) => BODY.top + (BODY.bottom - BODY.top - h) / 2;
 
 const commons = (path) => `https://upload.wikimedia.org/wikipedia/commons/${path}`;
 export const PICTURES = {
@@ -196,6 +203,7 @@ export const SLIDES = {
   closing: 's9_closing',
 };
 export const LIVE_NUMBER = 's8_live_number';
+export const LINK_TEXT = 'Read the story on Wikipedia';
 
 export const NOTES = {
   [SLIDES.title]:
@@ -207,7 +215,11 @@ export const NOTES = {
     PICTURES.marble.credit,
     PICTURES.mars.credit,
   ].join('\n'),
-  [SLIDES.links]: 'Click a link: the page opens over the slide, and Esc brings you back.',
+  [SLIDES.links]: [
+    'Click the link: the page opens over the slide. Scroll it, then Esc brings you back.',
+    '',
+    PICTURES.earthrise.credit,
+  ].join('\n'),
   [SLIDES.zoom]: [
     "Minard's map: the width of the line is the size of Napoleon's army. Zoom in on the numbers along the way.",
     '',
@@ -236,11 +248,12 @@ export function liveEditCards() {
     ['seats', 'Seats left', '22', 5.1],
   ].flatMap(([name, caption, number, x]) => {
     const id = `${SLIDES.liveEdits}_${name}`;
+    const y = middleOf(2.7);
     return [
-      ...card(SLIDES.liveEdits, id, { x, y: 2.05, w: 4.3, h: 2.7 }),
+      ...card(SLIDES.liveEdits, id, { x, y, w: 4.3, h: 2.7 }),
       ...text(SLIDES.liveEdits, `${id}_caption`.replace('_card_caption', '_caption'), caption, {
         x: x + 0.35,
-        y: 2.4,
+        y: y + 0.35,
         w: 3.7,
         h: 0.4,
         size: 18,
@@ -248,7 +261,7 @@ export function liveEditCards() {
       }),
       ...text(SLIDES.liveEdits, name === 'card' ? LIVE_NUMBER : `${id}_number`, number, {
         x: x + 0.35,
-        y: 2.85,
+        y: y + 0.8,
         w: 3.7,
         h: 1.55,
         size: 96,
@@ -262,8 +275,7 @@ export function liveEditCards() {
 export function build() {
   const r = [];
 
-  // The theme: colours, Google Sans for every placeholder, and a 32 pt title on "Title only", lower
-  // down to leave room for the feature's name above it.
+  // The theme: colours, and Google Sans for every placeholder.
   r.push({
     updatePageProperties: {
       objectId: MASTER,
@@ -285,32 +297,6 @@ export function build() {
       },
     });
   }
-  r.push(
-    {
-      updateTextStyle: {
-        objectId: TITLE_ONLY_TITLE,
-        textRange: { type: 'ALL' },
-        style: { fontSize: { magnitude: 32, unit: 'PT' } },
-        fields: 'fontSize',
-      },
-    },
-    {
-      updatePageElementTransform: {
-        objectId: TITLE_ONLY_TITLE,
-        applyMode: 'ABSOLUTE',
-        transform: {
-          scaleX: (W * EMU) / 3e6,
-          scaleY: (0.62 * EMU) / 3e6,
-          shearX: 0,
-          shearY: 0,
-          translateX: X * EMU,
-          translateY: 0.76 * EMU,
-          unit: 'EMU',
-        },
-      },
-    },
-  );
-
   // 1. Title, on the "Title slide" layout the deck starts with.
   r.push(
     {
@@ -327,94 +313,79 @@ export function build() {
   );
 
   // 2. Spotlight: three square photos.
-  r.push(
-    ...featureSlide(SLIDES.spotlight, 1, {
-      label: 'Spotlight',
-      title: 'See any picture up close',
-      body: 'Select a picture and press Space. During a slideshow, just click it.',
-    }),
-  );
+  r.push(...featureSlide(SLIDES.spotlight, 1, 'Three views from space'));
   const square = 2.75,
     gap = (8.8 - 3 * square) / 2;
   [PICTURES.earthrise, PICTURES.marble, PICTURES.mars].forEach((picture, i) =>
     r.push(
       image(SLIDES.spotlight, `${SLIDES.spotlight}_photo${i + 1}`, picture.url, {
         x: 0.6 + i * (square + gap),
-        y: 2.05,
+        y: middleOf(square),
         w: square,
         h: square,
       }),
     ),
   );
 
-  // 3. Links: two cards, each a link to a Wikipedia article.
+  // 3. Links: a photo, a few words about it, and the page they come from.
+  r.push(...featureSlide(SLIDES.links, 2, 'Earthrise, 1968'));
+  const photo = BODY.bottom - BODY.top;
   r.push(
-    ...featureSlide(SLIDES.links, 2, {
-      label: 'Links',
-      title: 'Open websites right in the slideshow',
-      body: 'Links open over your slide. Press Esc to come back right where you were.',
+    image(SLIDES.links, `${SLIDES.links}_photo`, PICTURES.earthrise.url, {
+      x: 0.6,
+      y: BODY.top,
+      w: photo,
+      h: photo,
     }),
   );
-  [
-    ['Earthrise', 'The photo, the mission and the crew', 'https://en.wikipedia.org/wiki/Earthrise'],
-    [
-      'Charles Joseph Minard',
-      'The engineer who drew the map on the next slide',
-      'https://en.wikipedia.org/wiki/Charles_Joseph_Minard',
-    ],
-  ].forEach(([name, about, url], i) => {
-    const id = `${SLIDES.links}_card${i + 1}`;
-    const y = 2.05 + i * 1.4;
-    r.push(...card(SLIDES.links, id, { x: 0.6, y, w: 8.8, h: 1.15, link: url }));
-    r.push(
-      ...text(SLIDES.links, `${id}_text`, `${name}\n${about} · Wikipedia`, {
-        x: 0.75,
-        y: y + 0.17,
-        w: 8.5,
-        h: 0.82,
+  const about = [
+    'Bill Anders took it from Apollo 8, in orbit around the Moon, on Christmas Eve 1968.',
+    'Life magazine counts it among the 100 photographs that changed the world.',
+  ];
+  const link = LINK_TEXT;
+  const words = `${about.join('\n')}\n${link}`;
+  r.push(
+    ...text(SLIDES.links, `${SLIDES.links}_text`, words, {
+      x: 0.6 + photo + 0.35,
+      y: BODY.top,
+      w: 9.4 - (0.6 + photo + 0.35),
+      h: photo,
+      size: 16,
+      color: 'DARK2',
+      valign: 'MIDDLE',
+    }),
+    style(
+      `${SLIDES.links}_text`,
+      {
         size: 16,
-        color: 'DARK2',
-      }),
-      style(
-        `${id}_text`,
-        { size: 22, color: 'HYPERLINK', link: url, underline: true },
-        { type: 'FIXED_RANGE', startIndex: 0, endIndex: name.length },
-      ),
-      paragraph(`${id}_text`, { spaceBelow: 4 }),
-    );
-  });
-
-  // 4. Zoom: Minard's map, whole, centred.
-  r.push(
-    ...featureSlide(SLIDES.zoom, 3, {
-      label: 'Zoom',
-      title: 'Zoom in on the details',
-      body: 'Pinch, scroll or press + to zoom into the slide, and drag to look around.',
-    }),
+        color: 'HYPERLINK',
+        link: 'https://en.wikipedia.org/wiki/Earthrise',
+        underline: true,
+      },
+      { type: 'FIXED_RANGE', startIndex: words.length - link.length, endIndex: words.length },
+    ),
+    paragraph(`${SLIDES.links}_text`, { spaceBelow: 12 }),
   );
-  const mapH = 3.2,
+
+  // 4. Zoom: Minard's map, whole, as tall as the space under the title allows.
+  r.push(...featureSlide(SLIDES.zoom, 3, "Napoleon's march on Moscow, 1812"));
+  const mapH = BODY.bottom - BODY.top,
     mapW = mapH * (2003 / 955);
   r.push(
     image(SLIDES.zoom, `${SLIDES.zoom}_map`, PICTURES.minard.url, {
       x: (10 - mapW) / 2,
-      y: 2.0,
+      y: middleOf(mapH),
       w: mapW,
       h: mapH,
     }),
   );
 
   // 5. Pen: a bar chart with a month worth circling.
+  r.push(...featureSlide(SLIDES.pen, 4, 'Visitors per month'));
   r.push(
-    ...featureSlide(SLIDES.pen, 4, {
-      label: 'Pen',
-      title: 'Draw on a slide, and find it there next time',
-      body: "What you draw with Slides' pen stays on the slide for your next slideshow.",
-    }),
-  );
-  r.push(
-    ...text(SLIDES.pen, `${SLIDES.pen}_caption`, 'Visitors per month, in thousands (example)', {
+    ...text(SLIDES.pen, `${SLIDES.pen}_caption`, 'In thousands (example)', {
       x: X,
-      y: 2.0,
+      y: 0.86,
       w: W,
       h: 0.34,
       size: 14,
@@ -429,8 +400,8 @@ export function build() {
     ['May', 61],
     ['Jun', 74],
   ];
-  const top = 2.75,
-    bottom = 4.72,
+  const top = 1.8,
+    bottom = 4.6,
     bar = 0.9,
     step = 8.8 / months.length;
   months.forEach(([month, value], i) => {
@@ -466,13 +437,7 @@ export function build() {
   });
 
   // 6. Timer: the talk's agenda, with how long each part takes.
-  r.push(
-    ...featureSlide(SLIDES.timer, 5, {
-      label: 'Timer',
-      title: 'A countdown only you can see',
-      body: 'In presenter view, click the timer and set how long you have.',
-    }),
-  );
+  r.push(...featureSlide(SLIDES.timer, 5, "Today's agenda"));
   [
     ['Welcome', '2 min'],
     ['Where we are', '5 min'],
@@ -480,7 +445,7 @@ export function build() {
     ['Questions', '3 min'],
   ].forEach(([item, time], i) => {
     const id = `${SLIDES.timer}_row${i + 1}`;
-    const y = 2.05 + i * 0.72;
+    const y = middleOf(3 * 0.72 + 0.58) + i * 0.72;
     r.push(...card(SLIDES.timer, id, { x: 0.6, y, w: 8.8, h: 0.58 }));
     r.push(
       ...text(SLIDES.timer, `${id}_item`, item, {
@@ -508,17 +473,11 @@ export function build() {
 
   // 7. Floating notes: a quote, the notes being the point. The quote leaves the bottom right corner
   // free, where Chrome puts the picture-in-picture window.
-  r.push(
-    ...featureSlide(SLIDES.notes, 6, {
-      label: 'Floating notes',
-      title: 'Your notes, floating on top',
-      body: 'In a picture-in-picture window, in front of the full-screen slideshow.',
-    }),
-  );
+  r.push(...featureSlide(SLIDES.notes, 6, 'One rule for today'));
   r.push(
     ...card(SLIDES.notes, `${SLIDES.notes}_quote_card`, {
       x: 0.6,
-      y: 2.05,
+      y: middleOf(2.7),
       w: 6.0,
       h: 2.7,
       fill: 'ACCENT2',
@@ -527,7 +486,7 @@ export function build() {
   r.push(
     ...text(SLIDES.notes, `${SLIDES.notes}_quote`, '“Speak to the room, not to the screen.”', {
       x: 1.0,
-      y: 2.05,
+      y: middleOf(2.7),
       w: 5.2,
       h: 2.7,
       size: 36,
@@ -537,13 +496,7 @@ export function build() {
   );
 
   // 8. Live edits: a number to change in the editor while the slideshow runs.
-  r.push(
-    ...featureSlide(SLIDES.liveEdits, 7, {
-      label: 'Live edits',
-      title: 'Edit the deck while it’s on screen',
-      body: 'Changes made in the editor, by you or anyone else, reach the running slideshow.',
-    }),
-  );
+  r.push(...featureSlide(SLIDES.liveEdits, 7, 'Workshop sign-ups'));
   r.push(...liveEditCards());
 
   // 9. Closing, on the "Section header" layout.
@@ -578,6 +531,18 @@ export function build() {
   return r;
 }
 
+// For a deck already built: deletes the feature slides and builds them again, keeping the title and
+// closing slides and the theme. Their speaker notes go in afterwards, with the "notes" command.
+const FEATURES = Object.values(SLIDES).filter((id) => ![SLIDES.title, SLIDES.closing].includes(id));
+export function features() {
+  const ours = (request) => {
+    const body = Object.values(request)[0];
+    const id = body.objectId ?? body.elementProperties?.pageObjectId ?? '';
+    return FEATURES.some((slide) => id.startsWith(slide));
+  };
+  return [...FEATURES.map((objectId) => ({ deleteObject: { objectId } })), ...build().filter(ours)];
+}
+
 // The speaker notes, given { slideId: speakerNotesObjectId }.
 // Notes stay in Arial, as Slides writes them in a new deck.
 export function notes(ids) {
@@ -605,6 +570,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
         ? notesFont(JSON.parse(fs.readFileSync(file, 'utf8')))
         : command === 'seats'
           ? liveEditCards().slice(-11)
-          : build();
+          : command === 'features'
+            ? features()
+            : build();
   process.stdout.write(JSON.stringify(requests));
 }

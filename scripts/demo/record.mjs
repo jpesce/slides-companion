@@ -1,8 +1,14 @@
 // Records the demo: drives the demo deck in Playwright's Chromium with the extension loaded, and
 // captures each window it shows (the editor, the slideshow, presenter view, floating notes) frame by
 // frame with Chrome's own screencast, so no desktop, notifications or screen-recording permission
-// get in. Writes build/demo/raw/: the frames, and story.json, which edit.mjs turns into the video.
-//   node scripts/demo/record.mjs            (or `npm run demo` for both steps)
+// get in. Writes build/demo/raw/: the frames, where the pointer was, and story.json, which ae.mjs
+// turns into clips. The video itself is animated in After Effects from stills (stills.mjs); the
+// recording is what its motion is checked against, since it shows what the extension really does.
+//   node scripts/demo/record.mjs            (or `npm run demo:record`, with ae.mjs)
+//   DEMO_POINTER=edit node scripts/demo/record.mjs
+// The screencast doesn't show the pointer, so by default each page draws one. With DEMO_POINTER=edit
+// the pages draw none, and the After Effects edit draws it from the log instead, larger, with a
+// ripple on each click.
 // The deck is shared "anyone with the link can edit", which the live-edits scene needs: the browser
 // is signed out, like the tests'.
 import { chromium } from '@playwright/test';
@@ -20,13 +26,13 @@ const EXTENSION = path.resolve(
   process.env.EXTENSION_PATH ?? 'extension',
 );
 const RAW = path.resolve(import.meta.dirname, '../../build/demo/raw');
-const VIEWPORT = { width: 1600, height: 900 };
-const NOTES_WINDOW = { width: 480, height: 600 };
+export const VIEWPORT = { width: 1600, height: 900 };
+export const NOTES_WINDOW = { width: 480, height: 600 };
 // Frames are captured at twice the size (with --force-device-scale-factor: the screencast otherwise
 // captures CSS pixels), so the video can zoom in on what's clicked and stay sharp.
 const SCALE = 2;
 
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+export const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const slideUrl = (id) => `${DECK}?hl=en#slide=id.${id}`;
 
 // ---- The pointer. The screencast doesn't show it, so each page draws one where the mouse goes.
@@ -111,7 +117,27 @@ export function inEnglish() {
   };
 }
 
+const DRAW_POINTER = process.env.DEMO_POINTER !== 'edit';
+
+// Where each page's pointer is, whether the button is down, and the streams recording that page,
+// which log every move.
 const pointers = new WeakMap();
+const held = new WeakMap();
+const watching = new Map();
+function point(page, x, y, down = held.get(page) ?? false) {
+  pointers.set(page, { x, y });
+  for (const stream of watching.get(page) ?? []) stream.log(x, y, down);
+  if (DRAW_POINTER)
+    return page
+      .evaluate(([x, y, down]) => window.demoPointer?.(x, y, down), [x, y, down])
+      .catch(() => {});
+}
+async function press(page, down) {
+  const { x, y } = pointers.get(page) ?? { x: VIEWPORT.width / 2, y: VIEWPORT.height * 0.75 };
+  held.set(page, down);
+  await point(page, x, y, down);
+  await (down ? page.mouse.down() : page.mouse.up());
+}
 async function moveTo(page, x, y, ms = 500) {
   const from = pointers.get(page) ?? { x: VIEWPORT.width / 2, y: VIEWPORT.height * 0.75 };
   const steps = Math.max(2, Math.round(ms / 25));
@@ -121,7 +147,7 @@ async function moveTo(page, x, y, ms = 500) {
     const px = from.x + (x - from.x) * e,
       py = from.y + (y - from.y) * e;
     await page.mouse.move(px, py);
-    await page.evaluate(([px, py]) => window.demoPointer?.(px, py), [px, py]).catch(() => {});
+    await point(page, px, py);
     await sleep(ms / steps / 2);
   }
   pointers.set(page, { x, y });
@@ -137,10 +163,10 @@ async function click(page, locator, { double = false, ms } = {}) {
 async function clickAt(page, x, y, ms, double = false) {
   await moveTo(page, x, y, ms);
   await sleep(150);
-  await page.evaluate(([x, y]) => window.demoPointer?.(x, y, true), [x, y]).catch(() => {});
+  await point(page, x, y, true);
   if (double) await page.mouse.dblclick(x, y);
   else await page.mouse.click(x, y);
-  await page.evaluate(([x, y]) => window.demoPointer?.(x, y, false), [x, y]).catch(() => {});
+  await point(page, x, y, false);
 }
 
 // Scrolls smoothly, as a trackpad does: many small steps over `ms`, eased in and out.
@@ -165,10 +191,25 @@ class Stream {
     this.name = name;
     this.page = page;
     this.frames = [];
+    this.pointer = [];
     this.dir = path.join(RAW, scene.name, name);
     fs.mkdirSync(this.dir, { recursive: true });
   }
+  // In the page's CSS pixels, timed like the frames: the edit multiplies by SCALE to place it.
+  log(x, y, down) {
+    const t = (Date.now() - this.scene.start) / 1000;
+    this.pointer.push({
+      t: Number(t.toFixed(3)),
+      x: Number(x.toFixed(1)),
+      y: Number(y.toFixed(1)),
+      down,
+    });
+  }
   async start() {
+    if (!watching.has(this.page)) watching.set(this.page, new Set());
+    watching.get(this.page).add(this);
+    const at = pointers.get(this.page);
+    if (at) this.log(at.x, at.y, held.get(this.page) ?? false);
     this.cdp = await this.page.context().newCDPSession(this.page);
     this.cdp.on('Page.screencastFrame', ({ data, metadata, sessionId }) => {
       const file = `${String(this.frames.length).padStart(5, '0')}.jpg`;
@@ -186,9 +227,11 @@ class Stream {
     });
   }
   async stop() {
+    watching.get(this.page)?.delete(this);
     await this.cdp.send('Page.stopScreencast').catch(() => {});
     await this.cdp.detach().catch(() => {});
     fs.writeFileSync(`${this.dir}.json`, JSON.stringify(this.frames));
+    fs.writeFileSync(`${this.dir}-pointer.json`, JSON.stringify(this.pointer));
     const size =
       this.page.viewportSize() ??
       (await this.page.evaluate(() => ({ width: innerWidth, height: innerHeight })));
@@ -271,28 +314,28 @@ function around(boxes, pad = 24) {
 
 // ---- Slides.
 
-const PLAYER = 'iframe.punch-present-iframe';
+export const PLAYER = 'iframe.punch-present-iframe';
 const SHOWN = `${PLAYER}[data-slides-companion-player="shown"], ${PLAYER}:not([data-slides-companion-player])`;
-const show = (page) => page.frameLocator(SHOWN).first();
+export const show = (page) => page.frameLocator(SHOWN).first();
 
-async function openEditor(page, slide) {
+export async function openEditor(page, slide) {
   await page.goto(slideUrl(slide));
   await page.locator('#punch-start-presentation-left').waitFor();
   await page.locator(`#workspace [id^="editor-${slide}"]`).first().waitFor();
   await sleep(1500);
 }
-async function goToSlideInEditor(page, slide) {
+export async function goToSlideInEditor(page, slide) {
   const thumbnail = page.locator(`.punch-filmstrip-thumbnail[data-slide-page-id="${slide}"]`);
   await thumbnail.scrollIntoViewIfNeeded();
   await thumbnail.click();
   await page.locator(`#workspace [id^="editor-${slide}"]`).first().waitFor();
 }
-async function startSlideshow(page, firstElement) {
+export async function startSlideshow(page, firstElement) {
   await page.locator('#punch-start-presentation-left').click();
   await show(page).locator(`[id="${firstElement}"]`).first().waitFor();
   await sleep(1200);
 }
-async function endSlideshow(page) {
+export async function endSlideshow(page) {
   await page.keyboard.press('Escape');
   await page
     .locator(PLAYER)
@@ -301,7 +344,7 @@ async function endSlideshow(page) {
     .catch(() => {});
   await sleep(800);
 }
-async function nextSlide(page, element) {
+export async function nextSlide(page, element) {
   await page.keyboard.press('ArrowRight');
   await show(page).locator(`[id="${element}"]`).first().waitFor();
   await sleep(900);
@@ -407,9 +450,9 @@ async function zoom(page) {
     'Drag to look around',
     [],
     async () => {
-      await page.mouse.down();
+      await press(page, true);
       await moveTo(page, VIEWPORT.width * 0.62, VIEWPORT.height * 0.45, 1400);
-      await page.mouse.up();
+      await press(page, false);
     },
     { see: 1200 },
   );
@@ -441,19 +484,16 @@ async function pen(page) {
       ry = box.height * 0.68,
       cy = y - box.height * 0.08;
     await moveTo(page, x + rx, cy, 600);
-    await page.mouse.down();
+    await press(page, true);
     for (let i = 0; i <= 44; i++) {
       const a = (i / 40) * 2 * Math.PI;
       const px = x + rx * Math.cos(a),
         py = cy - ry * Math.sin(a);
       await page.mouse.move(px, py);
-      await page
-        .evaluate(([px, py]) => window.demoPointer?.(px, py, true), [px, py])
-        .catch(() => {});
+      await point(page, px, py);
       await sleep(22);
     }
-    await page.mouse.up();
-    pointers.set(page, { x: x + rx, y: cy });
+    await press(page, false);
     await page.keyboard.press('Shift+L');
   });
   await scene.step(
@@ -490,7 +530,7 @@ async function timer(page, context) {
   await page.locator('.goog-menuitem').filter({ visible: true }).first().click();
   const presenter = await opened;
   await presenter.setViewportSize({ width: 1100, height: 680 });
-  await presenter.addScriptTag({ content: `(${drawPointer})()` }).catch(() => {});
+  if (DRAW_POINTER) await presenter.addScriptTag({ content: `(${drawPointer})()` }).catch(() => {});
   const button = presenter.locator('.slides-companion-countdown-button');
   await button.waitFor();
   await sleep(1200);
@@ -563,7 +603,7 @@ async function floatingNotes(page, context) {
     .waitFor()
     .catch(() => {});
   const parts = [await intro.end(0)];
-  await notes.evaluate(drawPointer).catch(() => {});
+  if (DRAW_POINTER) await notes.evaluate(drawPointer).catch(() => {});
   await sleep(900);
 
   const scene = new Scene('notes');
@@ -588,7 +628,7 @@ async function floatingNotes(page, context) {
     },
     { see: 2400 },
   );
-  // Shown as what it is, a picture-in-picture window over the slideshow (edit.mjs).
+  // A picture-in-picture window over the slideshow, which is what floating notes are.
   parts.push({ ...(await scene.end(300)), pip: 'notes' });
   await page.keyboard.press('Shift+S');
   await notes.waitForEvent('close', { timeout: 5000 }).catch(() => notes.close());
@@ -599,7 +639,7 @@ async function liveEdits(page, context) {
   // The slideshow is on the live edits slide; a second window edits the deck.
   const editor = await context.newPage();
   await openEditor(editor, SLIDES.liveEdits);
-  await editor.evaluate(() => window.demoPointer?.(800, 700)).catch(() => {});
+  await point(editor, 800, 700);
   await sleep(500);
 
   const intro = new Scene('live-intro');
@@ -657,15 +697,15 @@ async function liveEdits(page, context) {
   return parts;
 }
 
-export async function record() {
-  fs.rmSync(RAW, { recursive: true, force: true });
-  fs.mkdirSync(RAW, { recursive: true });
+// The browser the demo runs in: Playwright's Chromium with the extension, signed out, in English, at
+// `scale` device pixels per CSS pixel.
+export async function launch(scale = SCALE) {
   const profile = fs.mkdtempSync(path.join(os.tmpdir(), 'slides-companion-demo-'));
   const context = await chromium.launchPersistentContext(profile, {
     channel: 'chromium',
     headless: !process.env.HEADED,
     viewport: VIEWPORT,
-    deviceScaleFactor: SCALE,
+    deviceScaleFactor: scale,
     locale: 'en-US',
     acceptDownloads: true,
     args: [
@@ -673,7 +713,7 @@ export async function record() {
       `--load-extension=${EXTENSION}`,
       '--lang=en-US',
       '--hide-scrollbars',
-      `--force-device-scale-factor=${SCALE}`,
+      `--force-device-scale-factor=${scale}`,
       // A screen big enough that Chrome doesn't shrink the floating notes window.
       '--screen-info={3840x2160}',
       // Keep every window painting while another has focus: the slideshow behind presenter view or floating notes.
@@ -682,7 +722,6 @@ export async function record() {
       '--disable-background-timer-throttling',
     ],
   });
-  await context.addInitScript(drawPointer);
   await context.addInitScript(inEnglish);
   // Floating notes opens as it was last left: a window beside the slideshow, as on a laptop, with
   // the notes zoomed a few steps in, as a presenter would have them, so they read on video.
@@ -691,6 +730,18 @@ export async function record() {
     (size) => chrome.storage.local.set({ notesWindow: size, notesZoom: 6 }),
     NOTES_WINDOW,
   );
+  const close = async () => {
+    await context.close();
+    fs.rmSync(profile, { recursive: true, force: true });
+  };
+  return { context, close };
+}
+
+export async function record() {
+  fs.rmSync(RAW, { recursive: true, force: true });
+  fs.mkdirSync(RAW, { recursive: true });
+  const { context, close } = await launch();
+  if (DRAW_POINTER) await context.addInitScript(drawPointer);
   try {
     const page = context.pages()[0] ?? (await context.newPage());
     const story = [
@@ -727,8 +778,7 @@ export async function record() {
     });
     fs.writeFileSync(path.join(RAW, 'story.json'), JSON.stringify(story, null, 2));
   } finally {
-    await context.close();
-    fs.rmSync(profile, { recursive: true, force: true });
+    await close();
   }
 }
 

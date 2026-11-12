@@ -9,7 +9,7 @@
 
 Free presenter tools for Google Slides™, in an extension for Chrome and browsers built on Chrome. It works on top of Slides' own slideshow, so your videos, animations and clicker keep working, and it looks like part of Slides. Formerly Image Spotlight for Google Slides. Get it from the [Chrome Web Store](https://chromewebstore.google.com/detail/image-spotlight-for-googl/habmkngfcidcchgmdpampgcbmnllkbhd).
 
-https://github.com/user-attachments/assets/d34dfa35-ae3a-41f7-a0b9-a08e66d2e289
+https://github.com/user-attachments/assets/ec264cc1-df3a-48b8-a82a-06445b620273
 
 ## Features
 
