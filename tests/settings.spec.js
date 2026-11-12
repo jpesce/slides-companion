@@ -173,6 +173,54 @@ test('each page opens with an illustration of its feature, which plays from its 
   );
 });
 
+test('opened while Slides is still loading, the illustration shows no pointer until it can move', async ({
+  context,
+}) => {
+  // Chrome starts a page's SVG animations at its load event. An image that arrives only when the
+  // test lets it holds that back, while Slides and the companion are already there.
+  let arrive;
+  const held = new Promise((resolve) => (arrive = resolve));
+  await context.route('https://docs.google.com/slides-companion-test/held.png', async (route) => {
+    await held;
+    await route.fulfill({ status: 204 });
+  });
+  await context.addInitScript(() => {
+    if (window !== top || !location.pathname.startsWith('/presentation/')) return;
+    document.addEventListener('DOMContentLoaded', () => {
+      const image = document.createElement('img');
+      image.src = 'https://docs.google.com/slides-companion-test/held.png';
+      document.body.append(image);
+    });
+  });
+  const shown = (page) =>
+    dialog(page).locator(
+      '.slides-companion-settings-page:not([hidden]) .slides-companion-dialog-illustration',
+    );
+  // Whether the arrow shows, and where, from the illustration's top left corner.
+  const pointer = (page) =>
+    shown(page).evaluate((illustration) => {
+      const arrow = [...illustration.querySelectorAll('path')].find((path) =>
+        path.getAttribute('d').startsWith('M0 0V17'),
+      );
+      const [at, from] = [arrow.getBoundingClientRect(), illustration.getBoundingClientRect()];
+      return {
+        visible: getComputedStyle(arrow).visibility === 'visible',
+        at: [Math.round(at.x - from.x), Math.round(at.y - from.y)],
+      };
+    });
+  const page = await context.newPage();
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.goto(deckUrl, { waitUntil: 'domcontentloaded' });
+  await companion(page).click();
+  expect(await page.evaluate(() => document.readyState)).not.toBe('complete');
+  expect((await pointer(page)).visible).toBe(false);
+
+  arrive();
+  await page.waitForLoadState('load', { timeout: 60_000 });
+  // Spotlight holds on its photo on the stage, the pointer on Next.
+  await expect.poll(() => pointer(page)).toEqual({ visible: true, at: [240, 146] });
+});
+
 test('↑ and ↓ go through the features, Home and End to the first and last, and Tab goes on into the page', async ({
   context,
 }) => {

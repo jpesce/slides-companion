@@ -156,6 +156,8 @@ const GRAB = `<g transform="translate(-8.5 -11)">
 // an arc (in a straight line when a stop says 'line', as a drag does). The first stop is at 0s
 // and the last lasts until the loop ends. `shapes` are [HAND or GRAB, from, to], the arrow
 // otherwise; it presses in at each of `clicks`. `beside` moves with it, unpressed.
+// It's hidden until the animation runs: Chrome starts a page's SVG animations at its load event,
+// and in Settings opened while Slides is still loading, it would sit at 0 0, in the corner.
 const cursor = (stops, shapes = [], clicks = [], beside = '') => {
   let d = `M${stops[0][0]} ${stops[0][1]}`;
   const lengths = [0];
@@ -197,7 +199,7 @@ const cursor = (stops, shapes = [], clicks = [], beside = '') => {
       ${motion(d, points, times, curves)}
       <g>${press}
         <g transform="scale(1.25)" fill="#fff" stroke="#1f1f1f" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round">
-          <path d="${ARROW}">${step('visibility', arrow.values, arrow.times)}</path>
+          <path d="${ARROW}" visibility="hidden">${step('visibility', arrow.values, arrow.times)}</path>
           ${shapes.map(([shape, from, to]) => `<g visibility="hidden">${during(from, to)}${shape}</g>`).join('\n          ')}
         </g>
       </g>
