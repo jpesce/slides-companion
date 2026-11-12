@@ -240,6 +240,9 @@
       clip.id = `slides-companion-lids-${i}`;
       const path = document.createElementNS(SVG_NS, 'path');
       path.setAttribute('transform', `translate(${eye.x} ${eye.y})`);
+      // Open from the start: a clip path with no outline hides the whole eye, and the first frame
+      // draws nothing while the toolbar has no size yet.
+      path.setAttribute('d', aperture(eye, 0, 0, 0));
       clip.append(path);
       defs.append(clip);
       eyeGroups[i]
@@ -405,14 +408,19 @@
       if (now - lastBlink > GLANCE.rest && Math.random() < GLANCE.chance) blink(now);
     }
 
+    // The document's listeners go with him: a copy of this script left behind by an extension
+    // reload or update would otherwise keep waking for a companion that's no longer on the page.
+    const listening = new AbortController();
+    const { signal } = listening;
     document.addEventListener(
       'mousemove',
       (event) => {
+        if (!button.isConnected) return listening.abort();
         mouse = { x: event.clientX, y: event.clientY };
         moved = true;
         wake();
       },
-      { passive: true },
+      { passive: true, signal },
     );
 
     function press() {
@@ -438,8 +446,9 @@
     button.addEventListener('pointerdown', (event) => {
       if (event.button === 0) press();
     });
-    document.addEventListener('pointerup', release);
-    document.addEventListener('pointercancel', release);
+    // In the capture phase, so a handler in Slides that stops the event can't leave him squashed.
+    document.addEventListener('pointerup', release, { capture: true, signal });
+    document.addEventListener('pointercancel', release, { capture: true, signal });
     button.addEventListener('keydown', (event) => {
       if (event.key !== 'Enter' && event.key !== ' ') return;
       press();

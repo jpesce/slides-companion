@@ -5,7 +5,7 @@
 // He's one drawing, in code so every picture of him stays the same character: a black, furry bun
 // with two hand-drawn oval eyes, a little different in size and tilt, looking up.
 import fs from 'node:fs';
-import { pathToFileURL } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const ROOT = new URL('../', import.meta.url);
 export const INK = '#1F1F1F';
@@ -267,7 +267,7 @@ export function companionScript() {
 // The toolbar companion (companion.js): his picture, and where his eyes and base are in its units.
 globalThis.slidesCompanion ??= {};
 globalThis.slidesCompanion.companionDrawing = {
-  svg: '${svg}',
+  svg: ${JSON.stringify(svg)},
   view: ${JSON.stringify(VIEW)},
   eyes: ${JSON.stringify(eyes)},
   base: ${JSON.stringify(base)},
@@ -284,7 +284,7 @@ async function build() {
   fs.writeFileSync(new URL('extension/companion-drawing.js', ROOT), companionScript());
 
   // Chromium draws the PNGs, as it draws the SVGs everywhere else.
-  const { chromium } = await import('playwright');
+  const { chromium } = await import('@playwright/test');
   const browser = await chromium.launch();
   const page = await browser.newPage();
   for (const [file, svg, size] of PNGS) {
@@ -292,7 +292,7 @@ async function build() {
     await page.setContent(
       `<style>html,body{margin:0;background:transparent}svg{display:block;width:${size}px;height:${size}px}</style>${files[svg]}`,
     );
-    await page.screenshot({ path: new URL(file, ROOT).pathname, omitBackground: true });
+    await page.screenshot({ path: fileURLToPath(new URL(file, ROOT)), omitBackground: true });
   }
   await browser.close();
   console.log(
