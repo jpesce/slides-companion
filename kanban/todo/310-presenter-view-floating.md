@@ -58,17 +58,23 @@
 - Live edits holds presenter view's window itself rather than its name: a copy taking over is handed the open window.
 - Tests: `tests/presenter-view.spec.js`. Countdown's and live edits' tests now run with presenter view floating (the default in the test Chromium, which has no second screen).
 
-**Still to check in the maintainer's Chrome (headless can't show it):**
-- The window's size and place over a full-screen slideshow (headless reports 1280×720 for any picture-in-picture window).
-- Opened during a full-screen slideshow, the browser leaves full screen and the slideshow goes on in the window, as with floating notes; ⋮ › Enter full screen or ⌘+Shift+F brings it back, with presenter view floating on top.
-- With just your notes, Start slideshow ▾ › Presenter view: whether the slideshow still goes full screen after the notes window took the click's activation.
-- Automatic with a second screen connected: presenter view opens in Slides' own window.
+**Checked in the maintainer's Dia (13 November 2026), with real clicks and keys:**
+- Start slideshow ▾ › Presenter view, and S in a full-screen slideshow, open Slides' presenter view in the floating window, all of it working: the timer running, the slide and the next one, the speaker notes, and our countdown button beside Reset. The window is named for the deck, so the countdown finds its time. Moving the slideshow on moves presenter view with it.
+- Dia places it bottom left, at 665×726 rather than the 730×580 asked: the size is only a hint, and Chrome keeps the size the presenter last gave a picture-in-picture window.
+- Opened during a full-screen slideshow, the browser leaves full screen and the slideshow goes on in the window, as with floating notes. ⌘+Shift+F brought full screen back, with presenter view floating on top of it.
 
-**Checked in the maintainer's Dia (13 November 2026), with real clicks:** Start slideshow ▾ › Presenter view opened Slides' presenter view in the floating window, all of it working: the timer running, slide 1 of 11, the next slide, the speaker notes, and our countdown button beside Reset. The window was named for the deck, so the countdown finds its time. Dia placed it bottom left and sized it 665×726, not the 730×580 asked: the size is only a hint, and Chrome keeps the size the presenter last gave a picture-in-picture window. The slideshow's tab wasn't the one in front, so it didn't go full screen, and the checks above need the presenter at the computer: the maintainer was in a call, and full screen would have taken over their screen.
+**Checked in the test Chromium, headed on macOS (real full screen):**
+- Closing presenter view in full screen leaves the slideshow going, still full screen.
+- From the editor's Start slideshow ▾ › Presenter view, the slideshow starts out of full screen in all three ways: Slides' own window, floating presenter view, and just your notes. So just your notes does as Slides does.
+- Floating notes opened during full screen stays in full screen in Chromium, while presenter view leaves it (Slides focuses its window). Dia leaves full screen for both.
+
+**Still to check by hand, in the maintainer's own browser:**
+- Once in Dia, closing presenter view during full screen ended the slideshow. Chromium doesn't do it, and it couldn't be tried again in Dia: the debugging tool was emulating its own viewport by then (the page was 2560 wide in a narrower window, and the tab painted blank), and full screen wouldn't come back, even from ⋮ › Enter full screen. To try: start a slideshow, press S, go back to full screen, then Close the floating window.
+- Automatic with a second screen connected: presenter view opens in Slides' own window. (Only one screen here.)
 
 **Left as Slides does:** Enter on presenter view's menu item from the keyboard, and a slideshow in a tab of its own (`/present`), open Slides' own window.
 
 **Done when:**
 - [x] The spike's result is recorded on this card: works, works with limits, or can't.
-- [ ] If it works: presenter view floats over the full-screen slideshow on one screen, Settings offers floating or its own window, a test covers it, and CHANGELOG.md says it. Built, tested and in CHANGELOG.md; what's left is the check in the maintainer's Chrome above.
+- [ ] If it works: presenter view floats over the full-screen slideshow on one screen, Settings offers floating or its own window, a test covers it, and CHANGELOG.md says it. Built, tested and in CHANGELOG.md, and checked in a real browser; what's left is the two checks by hand above.
 - [x] Floating notes is kept or removed, as decided with the user: kept, with a choice of what floats.
