@@ -40,10 +40,10 @@ In `extension/`, `manifest.json` loads each script where it's needed:
 
 | Where | Scripts |
 |---|---|
-| The editor, in the page's own world, from the start | `live-edits-main.js` |
-| The editor | `settings.js`, `messages.js`, `i18n.js`, `content.js`, `slides-dom.js` (what we know about Slides' page), `ui.js` (Slides' tooltip and icons) and `menus.js` (shared by every feature), then `illustrations.js`, `settings-dialog.js`, `companion-drawing.js` and `companion.js` (the toolbar button), `stage.js` (the black stage that Spotlight and links show on) and `spotlight.js`, `scroll.js`, `live-edits.js`, `notes.js`, `shortcuts.js` |
-| The slideshow, in every frame, in the page's own world | `live-edits-frame.js` |
-| The slideshow, in every frame | the shared scripts, then `zoom.js`, `ink.js`, `stage.js`, `links.js` (a link's page over the slide), `spotlight.js`, `notes.js`, `shortcuts.js` |
+| The editor, in the page's own world, from the start | `presenter-view-main.js` (hands Slides a floating window for presenter view), `live-edits-main.js` |
+| The editor | `settings.js`, `messages.js`, `i18n.js`, `content.js`, `slides-dom.js` (what we know about Slides' page), `ui.js` (Slides' tooltip and icons) and `menus.js` (shared by every feature), then `illustrations.js`, `settings-dialog.js`, `companion-drawing.js` and `companion.js` (the toolbar button), `stage.js` (the black stage that Spotlight and links show on) and `spotlight.js`, `scroll.js`, `live-edits.js`, `notes.js`, `presenter-view.js`, `shortcuts.js` |
+| The slideshow, in every frame, in the page's own world | `presenter-view-main.js`, `live-edits-frame.js` |
+| The slideshow, in every frame | the shared scripts, then `zoom.js`, `ink.js`, `stage.js`, `links.js` (a link's page over the slide), `spotlight.js`, `notes.js`, `presenter-view.js`, `shortcuts.js` |
 | Presenter view (a blank page Slides opens) | `settings.js`, `messages.js`, `i18n.js`, `ui.js`, `countdown.js` |
 | The service worker | `background.js` (and `dev-reload.js`, which the release build leaves out) |
 | Every site, once the presenter allows all sites | `page.js`, registered by `background.js` |

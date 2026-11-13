@@ -29,6 +29,19 @@
     // The pen's ink: the strokes group in the first of the layers Slides draws over the slide, at
     // the pointer's place on the screen (the second is the laser's).
     inkLayer: () => document.querySelector('.punch-slide-markup-surface > g'),
+    // The menu item that opens presenter view, if `target` is in it: in the editor, Start
+    // slideshow ▾ › Presenter view; in a slideshow, ⋮ › Open speaker notes, which has this icon.
+    presenterViewItem: (target) => {
+      const item = target instanceof Element ? target.closest('.goog-menuitem') : null;
+      if (!item || item.classList.contains('goog-menuitem-disabled')) return null;
+      return item.matches('.punch-qanda-presenter-view-menu-item-content') ||
+        (item.closest('.punch-viewer-navbar-menu') && item.querySelector('.docs-icon-notes'))
+        ? item
+        : null;
+    },
+    // The editor's Slideshow button, which starts the slideshow from the selected slide, as
+    // presenter view does.
+    startSlideshowButton: '#punch-start-presentation-left',
     // Sent on the slideshow's document when its slide changes.
     SLIDE_CHANGED: 'slides-companion-slide-changed',
   };

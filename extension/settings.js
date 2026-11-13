@@ -18,6 +18,13 @@ if (!globalThis.slidesCompanion?.settings) {
     // What the pen draws in a slideshow shows again the next time the deck is presented: it's what
     // the extension adds to Slides' pen. Off, as in Slides, the pen's ink goes when the slideshow ends.
     keepInk: true,
+    // Where presenter view opens: 'floating' over the slideshow, in Chrome's picture-in-picture
+    // window; in its own 'window', as Slides does; or 'auto', floating unless a second screen is
+    // connected.
+    presenterViewOpens: 'auto',
+    // What floats over the slideshow when presenter view floats: 'all' of presenter view, or just
+    // the 'notes' (floating notes, notes.js).
+    presenterViewFloats: 'all',
     // In presenter view, how many minutes before the end the countdown turns orange.
     countdownWarning: '2',
     // In presenter view, a bar under the countdown fills up as the time goes.

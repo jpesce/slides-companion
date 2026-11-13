@@ -153,7 +153,13 @@ test('the slideshow’s ⋮ menu opens and closes the floating notes', async ({ 
   await expect(page.locator('iframe.punch-present-iframe')).toBeVisible();
 });
 
-test('the floating notes look like presenter view’s and zoom like them', async ({ context }) => {
+test('the floating notes look like presenter view’s and zoom like them', async ({
+  context,
+  serviceWorker,
+}) => {
+  // Presenter view in its own window, beside the floating notes: floating, it would take their
+  // place, as only one window floats.
+  await serviceWorker.evaluate(() => chrome.storage.sync.set({ presenterViewOpens: 'window' }));
   const { page } = await startShow(context);
   await page.keyboard.press('PageDown');
   const notes = await openNotes(context, page);

@@ -2,7 +2,7 @@
 // take the keyboard from the player on screen, and a copy taking over presenter view takes over the
 // window that's open, as it is, and its timer. Slides opens presenter view with
 // window.open, by name: from the player, or from the editor as a slideshow starts with it.
-// live-edits-main.js keeps track of the window.
+// live-edits-main.js keeps track of the window, a floating one too (presenter-view-main.js).
 {
   const PRESENTER_VIEW = /^punch_speaker_notes/;
   const state = () => window.frameElement?.dataset.slidesCompanionPlayer;
@@ -29,11 +29,11 @@
   window.open = function (url, name) {
     if (!PRESENTER_VIEW.test(String(name ?? ''))) return open.apply(this, arguments);
     const presenterView = window.top[Symbol.for('slides-companion presenter view')];
-    const args = [...arguments];
-    const name_ = presenterView?.name();
-    // An empty address finds the window without loading it again.
-    if (isCopy() && name_) [args[0], args[1]] = ['', name_];
-    const opened = open.apply(this, args);
+    // The window that's open, as it is, rather than one opened again by name: a floating one
+    // (presenter-view-main.js) has none.
+    const shown = isCopy() && presenterView?.window();
+    if (shown) return shown;
+    const opened = open.apply(this, arguments);
     presenterView?.opened(opened);
     return opened;
   };

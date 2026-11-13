@@ -23,7 +23,7 @@
         "https://docs.google.com/presentation/*/present*",
         "https://docs.google.com/presentation/*/localpresent*"
       ],
-      "js": ["live-edits-main.js"],
+      "js": ["presenter-view-main.js", "live-edits-main.js"],
       "world": "MAIN",
       "run_at": "document_start"
     },
@@ -50,6 +50,7 @@
         "scroll.js",
         "live-edits.js",
         "notes.js",
+        "presenter-view.js",
         "shortcuts.js"
       ],
       "css": [
@@ -66,7 +67,7 @@
         "https://docs.google.com/presentation/*/present*",
         "https://docs.google.com/presentation/*/localpresent*"
       ],
-      "js": ["live-edits-frame.js"],
+      "js": ["presenter-view-main.js", "live-edits-frame.js"],
       "world": "MAIN",
       "all_frames": true,
       "run_at": "document_start"
@@ -90,6 +91,7 @@
         "links.js",
         "spotlight.js",
         "notes.js",
+        "presenter-view.js",
         "shortcuts.js"
       ],
       "css": ["palette.css", "spotlight.css", "zoom.css"],

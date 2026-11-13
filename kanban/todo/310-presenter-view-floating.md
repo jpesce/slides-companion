@@ -40,7 +40,7 @@
 - Presenter view opens the same ways it does in Slides (its menu, the slideshow's ⋮, its key); only where it appears changes.
 - Its size: Slides' own window is small (it asks for 730×580; the maintainer's screenshot in Dia shows it over the slideshow's top left), so a floating window that size covers about as much.
 - The words go into every language once the feature is settled.
-- Open: whether "just your notes" means floating notes opens in place of presenter view, or stays a command of its own as today.
+- "Just your notes" means floating notes opens in place of presenter view, the same ways (the maintainer's choice). Read here as: what floats applies when presenter view floats; in a window of its own, it's Slides' presenter view, all of it, as without the extension.
 
 **Research (13 November 2026), in Playwright's Chromium on the test deck:**
 - **From inside the slideshow, with S:** works (2 of 2). The slideshow holds the key back, asks the editor for the window (`top.documentPictureInPicture.requestWindow`, allowed by the key's activation in the slideshow's frame), and once it's there (5 ms later), plays S again. Slides then calls `window.open` for presenter view and gets the floating window: timer ticking, slide and notes, all as in its own window.
@@ -49,7 +49,24 @@
 - **Live edits (from the code, not run yet):** a copy taking over finds presenter view by name (`window.open('', name)` in `live-edits-frame.js`), and `live-edits-main.js` takes an empty name as "closed". Both already hold the window itself, so a copy can be handed that window, whatever its name, and "open" can mean the window isn't closed. Its `close` guard (`keepOpen`) works on any window.
 - Not looked at yet: automatic (`screen.isExtended`), floating notes and floating presenter view asking for the one window a tab may have, and leaving full screen as the window opens (as floating notes does).
 
+**Built (13 November 2026):**
+- Settings has a Presenter view page, before Timer, with its illustration (presenter view floats in over a slideshow, its Next moves both on). "Presenter view opens": floating unless there's a second screen (default), floating, or in a window of its own. "When it floats, it shows": all of presenter view (default), or just your notes.
+- `presenter-view.js` holds back S, the slideshow's ⋮ › Open speaker notes, and Start slideshow ▾ › Presenter view, asks the editor for the window (`requestWindow` at 730×580, Slides' own size), then plays the key or click again; `presenter-view-main.js` hands the window to Slides' `window.open`. The menu click is held whole and the window asked for on `click`: asked for on the press, the release went missing (Playwright's instant click) or the menu closed.
+- S again opens it afresh, floating, as Slides does its own window (it closes it and opens another).
+- With just your notes: S and ⋮ open floating notes and close Slides' menu; Start slideshow ▾ › Presenter view opens floating notes and starts the slideshow (Slides' Slideshow button).
+- The countdown works in the floating window: `presenter-view.js` names the window after the deck, since it has no opener, and `countdown.js` knows it by that name.
+- Live edits holds presenter view's window itself rather than its name: a copy taking over is handed the open window.
+- Tests: `tests/presenter-view.spec.js`. Countdown's and live edits' tests now run with presenter view floating (the default in the test Chromium, which has no second screen).
+
+**Still to check in the maintainer's Chrome (headless can't show it):**
+- The window's size and place over a full-screen slideshow (headless reports 1280×720 for any picture-in-picture window).
+- Opened during a full-screen slideshow, the browser leaves full screen and the slideshow goes on in the window, as with floating notes; ⋮ › Enter full screen or ⌘+Shift+F brings it back, with presenter view floating on top.
+- With just your notes, Start slideshow ▾ › Presenter view: whether the slideshow still goes full screen after the notes window took the click's activation.
+- Automatic with a second screen connected: presenter view opens in Slides' own window.
+
+**Left as Slides does:** Enter on presenter view's menu item from the keyboard, and a slideshow in a tab of its own (`/present`), open Slides' own window.
+
 **Done when:**
 - [x] The spike's result is recorded on this card: works, works with limits, or can't.
-- [ ] If it works: presenter view floats over the full-screen slideshow on one screen, Settings offers floating or its own window, a test covers it, and CHANGELOG.md says it.
+- [ ] If it works: presenter view floats over the full-screen slideshow on one screen, Settings offers floating or its own window, a test covers it, and CHANGELOG.md says it. Built, tested and in CHANGELOG.md; what's left is the check in the maintainer's Chrome above.
 - [x] Floating notes is kept or removed, as decided with the user: kept, with a choice of what floats.

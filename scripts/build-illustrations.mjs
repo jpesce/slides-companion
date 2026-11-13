@@ -212,8 +212,8 @@ const REST = [330, 124];
 // Spotlight's stage: black, with the bars in the stage's dark grey, and Close at the top right.
 const closer = `<circle cx="458" cy="28" r="10" fill="#1f1f1f"/>
       <path d="M454 24L462 32M462 24L454 32" stroke="#e3e3e3" stroke-width="1.75" stroke-linecap="round"/>`;
-const chevron = (x, dir) =>
-  `<path d="M${x + 2 * dir} 160L${x - 2 * dir} 164L${x + 2 * dir} 168" fill="none" stroke="#e3e3e3" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>`;
+const chevron = (x, dir, y = 164) =>
+  `<path d="M${x + 2 * dir} ${y - 4}L${x - 2 * dir} ${y}L${x + 2 * dir} ${y + 4}" fill="none" stroke="#e3e3e3" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>`;
 const stage = (from, to, body) => `<g opacity="0">
       ${anim('opacity', [0, 0, 1, 1, 0, 0], [0, from, from + 0.15, to, to + 0.075, T], [HOLD, FADE_IN, HOLD, FADE_OUT, HOLD])}
       <rect width="${W}" height="${H}" fill="#000"/>
@@ -460,6 +460,66 @@ const scenes = {};
         ${tf('scale', [0, 0, 1, 1, 0, 0], [0, t.dotIn, t.dotFull, t.dotOut, t.dotGone, T], [HOLD, DECEL, HOLD, ACCEL, HOLD])}
       </circle>
     </g>`,
+    ),
+  };
+}
+
+// Presenter view: over the slideshow, presenter view floats in, its timer ticking. The pointer
+// clicks its Next, and the slideshow and presenter view both go on to the next slide; then it
+// floats away.
+{
+  const shown = 0.6,
+    next = 3.0,
+    gone = 5.3;
+  // The next slide: the photo on the right, and the words on the left.
+  const slideB = (id) =>
+    `${outline()}${at(130, 15, 1, photo(id))}${bar(15, 23, 90, 10, '#c4c7c5')}${[84, 72, 80]
+      .map((w, n) => bar(15, 53 + 12 * n, w, 6, '#e3e3e3'))
+      .join('')}`;
+  // Each slide shows until Next, and the next one after it, until the loop starts again.
+  const slides = (a, b) =>
+    `<g>${step('visibility', ['visible', 'hidden', 'visible'], [0, next + 0.05, T - 0.2])}${a}</g>
+      <g visibility="hidden">${during(next + 0.05, T - 0.2)}${b}</g>`;
+  const font = `font-family="'Google Sans Flex','Google Sans',Roboto,Arial,sans-serif" font-size="11" font-weight="500" fill="#1f1f1f"`;
+  const ticks = [0, 1, 2, 3, 4]
+    .map(
+      (n) =>
+        `<text x="112" y="47" ${font} visibility="hidden">${during(shown + n, n === 4 ? T : shown + n + 1)}00:00:0${n}</text>`,
+    )
+    .join('\n      ');
+  // Presenter view's Next, under its slide.
+  const NEXT = [151, 115];
+  scenes['presenter-view'] = {
+    still: 2.0,
+    svg: frame(
+      'presenter-view',
+      `
+    <!-- The slideshow, filling the screen. -->
+    ${at(140, 16, 1.1, slides(slide('presenter-view-a', 84, 72), slideB('presenter-view-b')))}
+    <!-- Presenter view, floating over it: the timer and its buttons, the slide and its notes. -->
+    <g opacity="0" transform-origin="185 78">
+      ${anim('opacity', [0, 0, 1, 1, 0, 0], [0, shown, shown + 0.25, gone, gone + 0.25, T], [HOLD, FADE_IN, HOLD, FADE_OUT, HOLD])}
+      ${tf('scale', [0.94, 0.94, 1, 1, 0.94, 0.94], [0, shown, shown + 0.35, gone, gone + 0.25, T], [HOLD, DECEL, HOLD, ACCEL, HOLD])}
+      <rect x="100" y="31" width="170" height="100" rx="10" fill="#000" opacity="0.12"/>
+      <rect x="100" y="28" width="170" height="100" rx="10" fill="#fff" stroke="#c4c7c5" stroke-width="2"/>
+      ${ticks}
+      ${bar(176, 40, 18, 6, '#c4c7c5')}${bar(198, 40, 18, 6, '#c4c7c5')}
+      <path d="M101 56H269" stroke="#e3e3e3"/>
+      ${at(112, 64, 0.2988, slides(slide('presenter-view-c', 84, 72), slideB('presenter-view-d')))}
+      <circle cx="129" cy="${NEXT[1]}" r="6" fill="#f0f4f9"/>${chevron(129, 1, NEXT[1]).replace('#e3e3e3', '#444746')}
+      <circle cx="${NEXT[0]}" cy="${NEXT[1]}" r="6" fill="#f0f4f9"/>${chevron(NEXT[0], -1, NEXT[1]).replace('#e3e3e3', '#444746')}
+      ${bar(194, 66, 64, 5, '#e3e3e3')}${bar(194, 76, 56, 5, '#e3e3e3')}${bar(194, 86, 60, 5, '#e3e3e3')}${bar(194, 96, 40, 5, '#e3e3e3')}
+    </g>
+    <!-- The pointer, from the slide's lower right to Next and back. -->
+    ${cursor(
+      [
+        [...REST, 0, 1.2],
+        [...NEXT, 2.4, 3.4],
+        [...REST, 4.4, T],
+      ],
+      [[HAND, 2.35, 3.45]],
+      [next - 0.1],
+    )}`,
     ),
   };
 }

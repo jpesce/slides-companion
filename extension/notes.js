@@ -13,6 +13,8 @@
   // The editor owns the window, so it outlives each slideshow; a slideshow started from the editor
   // runs in an iframe there, and asks the editor through events on the editor's page.
   const TOGGLE_EVENT = 'slides-companion-toggle-notes';
+  // Presenter view opened with "just your notes" chosen opens them (presenter-view.js).
+  const OPEN_EVENT = 'slides-companion-open-notes';
   const SLIDE_EVENT = 'slides-companion-slide-shown';
   const FULL_SCREEN_EVENT = 'slides-companion-full-screen';
   const SLIDESHOW_GONE_EVENT = 'slides-companion-slideshow-gone';
@@ -375,6 +377,9 @@
       return (opened) => (opened ? setTimeout(stop, 1500) : stop());
     }
 
+    // Floating presenter view opens a window the same way (presenter-view.js).
+    globalThis.slidesCompanion.keepSlideshowThroughOpening = keepSlideshowThroughOpening;
+
     const restoreFullScreen = () => fullScreenToRestore?.requestFullscreen().catch(() => {});
     document.addEventListener(FULL_SCREEN_EVENT, restoreFullScreen);
 
@@ -507,6 +512,7 @@
 
     const toggle = () => (floating ? close() : open());
     document.addEventListener(TOGGLE_EVENT, toggle);
+    document.addEventListener(OPEN_EVENT, open);
 
     // For the slideshow's menu, and ours below.
     function showState() {
@@ -695,6 +701,9 @@
       attributes: true,
       attributeFilter: [WINDOWED_ATTRIBUTE],
     });
+
+    // For presenter view's item, when it opens floating notes (presenter-view.js).
+    globalThis.slidesCompanion.closeSlideshowMenu = closeMenu;
 
     // Pressing ⋮ again closes the menu, as Slides does. (Esc would end the slideshow.) Focus goes
     // back to the slideshow, as after Slides' own items, so Space goes on to the next slide.

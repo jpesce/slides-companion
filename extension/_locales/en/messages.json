@@ -377,6 +377,63 @@
     "description": "The note after it, shown in brackets. \"Erase all\" is the name of the item in Slides' own slideshow menu."
   },
 
+  "presenterViewName": {
+    "message": "Presenter view",
+    "description": "A feature's name in the list down the side of Settings, as Slides names its window with the timer, the next slide and the speaker notes."
+  },
+  "presenterViewSummary": {
+    "message": "Your notes over the slideshow",
+    "description": "The line under its name."
+  },
+  "presenterViewAbout": {
+    "message": "On one screen, presenter view floats over your slideshow and stays on top. Share only the slideshow’s tab or window, and nobody else sees it.",
+    "description": "What the feature does, at the top of its page. \"Presenter view\" as Slides names it."
+  },
+  "presenterViewOpens": {
+    "message": "Presenter view opens",
+    "description": "A group of choices: where presenter view appears when you open it from Slides' menus or with S."
+  },
+  "presenterViewAuto": {
+    "message": "Floating, unless there’s a second screen",
+    "description": "A choice."
+  },
+  "presenterViewAutoHint": {
+    "message": "with a second screen, in a window of its own there, as Slides does",
+    "description": "The note after it, shown in brackets."
+  },
+  "presenterViewFloating": {
+    "message": "Floating over your slideshow",
+    "description": "A choice."
+  },
+  "presenterViewFloatingHint": {
+    "message": "always, even with a second screen",
+    "description": "The note after it, shown in brackets."
+  },
+  "presenterViewWindow": {
+    "message": "In a window of its own",
+    "description": "A choice."
+  },
+  "presenterViewFloats": {
+    "message": "When it floats, it shows",
+    "description": "A group of choices: what the floating window over the slideshow shows."
+  },
+  "floatsAll": {
+    "message": "All of presenter view",
+    "description": "A choice."
+  },
+  "floatsAllHint": {
+    "message": "the timer, the slides and your notes",
+    "description": "The note after it, shown in brackets."
+  },
+  "floatsNotes": {
+    "message": "Just your notes",
+    "description": "A choice."
+  },
+  "floatsNotesHint": {
+    "message": "in a smaller window, which covers less of the slide",
+    "description": "The note after it, shown in brackets."
+  },
+
   "timerName": {
     "message": "Timer",
     "description": "A feature's name in the list down the side of Settings: a countdown in presenter view."

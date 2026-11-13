@@ -105,6 +105,28 @@
         ${checkbox('keepInk', 'keepInk', 'keepInkHint')}`,
     },
     {
+      id: 'presenter-view',
+      name: 'presenterViewName',
+      summary: 'presenterViewSummary',
+      // Slides' picture-in-picture icon (floating notes' menu item), drawn as Material Symbols are.
+      icon: icon(
+        'M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Zm0-80h640v-480H160v480Zm320-280h240v-160H480v160Z',
+      ),
+      page: () => `
+        ${about('presenterViewAbout')}
+        <fieldset class="slides-companion-dialog-group">
+          ${legend('presenterViewOpens')}
+          ${radio('presenterViewOpens', 'auto', 'presenterViewAuto', 'presenterViewAutoHint')}
+          ${radio('presenterViewOpens', 'floating', 'presenterViewFloating', 'presenterViewFloatingHint')}
+          ${radio('presenterViewOpens', 'window', 'presenterViewWindow', 'asSlidesDoes')}
+        </fieldset>
+        <fieldset class="slides-companion-dialog-group">
+          ${legend('presenterViewFloats')}
+          ${radio('presenterViewFloats', 'all', 'floatsAll', 'floatsAllHint')}
+          ${radio('presenterViewFloats', 'notes', 'floatsNotes', 'floatsNotesHint')}
+        </fieldset>`,
+    },
+    {
       id: 'timer',
       name: 'timerName',
       summary: 'timerSummary',

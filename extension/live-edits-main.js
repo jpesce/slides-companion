@@ -337,12 +337,12 @@
     if (PRESENTER_VIEW.test(String(name ?? ''))) presenterView = opened;
     return opened;
   };
-  const presenterViewName = () =>
-    presenterView && !presenterView.closed ? presenterView.name : null;
+  // Open while its window isn't closed. (A floating one, presenter-view-main.js, has no name.)
+  const presenterViewOpen = () => Boolean(presenterView && !presenterView.closed);
   document.addEventListener('slides-companion-presenter-view', () => {
     document.documentElement.toggleAttribute(
       'data-slides-companion-presenter-view',
-      Boolean(presenterViewName()),
+      presenterViewOpen(),
     );
   });
 
@@ -354,7 +354,7 @@
   let ticked = 0;
   let ticks = null;
   document.addEventListener('slides-companion-presenter-view-watch', () => {
-    const doc = presenterViewName() && presenterView.document;
+    const doc = presenterViewOpen() && presenterView.document;
     if (!doc || ticks?.doc === doc) return;
     ticks?.disconnect();
     ticks = new MutationObserver((records) => {
@@ -369,7 +369,7 @@
     ticks.observe(doc, { subtree: true, childList: true, characterData: true });
   });
   document.addEventListener('slides-companion-presenter-view-time', () => {
-    const doc = presenterViewName() && presenterView.document;
+    const doc = presenterViewOpen() && presenterView.document;
     const match = doc?.querySelector(TIMER)?.textContent.match(/^(\d+):(\d\d):(\d\d)$/);
     const since = performance.now() - ticked;
     const time =
@@ -381,7 +381,7 @@
   });
   // While a copy takes it over (see countdown.js).
   document.addEventListener('slides-companion-presenter-view-taking-over', (event) => {
-    const doc = presenterViewName() && presenterView.document;
+    const doc = presenterViewOpen() && presenterView.document;
     doc?.documentElement.toggleAttribute(
       'data-slides-companion-taking-over',
       event.detail === 'true',
@@ -400,7 +400,7 @@
         if (state(frame) === 'replaced') replaced.add(frame.contentWindow.Function.prototype);
       } catch {}
     }
-    const win = presenterViewName() && presenterView;
+    const win = presenterViewOpen() && presenterView;
     if (!win || win.close[KEEPING]) return;
     const close = win.close;
     win.close = function closing() {
@@ -411,7 +411,7 @@
     win.close[KEEPING] = true;
   }
   window[Symbol.for('slides-companion presenter view')] = {
-    name: presenterViewName,
+    window: () => (presenterViewOpen() ? presenterView : null),
     opened: (opened) => (presenterView = opened),
   };
 }

@@ -16,6 +16,7 @@ const FEATURES = [
   ['Links', 'Open sites while presenting'],
   ['Zoom & scroll', 'Zoom in on any detail'],
   ['Pen', 'Keep what you draw'],
+  ['Presenter view', 'Your notes over the slideshow'],
   ['Timer', 'Count down to finish on time'],
   ['Live edits', 'Shown while you present'],
   ['Companion', 'Your shortcut to Settings'],
@@ -70,6 +71,11 @@ test('the companion shows a tooltip and opens Settings', async ({ context }) => 
   ).toBeChecked();
   await feature(page, 'Pen').click();
   await expect(dialog(page).getByRole('checkbox', { name: /Keep what you draw/ })).toBeChecked();
+  await feature(page, 'Presenter view').click();
+  await expect(
+    dialog(page).getByRole('radio', { name: /Floating, unless there’s a second screen/ }),
+  ).toBeChecked();
+  await expect(dialog(page).getByRole('radio', { name: /All of presenter view/ })).toBeChecked();
   await feature(page, 'Timer').click();
   await expect(dialog(page).getByRole('radio', { name: /2 minutes before the end/ })).toBeChecked();
   await feature(page, 'Live edits').click();
@@ -114,6 +120,10 @@ test('each feature has a page of its own, saying what the feature does, and the 
   await dialog(page)
     .getByRole('checkbox', { name: /Keep what you draw/ })
     .uncheck();
+  await feature(page, 'Presenter view').click();
+  await dialog(page)
+    .getByRole('radio', { name: /Just your notes/ })
+    .check();
   await feature(page, 'Timer').click();
   await dialog(page)
     .getByRole('radio', { name: /5 minutes before the end/ })
@@ -130,6 +140,8 @@ test('each feature has a page of its own, saying what the feature does, and the 
   await expect(
     dialog(page).getByRole('checkbox', { name: /Keep what you draw/ }),
   ).not.toBeChecked();
+  await feature(page, 'Presenter view').click();
+  await expect(dialog(page).getByRole('radio', { name: /Just your notes/ })).toBeChecked();
   await feature(page, 'Timer').click();
   await expect(dialog(page).getByRole('radio', { name: /5 minutes before the end/ })).toBeChecked();
 });

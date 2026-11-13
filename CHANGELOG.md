@@ -15,6 +15,7 @@ Presenter tools for Google Slides, still free, open source, and working entirely
 - **Pen:** what you draw with Slides' pen stays on the slide for the next time you present.
 - **Timer:** in presenter view, count down from how long you have, with a bar that fills as you go and an orange warning near the end. Each deck remembers its time.
 - **Floating notes:** your speaker notes, in their own fonts, in a small window that floats over the full-screen slideshow, and that meeting apps leave out when you share only the slideshow's tab. Open it from View › Show floating notes, the slideshow's ⋮ menu or <kbd>Shift</kbd>+<kbd>S</kbd>.
+- **Presenter view:** on one screen, presenter view floats over your full-screen slideshow, timer, slides and notes included, and stays on top. Open it as always, from Slides' menus or with <kbd>S</kbd>. With a second screen, it opens in a window of its own, as Slides does. In Settings, you can choose to float just your notes, or always use a window of its own.
 - **Live edits:** edits to the deck, by you or anyone else, reach a slideshow that's already running. Should Google change Slides in a way live edits can't follow, your slideshow simply carries on without them, and afterwards Slides tells you so, with a report you can send us in one click.
 - **Keyboard:** our shortcuts are listed in Slides' Keyboard shortcuts dialog, and our menu items work with the arrow keys and access keys like Slides' own.
 - **Languages:** the extension speaks Slides' language, in 33 languages, right to left in Arabic and Hebrew.

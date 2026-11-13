@@ -10,12 +10,17 @@
   // run inside it. We get in through the manifest's `match_about_blank`. Signed in, the window takes
   // on the slideshow's address instead.
   const { text } = globalThis.slidesCompanion;
-  const IN_PRESENTER_VIEW = /^punch_speaker_notes_/.test(window.name);
+  // Floating over the slideshow, it's a picture-in-picture window, which presenter-view.js names
+  // after the deck, as it has no opener.
+  const FLOATING = /^slides-companion-presenter-view (.+)/;
+  const IN_PRESENTER_VIEW = /^punch_speaker_notes_/.test(window.name) || FLOATING.test(window.name);
   // live-edits-main.js reads the same element (its TIMER), from the page's own world.
   const ELAPSED = '.punch-viewer-speakernotes-timer-time:not(.slides-companion-countdown)';
 
   // The deck, from presenter view's address, or the editor's that opened it.
   function deckKey() {
+    const floating = window.name.match(FLOATING)?.[1];
+    if (floating) return `countdown ${floating}`;
     try {
       const { pathname } = location.protocol === 'about:' ? window.opener.location : location;
       return `countdown ${pathname.match(/\/d\/([^/]+)/)[1]}`;

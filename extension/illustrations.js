@@ -164,6 +164,56 @@ globalThis.slidesCompanion.illustrations = {
     </g>
   </g>
 </svg>`,
+  'presenter-view': `<svg data-still="2" xmlns="http://www.w3.org/2000/svg" viewBox="0 2 495 176" width="495" height="176" class="slides-companion-dialog-illustration" aria-hidden="true">
+  <defs><clipPath id="slides-companion-illustration-presenter-view-frame"><rect y="2" width="495" height="176" rx="28"/></clipPath></defs>
+  <g clip-path="url(#slides-companion-illustration-presenter-view-frame)">
+    <rect y="2" width="495" height="176" fill="#f0f4f9"/>
+    
+    <!-- The slideshow, filling the screen. -->
+    <g transform="translate(140 16) scale(1.1)"><g><animate attributeName="visibility" values="visible;hidden;visible" keyTimes="0.0000;0.5083;0.9667" calcMode="discrete" dur="6s" repeatCount="indefinite"/><rect width="241" height="135" rx="12" fill="#fff" stroke="#c4c7c5" stroke-width="2" vector-effect="non-scaling-stroke"/><g transform="translate(15 15)"><clipPath id="slides-companion-illustration-presenter-view-a"><rect width="96" height="104" rx="8"/></clipPath>
+    <g clip-path="url(#slides-companion-illustration-presenter-view-a)"><rect width="96" height="104" fill="#d3e3fd"/><circle cx="68" cy="26" r="9" fill="#a8c7fa"/>
+    <path d="M-8 112L32 62Q36 57 40 62L61 87L72 74Q76 69 80 74L104 104V112Z" fill="#a8c7fa"/></g></g><rect x="129" y="23" width="90" height="10" rx="5" fill="#c4c7c5"/><rect x="129" y="53" width="84" height="6" rx="3" fill="#e3e3e3"/><rect x="129" y="65" width="72" height="6" rx="3" fill="#e3e3e3"/></g>
+      <g visibility="hidden"><animate attributeName="visibility" values="hidden;visible;hidden" keyTimes="0.0000;0.5083;0.9667" calcMode="discrete" dur="6s" repeatCount="indefinite"/><rect width="241" height="135" rx="12" fill="#fff" stroke="#c4c7c5" stroke-width="2" vector-effect="non-scaling-stroke"/><g transform="translate(130 15)"><clipPath id="slides-companion-illustration-presenter-view-b"><rect width="96" height="104" rx="8"/></clipPath>
+    <g clip-path="url(#slides-companion-illustration-presenter-view-b)"><rect width="96" height="104" fill="#d3e3fd"/><circle cx="68" cy="26" r="9" fill="#a8c7fa"/>
+    <path d="M-8 112L32 62Q36 57 40 62L61 87L72 74Q76 69 80 74L104 104V112Z" fill="#a8c7fa"/></g></g><rect x="15" y="23" width="90" height="10" rx="5" fill="#c4c7c5"/><rect x="15" y="53" width="84" height="6" rx="3" fill="#e3e3e3"/><rect x="15" y="65" width="72" height="6" rx="3" fill="#e3e3e3"/><rect x="15" y="77" width="80" height="6" rx="3" fill="#e3e3e3"/></g></g>
+    <!-- Presenter view, floating over it: the timer and its buttons, the slide and its notes. -->
+    <g opacity="0" transform-origin="185 78">
+      <animate attributeName="opacity" values="0;0;1;1;0;0" keyTimes="0.0000;0.1000;0.1417;0.8833;0.9250;1.0000" calcMode="spline" keySplines="0 0 1 1;0 0 0.2 1;0 0 1 1;0.4 0 1 1;0 0 1 1" dur="6s" repeatCount="indefinite"/>
+      <animateTransform attributeName="transform" type="scale" values="0.94;0.94;1;1;0.94;0.94" keyTimes="0.0000;0.1000;0.1583;0.8833;0.9250;1.0000" calcMode="spline" keySplines="0 0 1 1;0.05 0.7 0.1 1;0 0 1 1;0.3 0 0.8 0.15;0 0 1 1" dur="6s" repeatCount="indefinite"/>
+      <rect x="100" y="31" width="170" height="100" rx="10" fill="#000" opacity="0.12"/>
+      <rect x="100" y="28" width="170" height="100" rx="10" fill="#fff" stroke="#c4c7c5" stroke-width="2"/>
+      <text x="112" y="47" font-family="'Google Sans Flex','Google Sans',Roboto,Arial,sans-serif" font-size="11" font-weight="500" fill="#1f1f1f" visibility="hidden"><animate attributeName="visibility" values="hidden;visible;hidden" keyTimes="0.0000;0.1000;0.2667" calcMode="discrete" dur="6s" repeatCount="indefinite"/>00:00:00</text>
+      <text x="112" y="47" font-family="'Google Sans Flex','Google Sans',Roboto,Arial,sans-serif" font-size="11" font-weight="500" fill="#1f1f1f" visibility="hidden"><animate attributeName="visibility" values="hidden;visible;hidden" keyTimes="0.0000;0.2667;0.4333" calcMode="discrete" dur="6s" repeatCount="indefinite"/>00:00:01</text>
+      <text x="112" y="47" font-family="'Google Sans Flex','Google Sans',Roboto,Arial,sans-serif" font-size="11" font-weight="500" fill="#1f1f1f" visibility="hidden"><animate attributeName="visibility" values="hidden;visible;hidden" keyTimes="0.0000;0.4333;0.6000" calcMode="discrete" dur="6s" repeatCount="indefinite"/>00:00:02</text>
+      <text x="112" y="47" font-family="'Google Sans Flex','Google Sans',Roboto,Arial,sans-serif" font-size="11" font-weight="500" fill="#1f1f1f" visibility="hidden"><animate attributeName="visibility" values="hidden;visible;hidden" keyTimes="0.0000;0.6000;0.7667" calcMode="discrete" dur="6s" repeatCount="indefinite"/>00:00:03</text>
+      <text x="112" y="47" font-family="'Google Sans Flex','Google Sans',Roboto,Arial,sans-serif" font-size="11" font-weight="500" fill="#1f1f1f" visibility="hidden"><animate attributeName="visibility" values="hidden;visible;hidden" keyTimes="0.0000;0.7667;1.0000" calcMode="discrete" dur="6s" repeatCount="indefinite"/>00:00:04</text>
+      <rect x="176" y="40" width="18" height="6" rx="3" fill="#c4c7c5"/><rect x="198" y="40" width="18" height="6" rx="3" fill="#c4c7c5"/>
+      <path d="M101 56H269" stroke="#e3e3e3"/>
+      <g transform="translate(112 64) scale(0.2988)"><g><animate attributeName="visibility" values="visible;hidden;visible" keyTimes="0.0000;0.5083;0.9667" calcMode="discrete" dur="6s" repeatCount="indefinite"/><rect width="241" height="135" rx="12" fill="#fff" stroke="#c4c7c5" stroke-width="2" vector-effect="non-scaling-stroke"/><g transform="translate(15 15)"><clipPath id="slides-companion-illustration-presenter-view-c"><rect width="96" height="104" rx="8"/></clipPath>
+    <g clip-path="url(#slides-companion-illustration-presenter-view-c)"><rect width="96" height="104" fill="#d3e3fd"/><circle cx="68" cy="26" r="9" fill="#a8c7fa"/>
+    <path d="M-8 112L32 62Q36 57 40 62L61 87L72 74Q76 69 80 74L104 104V112Z" fill="#a8c7fa"/></g></g><rect x="129" y="23" width="90" height="10" rx="5" fill="#c4c7c5"/><rect x="129" y="53" width="84" height="6" rx="3" fill="#e3e3e3"/><rect x="129" y="65" width="72" height="6" rx="3" fill="#e3e3e3"/></g>
+      <g visibility="hidden"><animate attributeName="visibility" values="hidden;visible;hidden" keyTimes="0.0000;0.5083;0.9667" calcMode="discrete" dur="6s" repeatCount="indefinite"/><rect width="241" height="135" rx="12" fill="#fff" stroke="#c4c7c5" stroke-width="2" vector-effect="non-scaling-stroke"/><g transform="translate(130 15)"><clipPath id="slides-companion-illustration-presenter-view-d"><rect width="96" height="104" rx="8"/></clipPath>
+    <g clip-path="url(#slides-companion-illustration-presenter-view-d)"><rect width="96" height="104" fill="#d3e3fd"/><circle cx="68" cy="26" r="9" fill="#a8c7fa"/>
+    <path d="M-8 112L32 62Q36 57 40 62L61 87L72 74Q76 69 80 74L104 104V112Z" fill="#a8c7fa"/></g></g><rect x="15" y="23" width="90" height="10" rx="5" fill="#c4c7c5"/><rect x="15" y="53" width="84" height="6" rx="3" fill="#e3e3e3"/><rect x="15" y="65" width="72" height="6" rx="3" fill="#e3e3e3"/><rect x="15" y="77" width="80" height="6" rx="3" fill="#e3e3e3"/></g></g>
+      <circle cx="129" cy="115" r="6" fill="#f0f4f9"/><path d="M131 111L127 115L131 119" fill="none" stroke="#444746" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="151" cy="115" r="6" fill="#f0f4f9"/><path d="M149 111L153 115L149 119" fill="none" stroke="#444746" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="194" y="66" width="64" height="5" rx="2.5" fill="#e3e3e3"/><rect x="194" y="76" width="56" height="5" rx="2.5" fill="#e3e3e3"/><rect x="194" y="86" width="60" height="5" rx="2.5" fill="#e3e3e3"/><rect x="194" y="96" width="40" height="5" rx="2.5" fill="#e3e3e3"/>
+    </g>
+    <!-- The pointer, from the slide's lower right to Next and back. -->
+    <g>
+      <animateMotion path="M330 124Q241.85 92.65 151 115Q239.15 146.35 330 124" keyPoints="0.0000;0.0000;0.5000;0.5000;1.0000;1.0000" keyTimes="0.0000;0.2000;0.4000;0.5667;0.7333;1.0000" calcMode="spline" keySplines="0 0 1 1;0.33 0 0.67 1;0 0 1 1;0.33 0 0.67 1;0 0 1 1" dur="6s" repeatCount="indefinite"/>
+      <g><animateTransform attributeName="transform" type="scale" values="1;1;0.85;1;1" keyTimes="0.0000;0.4833;0.4967;0.5167;1.0000" calcMode="spline" keySplines="0 0 1 1;0.33 0 0.67 1;0.33 0 0.67 1;0 0 1 1" dur="6s" repeatCount="indefinite"/>
+        <g transform="scale(1.25)" fill="#fff" stroke="#1f1f1f" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round">
+          <path d="M0 0V17L4.6 12.7L7.8 19.6L10.6 18.4L7.5 11.6H13.5Z" visibility="hidden"><animate attributeName="visibility" values="visible;hidden;visible" keyTimes="0.0000;0.3917;0.5750" calcMode="discrete" dur="6s" repeatCount="indefinite"/></path>
+          <g visibility="hidden"><animate attributeName="visibility" values="hidden;visible;hidden" keyTimes="0.0000;0.3917;0.5750" calcMode="discrete" dur="6s" repeatCount="indefinite"/><g transform="translate(-6.5 0)">
+          <path d="M5 1.5Q5 0 6.5 0Q8 0 8 1.5V8Q8 7 9.25 7Q10.5 7 10.5 8.5Q10.5 7.5 11.75 7.5Q13 7.5 13 9Q13 8.3 14.1 8.3Q15.2 8.3 15.2 9.8V14Q15.2 19 10.5 19H8Q5.5 19 4 16.5L1.2 12.2Q0.6 11 1.6 10.4Q2.6 9.8 3.6 11L5 12.8Z"/>
+          <path d="M10.5 8.5V11M13 9V11.3" fill="none"/></g></g>
+        </g>
+      </g>
+      
+    </g>
+  </g>
+</svg>`,
   'timer': `<svg data-still="4" xmlns="http://www.w3.org/2000/svg" viewBox="0 2 495 176" width="495" height="176" class="slides-companion-dialog-illustration" aria-hidden="true">
   <defs><clipPath id="slides-companion-illustration-timer-frame"><rect y="2" width="495" height="176" rx="28"/></clipPath></defs>
   <g clip-path="url(#slides-companion-illustration-timer-frame)">
