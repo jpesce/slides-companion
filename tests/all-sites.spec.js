@@ -101,9 +101,10 @@ test('Open in new tab opens the page browsed to', async ({ context }) => {
 });
 
 // These need Google's viewer, which fetches the PDF from Google's servers, and the PDF's site,
-// online. Now and then the viewer answers nothing (204 No Content), and then the extension rightly
-// says the page won't open. A retry tells that apart from a failure of ours, and Playwright reports
-// it as flaky rather than passed.
+// online. Now and then the viewer answers nothing (204 No Content). Asked whether an address is a
+// PDF, the extension asks again; but the frame showing the PDF can't tell it got nothing, and stays
+// empty. A retry tells that apart from a failure of ours, and Playwright reports it as flaky rather
+// than passed.
 test.describe('in Google’s PDF viewer', () => {
   test.describe.configure({ retries: 1 });
 

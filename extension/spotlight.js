@@ -1167,12 +1167,16 @@
   // (Google changed its page).
   function viewerGot(frame) {
     try {
-      const scripts = [...frame.contentDocument.scripts]
-        .map((script) => script.textContent)
-        .join('\n');
-      if (scripts.includes('"application/pdf"')) return 'pdf';
-      if (scripts.includes('"text/html"')) return 'page';
-    } catch {}
+      return gotFrom(
+        [...frame.contentDocument.scripts].map((script) => script.textContent).join('\n'),
+      );
+    } catch {
+      return null;
+    }
+  }
+  function gotFrom(text) {
+    if (text.includes('"application/pdf"')) return 'pdf';
+    if (text.includes('"text/html"')) return 'page';
     return null;
   }
 
@@ -1190,30 +1194,34 @@
   }
 
   // Without every site allowed, a PDF fails the refusal check, as a site that refuses does. Before
-  // saying so, Google's viewer is asked what the address is, out of sight and without its scripts
-  // (it can't play or count anything): a PDF shows in it; anything else gets the message. Meanwhile
-  // the page stays out of sight, as it's Chrome's error page. Google sees only addresses that would
-  // fail otherwise.
-  function askViewer(item, page) {
+  // saying so, Google's viewer is asked what the address is (its page, not run: nothing plays or is
+  // counted): a PDF shows in it; anything else gets the message. Meanwhile the page stays out of
+  // sight, as it's Chrome's error page. Google sees only addresses that would fail otherwise.
+  async function askViewer(item, page) {
     if (gallery?.items[gallery.index] !== item) return;
     const reveal = hideWhileChecking(page);
-    const probe = probeFrame();
-    let done = false;
-    const decided = (got) => {
-      if (done) return;
-      done = true;
-      clearTimeout(timer);
-      probe.remove();
-      if (got) item.pdf = got === 'pdf';
-      if (gallery?.items[gallery.index] !== item) return;
-      if (item.pdf) return showAt(item, viewerAddress(item.address));
-      reveal();
-      showRefusal(item);
-    };
-    const timer = setTimeout(() => decided(null), VIEWER_WAIT_MS);
-    probe.addEventListener('load', () => decided(viewerGot(probe)), { once: true });
-    probe.src = viewerAddress(item.address);
-    gallery.stage.append(probe);
+    const got = await viewerSays(item.address);
+    if (got) item.pdf = got === 'pdf';
+    if (gallery?.items[gallery.index] !== item) return;
+    if (item.pdf) return showAt(item, viewerAddress(item.address));
+    reveal();
+    showRefusal(item);
+  }
+
+  // The slideshow is on the viewer's own site, so it's asked with fetch, which (unlike a frame,
+  // where nothing loads) sees when the viewer answers nothing: now and then it answers 204 No
+  // Content at once, and asked again, it answers.
+  async function viewerSays(address, again = true) {
+    try {
+      const answer = await fetch(viewerAddress(address), {
+        credentials: 'include',
+        signal: AbortSignal.timeout(VIEWER_WAIT_MS),
+      });
+      if (answer.status === 204 && again) return viewerSays(address, false);
+      return gotFrom(await answer.text());
+    } catch {
+      return null;
+    }
   }
 
   // With every site allowed, nothing refuses, and a PDF shows as Chrome's "blocked" page instead:

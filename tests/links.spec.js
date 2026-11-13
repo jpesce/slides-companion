@@ -285,9 +285,10 @@ test('Shorts, live videos and Drive files open in their players', async ({ conte
 });
 
 // These need Google's viewer, which fetches the PDF from Google's servers, and the PDF's site,
-// online. Now and then the viewer answers nothing (204 No Content), and then the extension rightly
-// says the page won't open. A retry tells that apart from a failure of ours, and Playwright reports
-// it as flaky rather than passed.
+// online. Now and then the viewer answers nothing (204 No Content). Asked whether an address is a
+// PDF, the extension asks again; but the frame showing the PDF can't tell it got nothing, and stays
+// empty. A retry tells that apart from a failure of ours, and Playwright reports it as flaky rather
+// than passed.
 test.describe('in Google’s PDF viewer', () => {
   test.describe.configure({ retries: 1 });
 
@@ -512,6 +513,32 @@ test('a site that refuses to be shown says so over the slide, instead of Chrome�
   await page.mouse.click(box.x + 20, box.y + 20);
   await expect(stage(show)).toHaveCount(0);
   expect(await slideNumber(show)).toBe(4);
+});
+
+// Asked whether a site that refuses is a PDF, Google's viewer now and then answers nothing (204 No
+// Content); asked again, it answers. Played here: nothing first, then a PDF.
+test('when Google’s viewer answers nothing once, it’s asked again, and the PDF shows', async ({
+  context,
+}) => {
+  const { page, show } = await startShow(context);
+  await serveGoogle(context, REFUSALS[0][1]);
+  let asked = 0;
+  await context.route(/^https:\/\/docs\.google\.com\/viewer\?/, (route) => {
+    asked += 1;
+    return asked === 1
+      ? route.fulfill({ status: 204 })
+      : route.fulfill({
+          contentType: 'text/html',
+          body: '<script>const type = "application/pdf";</script><h1>The PDF</h1>',
+        });
+  });
+  await clickLink(page, show);
+  const viewer = new URL('https://docs.google.com/viewer?embedded=true');
+  viewer.searchParams.set('url', 'https://www.google.com/');
+  viewer.searchParams.set('hl', await show.locator('html').getAttribute('lang'));
+  await expect(website(show)).toHaveAttribute('src', viewer.href, CHECKED);
+  await expect(refusal(show)).toHaveCount(0);
+  expect(asked).toBeGreaterThanOrEqual(2);
 });
 
 test('the message looks like Slides’ dialogs in Google’s dark theme', async ({ context }) => {
