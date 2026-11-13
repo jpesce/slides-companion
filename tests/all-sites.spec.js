@@ -1,14 +1,12 @@
-import { test, expect, deckUrl, press } from './fixtures.js';
+import { test, expect, deckUrl, press, IDS, stage, slideUrl, SLIDES } from './fixtures.js';
 
 // With every site allowed from Settings. Chrome's header rule doesn't apply to pages a
 // test plays, so these go to real sites: google.com refuses being shown inside another page.
 test.use({ allSites: true });
 
 // Slide 4 of the test deck: a photo linked to google.com.
-const slide = `${deckUrl}#slide=id.h2c87d6044fe40693_46_0`;
-const LINKED_PHOTO = 'h2c87d6044fe40693_46_2';
+const LINKED_PHOTO = IDS.linkedPhoto;
 const link = (show) => show.locator(`[id="${LINKED_PHOTO}"] a`).first();
-const stage = (show) => show.locator('.slides-companion-spotlight');
 const website = (show) => stage(show).locator('iframe.slides-companion-spotlight-website');
 const site = (show) => stage(show).locator('.slides-companion-spotlight-site');
 const frameAt = (page, start) => page.frames().find((frame) => frame.url().startsWith(start));
@@ -28,7 +26,7 @@ async function centre(locator) {
 
 async function openLinkedPage(context) {
   const page = await context.newPage();
-  await page.goto(slide);
+  await page.goto(slideUrl(SLIDES.links));
   await expect(page.locator(`#workspace [id="editor-${LINKED_PHOTO}"] image`)).toBeVisible();
   await page.locator('#punch-start-presentation-left').click();
   const show = page.frameLocator('iframe.punch-present-iframe');
@@ -108,7 +106,7 @@ test('a PDF opens in Google’s viewer, with the PDF’s site, and Esc and Open 
 }) => {
   const PDF = 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf';
   const page = await context.newPage();
-  await page.goto(slide);
+  await page.goto(slideUrl(SLIDES.links));
   await expect(page.locator(`#workspace [id="editor-${LINKED_PHOTO}"] image`)).toBeVisible();
   await page.locator('#punch-start-presentation-left').click();
   const show = page.frameLocator('iframe.punch-present-iframe');
@@ -171,7 +169,7 @@ test('a PDF whose address doesn’t end in .pdf (arXiv’s) shows in Google’s 
 }) => {
   const ARXIV = 'https://arxiv.org/pdf/1706.03762';
   const page = await context.newPage();
-  await page.goto(slide);
+  await page.goto(slideUrl(SLIDES.links));
   await expect(page.locator(`#workspace [id="editor-${LINKED_PHOTO}"] image`)).toBeVisible();
   await page.locator('#punch-start-presentation-left').click();
   const show = page.frameLocator('iframe.punch-present-iframe');

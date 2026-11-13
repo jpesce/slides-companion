@@ -1,23 +1,20 @@
-import { test, expect, deckUrl, slideshowSettled } from './fixtures.js';
+import {
+  test,
+  expect,
+  slideshowSettled,
+  startSlideshow,
+  slideNumber,
+  slideUrl,
+  SLIDES,
+} from './fixtures.js';
 
 // Slide 3 of the test deck has no notes; slide 4 has five paragraphs of lorem ipsum, a blank
 // line apart.
-const slide3 = `${deckUrl}#slide=id.g35a1872bb6d_1_0`;
 const SLIDE_4_STARTS =
   'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam a nulla nunc.';
 
-async function startSlideshow(context) {
-  const page = await context.newPage();
-  await page.goto(slide3);
-  await page.locator('#punch-start-presentation-left').click();
-  const show = page.frameLocator('iframe.punch-present-iframe');
-  await expect(show.locator('.punch-viewer-svgpage-a11yelement')).toHaveAttribute(
-    'aria-label',
-    /3/,
-  );
-  await slideshowSettled(show);
-  return { page, show };
-}
+// Slide 3's slideshow, once its ⋮ menu is built (see slideshowSettled).
+const startShow = (context) => startSlideshow(context, { ready: slideshowSettled });
 
 async function openNotes(context, page) {
   const opened = context.waitForEvent('page');
@@ -35,16 +32,11 @@ async function closeFromInside(notes) {
 
 const header = (notes) => notes.locator('.punch-viewer-speakernotes-text-header');
 const body = (notes) => notes.locator('.punch-viewer-speakernotes-text-body-zoomable');
-const slideNumber = (show) =>
-  show
-    .locator('.punch-viewer-svgpage-a11yelement')
-    .getAttribute('aria-label')
-    .then((label) => Number(label.match(/\d+/)[0]));
 
 test('Shift+S opens the slide’s notes in a floating window that follows the slideshow', async ({
   context,
 }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   const notes = await openNotes(context, page);
   // Slides names the slide in the deck's language ("Slide 3 of 10").
   await expect(header(notes)).toHaveText(/^\D*3\D+11$/);
@@ -78,7 +70,7 @@ test('Shift+S opens the slide’s notes in a floating window that follows the sl
 });
 
 test('floating notes show the notes in the deck’s own fonts', async ({ context }) => {
-  const { page } = await startSlideshow(context);
+  const { page } = await startShow(context);
   const notes = await openNotes(context, page);
   await notes.keyboard.press('PageDown');
   await expect(header(notes)).toHaveText(/^\D*4\D+11$/);
@@ -114,7 +106,7 @@ test('floating notes show the notes in the deck’s own fonts', async ({ context
 });
 
 test('the slideshow’s ⋮ menu opens and closes the floating notes', async ({ context }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   const item = show.locator('.slides-companion-notes-menuitem');
   const openMenu = async () => {
     await page.mouse.move(300, 500);
@@ -162,7 +154,7 @@ test('the slideshow’s ⋮ menu opens and closes the floating notes', async ({ 
 });
 
 test('the floating notes look like presenter view’s and zoom like them', async ({ context }) => {
-  const { page } = await startSlideshow(context);
+  const { page } = await startShow(context);
   await page.keyboard.press('PageDown');
   const notes = await openNotes(context, page);
   await expect(header(notes)).toHaveText(/4/);
@@ -281,7 +273,7 @@ const exitItem = (show) =>
 test('opening the floating notes keeps the slideshow going in a window, and their Full screen button takes it back', async ({
   context,
 }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   expect(await isFullScreen(page)).toBe(true);
   const button = (notes) => notes.locator('[data-full-screen]');
   // Before anything leaves full screen, there's nothing to go back to.
@@ -336,7 +328,7 @@ async function openSlideshowMenuWithKeys(page, show) {
 test('the arrow keys reach the floating notes and Enter full screen in the slideshow’s ⋮ menu', async ({
   context,
 }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   const more = show.locator('.punch-viewer-navbar-more');
   const item = show.locator('.slides-companion-notes-menuitem');
   const presenterView = show.locator(
@@ -407,7 +399,7 @@ test('the arrow keys reach the floating notes and Enter full screen in the slide
 test('out of full screen, the slideshow’s ⋮ menu and ⌘+Shift+F take it back', async ({
   context,
 }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   await openSlideshowMenu(page, show);
   await expect(exitItem(show)).toBeVisible();
   await expect(enterItem(show)).toBeHidden();
@@ -445,7 +437,7 @@ test('out of full screen, the slideshow’s ⋮ menu and ⌘+Shift+F take it bac
 test('the floating notes leave out what Slides writes in an empty notes box', async ({
   context,
 }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   await page.keyboard.press('PageDown');
   const notes = await openNotes(context, page);
   await expect(body(notes).locator('p').first()).toHaveText(new RegExp(`^${SLIDE_4_STARTS}`));
@@ -490,7 +482,7 @@ test('the floating notes leave out what Slides writes in an empty notes box', as
 test('the floating notes stay open after the slideshow, and follow the slide selected while editing', async ({
   context,
 }) => {
-  const { page } = await startSlideshow(context);
+  const { page } = await startShow(context);
   const notes = await openNotes(context, page);
   await expect(header(notes)).toHaveText(/^\D*3\D+11$/);
   await page.keyboard.press('Escape');
@@ -515,7 +507,7 @@ test('the arrow keys reach Show floating notes in View, and Enter opens them', a
   context,
 }) => {
   const page = await context.newPage();
-  await page.goto(slide3);
+  await page.goto(slideUrl(SLIDES.images));
   await page.waitForSelector('#speakernotes');
   const item = page.locator('.slides-companion-notes-menuitem');
   const speakerNotes = page.locator('.goog-menuitem:has(+ .slides-companion-notes-menuitem)');
@@ -579,7 +571,7 @@ test('O chooses Show floating notes in View, as Slides’ letters choose its ite
   context,
 }) => {
   const page = await context.newPage();
-  await page.goto(slide3);
+  await page.goto(slideUrl(SLIDES.images));
   await page.waitForSelector('#speakernotes');
   const item = page.locator('.slides-companion-notes-menuitem');
   const speakerNotes = page.locator('.goog-menuitem:has(+ .slides-companion-notes-menuitem)');
@@ -649,7 +641,7 @@ test('View › Show floating notes opens them before presenting, and they stay o
   context,
 }) => {
   const page = await context.newPage();
-  await page.goto(slide3);
+  await page.goto(slideUrl(SLIDES.images));
   await page.waitForSelector('#speakernotes');
   const menuItem = page.locator('.slides-companion-notes-menuitem');
   const openView = async () => {

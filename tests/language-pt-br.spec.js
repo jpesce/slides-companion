@@ -1,16 +1,15 @@
-import { test, expect, deckUrl, slideshowSettled } from './fixtures.js';
+import { test, expect, slideshowSettled, IDS, inEditor, slideUrl, SLIDES } from './fixtures.js';
 
 // Our words speak Slides' language, here Portuguese, beside Slides' own in each window.
 test.use({ slidesLanguage: 'pt-BR' });
 
-const slide = `${deckUrl}#slide=id.g35a1872bb6d_1_0`;
-const RIGHT_IMAGE = '#workspace [id="editor-g35a1872bb6d_1_3"] image';
+const RIGHT_IMAGE = `#workspace [id="${inEditor(IDS.right)}"] image`;
 
 test('with Slides in Portuguese, our menu items, Settings and presenter view speak Portuguese', async ({
   context,
 }) => {
   const page = await context.newPage();
-  await page.goto(slide);
+  await page.goto(slideUrl(SLIDES.images));
   await expect(page.locator(RIGHT_IMAGE)).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.lang)).toBe('pt-BR');
 
@@ -82,7 +81,7 @@ test('with Slides in Portuguese, the slideshow’s ⋮ menu and the floating not
   context,
 }) => {
   const page = await context.newPage();
-  await page.goto(slide);
+  await page.goto(slideUrl(SLIDES.images));
   await page.locator('#punch-start-presentation-left').click();
   const show = page.frameLocator('iframe.punch-present-iframe');
   await expect(show.locator('.punch-viewer-svgpage-a11yelement')).toHaveAttribute(
@@ -120,10 +119,10 @@ test('with Slides in Portuguese, the message for a site that won’t open over t
     }),
   );
   const page = await context.newPage();
-  await page.goto(`${deckUrl}#slide=id.h2c87d6044fe40693_46_0`);
+  await page.goto(slideUrl(SLIDES.links));
   await page.locator('#punch-start-presentation-left').click();
   const show = page.frameLocator('iframe.punch-present-iframe');
-  const link = show.locator('[id="h2c87d6044fe40693_46_2"] a').first();
+  const link = show.locator(`[id="${IDS.linkedPhoto}"] a`).first();
   await expect.poll(async () => (await link.boundingBox())?.y).toBeGreaterThan(0);
   const box = await link.boundingBox();
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
@@ -143,7 +142,7 @@ test('with Slides in Portuguese, our keys in Slides’ Keyboard shortcuts dialog
   context,
 }) => {
   const page = await context.newPage();
-  await page.goto(slide);
+  await page.goto(slideUrl(SLIDES.images));
   await expect(page.locator(RIGHT_IMAGE)).toBeVisible();
   await page.keyboard.press('ControlOrMeta+/');
   const ours = page.locator('.slides-companion-shortcuts');

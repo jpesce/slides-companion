@@ -1,9 +1,20 @@
-import { test, expect, deckUrl, openSettings, press } from './fixtures.js';
+import {
+  test,
+  expect,
+  openSettings,
+  press,
+  startSlideshow,
+  slideNumber,
+  stage,
+  IDS,
+  SLIDES,
+  slideUrl,
+  presentUrl,
+} from './fixtures.js';
 
 // Slide 4 of the test deck: a photo linked to google.com, and a video. The photo flies in from
 // above as the slide starts.
-const slide = `${deckUrl}#slide=id.h2c87d6044fe40693_46_0`;
-const LINKED_PHOTO = 'h2c87d6044fe40693_46_2';
+const LINKED_PHOTO = IDS.linkedPhoto;
 const link = (show) => show.locator(`[id="${LINKED_PHOTO}"] a`).first();
 const landed = (show) =>
   expect.poll(async () => (await link(show).boundingBox())?.y).toBeGreaterThan(0);
@@ -22,29 +33,16 @@ async function servePages(context) {
   );
 }
 
-async function startSlideshow(context) {
+async function startShow(context) {
   await servePages(context);
-  const page = await context.newPage();
-  await page.goto(slide);
-  await expect(page.locator(`#workspace [id="editor-${LINKED_PHOTO}"] image`)).toBeVisible();
-  await page.locator('#punch-start-presentation-left').click();
-  const show = page.frameLocator('iframe.punch-present-iframe');
-  await landed(show);
-  return { page, show };
+  return startSlideshow(context, { slide: SLIDES.links, ready: landed });
 }
-
-const slideNumber = (show) =>
-  show
-    .locator('.punch-viewer-svgpage-a11yelement')
-    .getAttribute('aria-label')
-    .then((label) => Number(label.match(/\d+/)[0]));
 
 async function clickCentre(page, locator, options) {
   const box = await locator.boundingBox();
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2, options);
 }
 
-const stage = (show) => show.locator('.slides-companion-spotlight');
 const website = (show) => stage(show).locator('iframe.slides-companion-spotlight-website');
 const clickLink = (page, show, options) => clickCentre(page, link(show), options);
 // The page sleeps until the pointer moves over it.
@@ -61,7 +59,7 @@ const linkTo = (show, href) =>
 test('clicking a link during a slideshow opens its page over the slide, and Esc goes back', async ({
   context,
 }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   expect(await slideNumber(show)).toBe(4);
   const tabs = context.pages().length;
 
@@ -93,12 +91,11 @@ test('clicking a link during a slideshow opens its page over the slide, and Esc 
   expect(context.pages()).toHaveLength(tabs);
 });
 
-// Slide 4's "Linked words", under the video, link to google.com too. Slides draws a link on words
-// as an <a opacity="0"> over them, unlike a picture's link, which holds the picture.
-const LINKED_WORDS = 'h24c32e9018c16eab_0_0';
+// Slide 4's "Linked words", under the video, link to google.com too.
+const LINKED_WORDS = IDS.linkedWords;
 
 test('linked words open over the slide too, but not before they show', async ({ context }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   const words = show.locator(`[id="${LINKED_WORDS}"]`);
   const tabs = context.pages().length;
   await expect(words.locator('a[opacity="0"]')).toHaveCount(1);
@@ -118,7 +115,7 @@ test('linked words open over the slide too, but not before they show', async ({ 
 });
 
 test('the page can be browsed, and the ✕ brings the slide back', async ({ context }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   await clickLink(page, show);
   await overPage(page, show);
   const linked = show.frameLocator('iframe.slides-companion-spotlight-website');
@@ -137,7 +134,7 @@ test('the page can be browsed, and the ✕ brings the slide back', async ({ cont
 test('Open in new tab opens the link in a tab of its own and closes the page over the slide', async ({
   context,
 }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   await clickLink(page, show);
   const { height } = page.viewportSize();
   await page.mouse.move(200, height - 40);
@@ -148,7 +145,7 @@ test('Open in new tab opens the link in a tab of its own and closes the page ove
 });
 
 test('Ctrl/⌘-click on a link is left to Slides', async ({ context }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   await page.keyboard.down('ControlOrMeta');
   await clickLink(page, show);
   await page.keyboard.up('ControlOrMeta');
@@ -161,7 +158,7 @@ test('set to open links in a new tab, a click opens a new tab as Slides does', a
 }) => {
   await servePages(context);
   const page = await context.newPage();
-  await page.goto(slide);
+  await page.goto(slideUrl(SLIDES.links));
   await openSettings(page, 'Links');
   await page.getByRole('radio', { name: /Open it in a new tab/ }).check();
   await page.getByRole('button', { name: 'OK' }).click();
@@ -182,7 +179,7 @@ test('a YouTube link plays in YouTube’s player, from where the link starts it'
   await context.route('https://www.youtube.com/embed/**', (route) =>
     route.fulfill({ contentType: 'text/html', body: '<h1>Player</h1>' }),
   );
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   await linkTo(
     show,
     'https://www.google.com/url?q=https://www.youtube.com/watch?v%3D10QOOvxw0uA%26t%3D1m30s&sa=D',
@@ -204,7 +201,7 @@ test('a YouTube link plays in YouTube’s player, from where the link starts it'
 });
 
 test('a page can’t take over the slideshow’s window', async ({ context }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   await context.route('https://www.google.com/', (route) =>
     route.fulfill({
       contentType: 'text/html',
@@ -228,7 +225,7 @@ test('a slideshow opened from a link opens the real address over the slide', asy
 }) => {
   await servePages(context);
   const page = await context.newPage();
-  await page.goto(slide.replace('/edit#slide=', '/present?slide='));
+  await page.goto(presentUrl(SLIDES.links));
   const linked = page
     .locator('.punch-viewer-svgpage-svgcontainer a[*|href*="google.com/url"]')
     .first();
@@ -246,7 +243,7 @@ test('Shorts, live videos and Drive files open in their players', async ({ conte
   await context.route(/^https:\/\/(www\.youtube|drive\.google)\.com\//, (route) =>
     route.fulfill({ contentType: 'text/html', body: '<h1>Player</h1>' }),
   );
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   for (const [href, shown] of [
     ['https://youtube.com/shorts/abc123', 'https://www.youtube.com/embed/abc123?autoplay=1'],
     [
@@ -273,7 +270,7 @@ const PDF = 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy
 test('a PDF opens in Google’s viewer, in Slides’ language, where Esc goes back too', async ({
   context,
 }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   await linkTo(show, `https://www.google.com/url?q=${encodeURIComponent(PDF)}&sa=D`);
   await clickLink(page, show);
   const viewer = new URL('https://docs.google.com/viewer?embedded=true');
@@ -310,7 +307,7 @@ test('a PDF whose address doesn’t end in .pdf (arXiv’s) shows in Google’s 
   context,
 }) => {
   const ARXIV = 'https://arxiv.org/pdf/1706.03762';
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   await linkTo(show, ARXIV);
   await clickLink(page, show);
   const viewer = new URL('https://docs.google.com/viewer?embedded=true');
@@ -331,7 +328,7 @@ test('a .pdf address that’s a web page opens as one, not in the PDF viewer', a
   context,
 }) => {
   const GITHUB = 'https://github.com/mozilla/pdf.js/blob/master/test/pdfs/tracemonkey.pdf';
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   await linkTo(show, GITHUB);
   // Whether the viewer ever shows, with the page's code in it.
   await show.locator('body').evaluate(() => {
@@ -363,7 +360,7 @@ test('an http link opens at its https address, and in a new tab as it was', asyn
   await context.route('http://www.google.com/', (route) =>
     route.fulfill({ contentType: 'text/html', body: PAGE }),
   );
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   await linkTo(show, 'http://www.google.com/');
   await clickLink(page, show);
   await expect(website(show)).toHaveAttribute('src', 'https://www.google.com/');
@@ -375,7 +372,7 @@ test('an http link opens at its https address, and in a new tab as it was', asyn
 
 // An object waiting for its animation is on the slide, invisible, where a click means "next".
 test('a link that isn’t shown yet leaves the click to the slideshow', async ({ context }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   await show.locator(`[id="${LINKED_PHOTO}"]`).evaluate((photo) => (photo.style.opacity = '0'));
   await clickLink(page, show);
   await page.waitForTimeout(500);
@@ -387,7 +384,7 @@ test('a page can’t take the keys until the pointer goes over it, so Esc still 
   context,
 }) => {
   const GRABBING = `<input autofocus><script>setTimeout(() => document.querySelector('input').focus(), 300);</script>`;
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   await context.route('https://www.google.com/', (route) =>
     route.fulfill({ contentType: 'text/html', body: GRABBING }),
   );
@@ -444,7 +441,7 @@ const refusalFrame = (page) => page.frames().find((frame) => frame.url().include
 test('a site that refuses to be shown says so over the slide, instead of Chrome’s empty error page', async ({
   context,
 }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   for (const [, headers] of REFUSALS) {
     await serveGoogle(context, headers);
     await clickLink(page, show);
@@ -484,7 +481,7 @@ test('a site that refuses to be shown says so over the slide, instead of Chrome�
 });
 
 test('the message looks like Slides’ dialogs in Google’s dark theme', async ({ context }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   await serveGoogle(context, REFUSALS[0][1]);
   await clickLink(page, show);
   const message = inRefusal(show);
@@ -514,7 +511,7 @@ test('the message looks like Slides’ dialogs in Google’s dark theme', async 
 test('from the message, Open in new tab opens the site, by pointer or keyboard', async ({
   context,
 }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   await serveGoogle(context, REFUSALS[0][1]);
   await clickLink(page, show);
   let opened = context.waitForEvent('page');
@@ -544,7 +541,7 @@ test('Allow all sites asks Chrome from the message, and once allowed the page sh
   context,
   serviceWorker,
 }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   await serveGoogle(context, REFUSALS[0][1]);
   await clickLink(page, show);
   await expect(refusal(show)).toBeVisible();
@@ -570,7 +567,7 @@ test('Allow all sites asks Chrome from the message, and once allowed the page sh
 });
 
 test('a site that lets itself be shown never shows the message', async ({ context }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   await clickLink(page, show);
   await expect(
     show
@@ -585,7 +582,7 @@ test('a site that lets itself be shown never shows the message', async ({ contex
 
 test('a link to another slide of the deck is Slides’ own to follow', async ({ context }) => {
   const page = await context.newPage();
-  await page.goto(`${deckUrl}#slide=id.h32d70ce72e2f224_8_0`);
+  await page.goto(slideUrl(SLIDES.toNext));
   await page.locator('#punch-start-presentation-left').click();
   const show = page.frameLocator('iframe.punch-present-iframe');
   const toNext = show.locator('.punch-viewer-svgpage-svgcontainer a[*|href="#slide=next"]').first();

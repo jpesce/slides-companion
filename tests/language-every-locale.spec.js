@@ -1,12 +1,11 @@
-import { test, expect, deckUrl } from './fixtures.js';
+import { test, expect, IDS, inEditor, slideUrl, SLIDES, stage } from './fixtures.js';
 import { readLocales, resolve } from '../scripts/build-messages.mjs';
 
 // Every language we speak, in Slides set to it. Our words are that language's, each fits
 // where it goes as English does, and the keys are named and pointed as Slides does there (right to
-// left, ← is the next one). language.spec.js goes through each window in Portuguese.
-const slide = `${deckUrl}#slide=id.g35a1872bb6d_1_0`;
-const RIGHT_IMAGE = '#workspace [id="editor-g35a1872bb6d_1_3"] image';
-const SLIDES = 'appsElementsKeyboardShortcutsDialog';
+// left, ← is the next one). language-pt-br.spec.js goes through each window in Portuguese.
+const RIGHT_IMAGE = `#workspace [id="${inEditor(IDS.right)}"] image`;
+const DIALOG = 'appsElementsKeyboardShortcutsDialog';
 
 // Our folder's name for each language, as Slides names it in its address (hl).
 const SLIDES_CODE = {
@@ -35,7 +34,7 @@ for (const locale of Object.keys(locales).filter((locale) => locale !== 'en')) {
       const say = words(locale);
       const text = (key, ...values) => say[key].replace(/\$(\d)/g, (_, n) => values[n - 1]);
       const page = await context.newPage();
-      await page.goto(slide);
+      await page.goto(slideUrl(SLIDES.images));
       await expect(page.locator(RIGHT_IMAGE)).toBeVisible();
       expect(await page.evaluate(() => document.documentElement.lang)).toBe(hl);
 
@@ -150,20 +149,20 @@ for (const locale of Object.keys(locales).filter((locale) => locale !== 'en')) {
       // The Keyboard shortcuts dialog: our section's rows and keys, named as Slides names them here.
       await page.keyboard.press('ControlOrMeta+/');
       const section = page.locator('.slides-companion-shortcuts');
-      await expect(section.locator(`.${SLIDES}CategoryLabel`)).toHaveText('Slides Companion');
+      await expect(section.locator(`.${DIALOG}CategoryLabel`)).toHaveText('Slides Companion');
       const rows = await section
-        .locator(`tr:has(.${SLIDES}ShortcutName)`)
+        .locator(`tr:has(.${DIALOG}ShortcutName)`)
         .evaluateAll(
-          (rows, SLIDES) =>
+          (rows, DIALOG) =>
             rows.map((row) => [
-              row.querySelector(`.${SLIDES}ShortcutName`).textContent,
-              [...row.querySelector(`.${SLIDES}KeySequenceList`).childNodes].map((node) =>
+              row.querySelector(`.${DIALOG}ShortcutName`).textContent,
+              [...row.querySelector(`.${DIALOG}KeySequenceList`).childNodes].map((node) =>
                 node.nodeType === Node.TEXT_NODE
                   ? node.textContent.trim()
                   : [...node.querySelectorAll('kbd')].map((key) => key.textContent),
               ),
             ]),
-          SLIDES,
+          DIALOG,
         );
       const caps = (key) => text(key).split(' ');
       const [forward, back] = rightToLeft ? ['←', '→'] : ['→', '←'];
@@ -183,7 +182,7 @@ for (const locale of Object.keys(locales).filter((locale) => locale !== 'en')) {
       await expect(
         page
           .locator(
-            `.${SLIDES}ShortcutTable:not(.slides-companion-shortcuts) .${SLIDES}KeySequenceList`,
+            `.${DIALOG}ShortcutTable:not(.slides-companion-shortcuts) .${DIALOG}KeySequenceList`,
           )
           .filter({ hasText: text('shortcutOr') })
           .first(),
@@ -207,17 +206,16 @@ for (const [hl, locale] of [
     }) => {
       const say = words(locale);
       const page = await context.newPage();
-      await page.goto(slide);
+      await page.goto(slideUrl(SLIDES.images));
       const image = page.locator(RIGHT_IMAGE).first();
       await expect(image).toBeVisible();
       const box = await image.boundingBox();
       await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
       await page.keyboard.press('Space');
-      const stage = page.locator('.slides-companion-spotlight');
-      const status = stage.locator('.slides-companion-spotlight-status');
+      const status = stage(page).locator('.slides-companion-spotlight-status');
       const position = (index) => say.spotlightPosition.replace('$1', index).replace('$2', 2);
       await expect(status).toHaveText(position(2));
-      await expect(stage).toHaveAttribute('dir', 'rtl');
+      await expect(stage(page)).toHaveAttribute('dir', 'rtl');
 
       // → goes back, ← forward.
       await page.keyboard.press('ArrowRight');
@@ -228,19 +226,21 @@ for (const [hl, locale] of [
       // Previous on the right, its chevron pointing right, as in Slides' bar.
       const [previous, next] = await Promise.all(
         ['previous', 'next'].map((name) =>
-          stage.locator(`.slides-companion-spotlight-${name}`).evaluate((button) => ({
-            x: button.getBoundingClientRect().x,
-            scale: getComputedStyle(button.querySelector('svg')).scale,
-          })),
+          stage(page)
+            .locator(`.slides-companion-spotlight-${name}`)
+            .evaluate((button) => ({
+              x: button.getBoundingClientRect().x,
+              scale: getComputedStyle(button.querySelector('svg')).scale,
+            })),
         ),
       );
       expect(previous.x).toBeGreaterThan(next.x);
       expect([previous.scale, next.scale]).toEqual(['-1 1', '-1 1']);
-      await expect(stage.locator('.slides-companion-spotlight-next')).toHaveAttribute(
+      await expect(stage(page).locator('.slides-companion-spotlight-next')).toHaveAttribute(
         'data-slides-companion-tip',
         say.spotlightNextTip.replace('$1', '←'),
       );
-      await expect(stage.locator('.slides-companion-spotlight-previous')).toHaveAttribute(
+      await expect(stage(page).locator('.slides-companion-spotlight-previous')).toHaveAttribute(
         'data-slides-companion-tip',
         say.spotlightPreviousTip.replace('$1', '→'),
       );

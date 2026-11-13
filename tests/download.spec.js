@@ -1,19 +1,15 @@
 import fs from 'node:fs';
-import { test, expect, deckUrl, press } from './fixtures.js';
+import { test, expect, press, IDS, inEditor, stage, slideUrl, SLIDES } from './fixtures.js';
 
 // Download image: the picture file Slides holds for an image, saved under the deck's name.
 
 // Slide 3 of the test deck: two photos side by side and a caption text box.
-const slide = `${deckUrl}#slide=id.g35a1872bb6d_1_0`;
-const LEFT = 'editor-g35a1872bb6d_1_2';
-const RIGHT = 'editor-g35a1872bb6d_1_3';
-const CAPTION = 'editor-g35a1872bb6d_1_1';
+const [LEFT, RIGHT, CAPTION] = [IDS.left, IDS.right, IDS.caption].map(inEditor);
 // Slide 1: the deck's logo, its only image.
-const LOGO = 'editor-g35a1872bb6d_1_10';
+const LOGO = inEditor(IDS.logo);
 const object = (id) => `#workspace [id="${id}"]`;
 const DECK_NAME = 'Image Spotlight for Google Slides™';
 
-const stage = (page) => page.locator('.slides-companion-spotlight');
 const menu = (page) => page.locator('.goog-menu[role="menu"]').filter({ visible: true });
 const menuItem = (page, name) => menu(page).locator('.goog-menuitem', { hasText: name });
 const download = (where) => where.locator('.slides-companion-spotlight-download');
@@ -29,7 +25,7 @@ const buttonsIn = (bar) =>
       buttons.filter((button) => button.checkVisibility()).map((button) => button.ariaLabel),
     );
 
-async function open(context, address = slide, id = RIGHT) {
+async function open(context, address = slideUrl(SLIDES.images), id = RIGHT) {
   const page = await context.newPage();
   await page.goto(address);
   await expect(page.locator(`${object(id)} image`)).toBeVisible();
@@ -152,7 +148,7 @@ test('the Spotlight gallery’s bottom bar saves the image shown', async ({ cont
 test('with one image, the gallery’s bottom bar has just Download image and Close', async ({
   context,
 }) => {
-  const page = await open(context, `${deckUrl}#slide=id.p`, LOGO);
+  const page = await open(context, slideUrl(SLIDES.first), LOGO);
   await clickCentre(page, `${object(LOGO)} image`);
   await expect.poll(() => selected(page)).toEqual([LOGO]);
   await page.keyboard.press('Space');

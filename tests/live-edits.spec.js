@@ -1,13 +1,20 @@
-import { test, expect, deckUrl, openSettings, slideshowSettled } from './fixtures.js';
+import {
+  test,
+  expect,
+  openSettings,
+  slideshowSettled,
+  slideNumber,
+  SLIDES,
+  IDS,
+  slideUrl,
+} from './fixtures.js';
 
 // The extension as it comes, live edits on.
 test.use({ settings: {} });
 
 // Slide 3 of the test deck: two photos and a caption ("Top kids playing…"); slide 2 is text.
-const SLIDE_2 = 'g35a1872bb6d_1_75';
-const SLIDE_3 = 'g35a1872bb6d_1_0';
-const LEFT = 'g35a1872bb6d_1_2';
-const slide = `${deckUrl}#slide=id.${SLIDE_3}`;
+const SLIDE_2 = SLIDES.text;
+const SLIDE_3 = SLIDES.images;
 
 const PLAYER = 'iframe.punch-present-iframe';
 // The player on screen: Slides' own, or a copy that took over (data-slides-companion-player).
@@ -16,20 +23,17 @@ const shown = (page) => page.frameLocator(SHOWN);
 const slidesOwn = (page) => page.locator(`${PLAYER}:not([data-slides-companion-copy])`);
 const copies = (page) => page.locator(`${PLAYER}[data-slides-companion-copy]`);
 
-async function startSlideshow(context) {
+// Slide 3's slideshow, on a deck whose slides a test can change (see openDeck).
+async function startEditableSlideshow(context) {
   const page = await openDeck(context);
   await page.locator('#punch-start-presentation-left').click();
-  await expect(shown(page).locator(`[id="${LEFT}"] image`)).toBeVisible();
+  await expect(shown(page).locator(`[id="${IDS.left}"] image`)).toBeVisible();
   // Until it has every slide, an edit reaches the player by itself.
   await expect(slidesOwn(page)).toHaveAttribute('data-slides-companion-loaded');
   return page;
 }
 
-const slideNumber = (page) =>
-  shown(page)
-    .locator('.punch-viewer-svgpage-a11yelement')
-    .getAttribute('aria-label')
-    .then((label) => Number(label.match(/\d+/)[0]));
+const shownSlide = (page) => slideNumber(shown(page));
 const words = (page, text) =>
   shown(page).locator('.punch-viewer-svgpage-svgcontainer text', { hasText: text });
 
@@ -40,7 +44,7 @@ const words = (page, text) =>
 // starts, when Slides puts its data on the window.
 async function openDeck(context) {
   const page = await context.newPage();
-  await page.goto(slide);
+  await page.goto(slideUrl(SLIDES.images));
   await page.evaluate(() => {
     window.edits = {};
     const watched = Object.getOwnPropertyDescriptor(window, 'SK_svgDataApi');
@@ -96,7 +100,7 @@ const replaced = (page) =>
 
 async function choose(context, option) {
   const page = await context.newPage();
-  await page.goto(slide);
+  await page.goto(slideUrl(SLIDES.images));
   await openSettings(page, 'Live edits');
   await page.getByRole('radio', { name: option }).check();
   await page.getByRole('button', { name: 'OK', exact: true }).click();
@@ -106,7 +110,7 @@ async function choose(context, option) {
 test('an edit to the slide on screen shows within seconds, and the slideshow carries on', async ({
   context,
 }) => {
-  const page = await startSlideshow(context);
+  const page = await startEditableSlideshow(context);
   await edit(page, SLIDE_3, 'Lisbon');
   await expect(words(page, 'Lisbon')).toBeVisible({ timeout: 15000 });
   await replaced(page);
@@ -117,29 +121,29 @@ test('an edit to the slide on screen shows within seconds, and the slideshow car
   expect(await slidesOwn(page).evaluate((frame) => frame.inert)).toBe(true);
 
   // Keys go to the new player, and the editor follows it.
-  expect(await slideNumber(page)).toBe(3);
+  expect(await shownSlide(page)).toBe(3);
   await page.keyboard.press('ArrowLeft');
-  await expect.poll(() => slideNumber(page)).toBe(2);
+  await expect.poll(() => shownSlide(page)).toBe(2);
   await expect(page).toHaveURL(new RegExp(`slide=id\\.${SLIDE_2}`));
 
   // Esc ends the slideshow, and the next one starts on the slide it ended on.
   await page.keyboard.press('Escape');
   await expect(page.locator(PLAYER)).toHaveCount(0);
   await page.locator('#punch-start-presentation-left').click();
-  await expect.poll(() => slideNumber(page)).toBe(2);
+  await expect.poll(() => shownSlide(page)).toBe(2);
   await expect(copies(page)).toHaveCount(0);
 });
 
 test('an edit to another slide changes nothing on screen, and shows when you get there', async ({
   context,
 }) => {
-  const page = await startSlideshow(context);
+  const page = await startEditableSlideshow(context);
   await edit(page, SLIDE_2, 'Edited');
   await replaced(page);
   // Taken over at once, as the slide on screen looks just the same.
   await expect(copies(page)).toHaveCSS('opacity', '1');
   await expect(copies(page)).toHaveCSS('transition-duration', '0s');
-  expect(await slideNumber(page)).toBe(3);
+  expect(await shownSlide(page)).toBe(3);
   await page.keyboard.press('ArrowLeft');
   await expect(words(page, 'Edited')).toBeVisible();
 });
@@ -194,7 +198,7 @@ test('presenter view moves to the new player, without another window', async ({ 
   await expect.poll(time).toBeGreaterThanOrEqual(before + 2);
   // Next in presenter view moves the slideshow on screen, and the countdown is still there.
   await presenter.locator('.punch-viewer-speakernotes-page-next').click();
-  await expect.poll(() => slideNumber(page)).toBe(4);
+  await expect.poll(() => shownSlide(page)).toBe(4);
   await expect(presenter.locator('.slides-companion-countdown-button')).toBeVisible();
 });
 
@@ -250,8 +254,8 @@ test('presenter view’s countdown and its bar stay put while a new player takes
 test('it waits for a calm moment: an image spotlit keeps the slide as it is', async ({
   context,
 }) => {
-  const page = await startSlideshow(context);
-  const image = shown(page).locator(`[id="${LEFT}"] image`);
+  const page = await startEditableSlideshow(context);
+  const image = shown(page).locator(`[id="${IDS.left}"] image`);
   const box = await image.boundingBox();
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
   await expect(shown(page).locator('.slides-companion-spotlight')).toBeVisible();
@@ -263,20 +267,20 @@ test('it waits for a calm moment: an image spotlit keeps the slide as it is', as
 });
 
 test('what the pen drew, and the pen itself, carry over', async ({ context }) => {
-  const page = await startSlideshow(context);
+  const page = await startEditableSlideshow(context);
   await page.keyboard.press('Shift+L');
   await page.mouse.move(300, 300);
   await page.mouse.down();
   await page.mouse.move(400, 360, { steps: 8 });
   await page.mouse.up();
   await page.keyboard.press('ArrowLeft');
-  await expect.poll(() => slideNumber(page)).toBe(2);
+  await expect.poll(() => shownSlide(page)).toBe(2);
 
   await edit(page, SLIDE_2, 'Edited');
   await replaced(page);
   await expect(shown(page).locator('.sketchyViewerContent.disable-pointer-events')).toHaveCount(1);
   await page.keyboard.press('ArrowRight');
-  await expect.poll(() => slideNumber(page)).toBe(3);
+  await expect.poll(() => shownSlide(page)).toBe(3);
   await expect(
     shown(page)
       .locator('.punch-slide-markup-surface > g')
@@ -289,7 +293,7 @@ test('set to show edits once you’ve moved on, the slide on screen stays as it 
   context,
 }) => {
   await choose(context, /Once you’ve moved to another slide/);
-  const page = await startSlideshow(context);
+  const page = await startEditableSlideshow(context);
   await edit(page, SLIDE_3, 'Lisbon');
   await page.waitForTimeout(7000);
   await expect(words(page, 'Lisbon')).toHaveCount(0);
@@ -301,7 +305,7 @@ test('set to show edits once you’ve moved on, the slide on screen stays as it 
 
 test('set to wait for the next slideshow, nothing changes', async ({ context }) => {
   await choose(context, /Not until the next slideshow/);
-  const page = await startSlideshow(context);
+  const page = await startEditableSlideshow(context);
   await edit(page, SLIDE_3, 'Lisbon');
   await page.waitForTimeout(7000);
   await expect(copies(page)).toHaveCount(0);
@@ -312,7 +316,7 @@ test('set to wait for the next slideshow, nothing changes', async ({ context }) 
 test('a slide drawn again, unedited but numbered differently, loads no new player', async ({
   context,
 }) => {
-  const page = await startSlideshow(context);
+  const page = await startEditableSlideshow(context);
   await page.evaluate(() => (window.renumbered = true));
   // Slides redraws the slide's thumbnail, as it does when it's busy, with nothing edited.
   await edit(page, SLIDE_3);
@@ -326,7 +330,7 @@ test('a slide drawn again, unedited but numbered differently, loads no new playe
 });
 
 test('an edit undone before it shows changes nothing', async ({ context }) => {
-  const page = await startSlideshow(context);
+  const page = await startEditableSlideshow(context);
   await edit(page, SLIDE_3, 'Lisbon');
   await page.waitForTimeout(400);
   await edit(page, SLIDE_3, null);
@@ -336,7 +340,7 @@ test('an edit undone before it shows changes nothing', async ({ context }) => {
 });
 
 test('auto-play carries on, at the same pace, looping', async ({ context }) => {
-  const page = await startSlideshow(context);
+  const page = await startEditableSlideshow(context);
   // Slides' ⋮ menu › Auto-play: every 5 seconds, loop, play. Its submenu opens on hover.
   const own = page.frameLocator(PLAYER);
   await slideshowSettled(own);
@@ -370,8 +374,8 @@ test('auto-play carries on, at the same pace, looping', async ({ context }) => {
     src.searchParams.get('delayms'),
     src.searchParams.get('loop'),
   ]).toEqual(['true', '5000', 'true']);
-  const at = await slideNumber(page);
-  await expect.poll(() => slideNumber(page), { timeout: 8000 }).toBe(at + 1);
+  const at = await shownSlide(page);
+  await expect.poll(() => shownSlide(page), { timeout: 8000 }).toBe(at + 1);
 });
 
 // Presenting through Meet, as far as the slideshow sees it (the test browser can't present through
@@ -447,10 +451,10 @@ test('presenting through Meet, Meet’s Next and Previous move the slide on scre
   await replaced(page);
   await expect.poll(() => meetHas(page)).toBe('copy, shown');
   await meetPresses(page, 'goPrev');
-  await expect.poll(() => slideNumber(page)).toBe(2);
+  await expect.poll(() => shownSlide(page)).toBe(2);
   await expect.poll(() => meetShows(page)).toBe(2);
   await meetPresses(page, 'goNext');
-  await expect.poll(() => slideNumber(page)).toBe(3);
+  await expect.poll(() => shownSlide(page)).toBe(3);
   await expect.poll(() => meetShows(page)).toBe(3);
 });
 
@@ -471,7 +475,7 @@ test('presenting through Meet, a new player waiting out of sight leaves Meet wit
   expect(await meetHas(page)).toBe('Slides’ own');
   // Moving on from Meet, the new player takes over on the slide moved to, and Meet has it.
   await meetPresses(page, 'goPrev');
-  await expect.poll(() => slideNumber(page)).toBe(2);
+  await expect.poll(() => shownSlide(page)).toBe(2);
   await replaced(page);
   await expect.poll(() => meetHas(page)).toBe('copy, shown');
   await meetPresses(page, 'goNext');
@@ -480,7 +484,7 @@ test('presenting through Meet, a new player waiting out of sight leaves Meet wit
 });
 
 test('Meet joining after an edit has showed gets the player on screen', async ({ context }) => {
-  const page = await startSlideshow(context);
+  const page = await startEditableSlideshow(context);
   await edit(page, SLIDE_2, 'Edited');
   await replaced(page);
   await presentThroughMeet(page);
@@ -490,5 +494,5 @@ test('Meet joining after an edit has showed gets the player on screen', async ({
   );
   await expect.poll(() => meetHas(page)).toBe('copy, shown');
   await meetPresses(page, 'goPrev');
-  await expect.poll(() => slideNumber(page)).toBe(2);
+  await expect.poll(() => shownSlide(page)).toBe(2);
 });

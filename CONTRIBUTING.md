@@ -80,7 +80,7 @@ The extension speaks Slides' language, not the browser's: `i18n.js` reads it fro
 
 1. Copy `_locales/en/` to the new language's code, as Chrome names it, and translate each `message`. Keep each `$NAME$` placeholder.
 2. Run `npm run messages` (`npm run dev` does it for you), which writes `extension/messages.js`.
-3. If Slides names the language differently from Chrome (Hebrew is `iw` in Slides), add it to `ALSO` in `extension/i18n.js` and to `SLIDES_CODE` in `tests/languages.spec.js`.
+3. If Slides names the language differently from Chrome (Hebrew is `iw` in Slides), add it to `ALSO` in `extension/i18n.js` and to `SLIDES_CODE` in `tests/language-every-locale.spec.js`.
 
 The tests check that every language has every message, with the same placeholders, that the store name and summary fit Chrome's limits, and that the words fit in Slides set to that language.
 

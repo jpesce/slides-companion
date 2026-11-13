@@ -1,34 +1,26 @@
-import { test, expect, deckUrl, openSettings } from './fixtures.js';
+import {
+  test,
+  expect,
+  openSettings,
+  startSlideshow,
+  pictureShows,
+  slideNumber,
+  stage,
+  IDS,
+  SLIDES,
+  slideUrl,
+  presentUrl,
+} from './fixtures.js';
 
 // Slide 3 of the test deck: two photos side by side and a caption text box.
-const slide = `${deckUrl}#slide=id.g35a1872bb6d_1_0`;
-const LEFT = 'g35a1872bb6d_1_2';
-const RIGHT = 'g35a1872bb6d_1_3';
-const CAPTION = 'g35a1872bb6d_1_1';
-
-async function startSlideshow(context) {
-  const page = await context.newPage();
-  await page.goto(slide);
-  await expect(page.locator(`#workspace [id="editor-${RIGHT}"] image`)).toBeVisible();
-  await page.locator('#punch-start-presentation-left').click();
-  const show = page.frameLocator('iframe.punch-present-iframe');
-  await expect(show.locator(`[id="${RIGHT}"] image`)).toBeVisible();
-  return { page, show };
-}
-
-// The slide the slideshow is on, from its accessible label ("Slide 3 of 9").
-const slideNumber = (show) =>
-  show
-    .locator('.punch-viewer-svgpage-a11yelement')
-    .getAttribute('aria-label')
-    .then((label) => Number(label.match(/\d+/)[0]));
+const { left: LEFT, right: RIGHT, caption: CAPTION } = IDS;
+const startShow = (context) => startSlideshow(context, { ready: pictureShows(RIGHT) });
 
 async function clickCentre(page, locator, options) {
   const box = await locator.boundingBox();
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2, options);
 }
 
-const stage = (show) => show.locator('.slides-companion-spotlight');
 const showing = (show) =>
   show
     .locator('.slides-companion-spotlight-picture svg > g:last-child > g')
@@ -38,7 +30,7 @@ const showing = (show) =>
 test('clicking an image during a slideshow spotlights it, and Esc goes back to the slide', async ({
   context,
 }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   expect(await slideNumber(show)).toBe(3);
 
   await clickCentre(page, show.locator(`[id="${LEFT}"] image`));
@@ -57,7 +49,7 @@ test('clicking an image during a slideshow spotlights it, and Esc goes back to t
 // In real full screen Chrome takes the release of Esc as a press too, so Esc must stay locked until
 // the key is up. The tests can't press a real Esc, so this watches the lock requests instead.
 test('Esc stays kept until the key that closed the gallery is released', async ({ context }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   await page.evaluate(() => {
     window.escapeRequests = [];
     window.addEventListener('message', (event) => {
@@ -82,7 +74,7 @@ test('Esc stays kept until the key that closed the gallery is released', async (
 test('in the gallery, clicks, keys and the scroll wheel stay out of the slideshow', async ({
   context,
 }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   await clickCentre(page, show.locator(`[id="${RIGHT}"] image`));
   await expect(stage(show)).toBeVisible();
   const picture = await stage(show)
@@ -100,7 +92,7 @@ test('in the gallery, clicks, keys and the scroll wheel stay out of the slidesho
 });
 
 test('clicks away from images still change slides', async ({ context }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   await clickCentre(page, show.locator(`[id="${CAPTION}"]`));
   await expect.poll(() => slideNumber(show)).toBe(4);
   await expect(stage(show)).toHaveCount(0);
@@ -109,7 +101,7 @@ test('clicks away from images still change slides', async ({ context }) => {
 // Slides' links and videos keep working with the laser pointer on, so images do too. With the pen
 // on, a click draws.
 test('with the laser pointer on, clicking an image spotlights it', async ({ context }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   await page.keyboard.press('l');
   // Like over Slides' links and videos, a hand shows over the image.
   const image = show.locator(`[id="${LEFT}"] image`);
@@ -122,7 +114,7 @@ test('with the laser pointer on, clicking an image spotlights it', async ({ cont
 });
 
 test('with the pen on, clicking an image leaves it to the pen', async ({ context }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   await page.keyboard.press('Shift+L');
   await expect(show.locator('.sketchyViewerContent.disable-pointer-events')).toHaveCount(1);
   await clickCentre(page, show.locator(`[id="${LEFT}"] image`));
@@ -135,13 +127,13 @@ test('turning the setting off keeps clicks on images going to the next slide', a
   context,
 }) => {
   const page = await context.newPage();
-  await page.goto(slide);
+  await page.goto(slideUrl(SLIDES.images));
   await openSettings(page, 'Spotlight');
   await page.getByRole('checkbox', { name: /Spotlight an image when you click it/ }).uncheck();
   await page.getByRole('button', { name: 'OK' }).click();
   await page.close();
 
-  const { page: presenting, show } = await startSlideshow(context);
+  const { page: presenting, show } = await startShow(context);
   await clickCentre(presenting, show.locator(`[id="${LEFT}"] image`));
   await expect.poll(() => slideNumber(show)).toBe(4);
   await expect(stage(show)).toHaveCount(0);
@@ -151,7 +143,7 @@ test('turning the setting off keeps clicks on images going to the next slide', a
 // can't tell images apart there; clicks keep changing slides.
 test('a slideshow opened from a link keeps its clicks', async ({ context }) => {
   const page = await context.newPage();
-  await page.goto(slide.replace('/edit#slide=', '/present?slide='));
+  await page.goto(presentUrl(SLIDES.images));
   const image = page.locator('.punch-viewer-svgpage-svgcontainer image').first();
   await expect(image).toBeVisible();
   const label = page.locator('.punch-viewer-svgpage-a11yelement');
@@ -163,7 +155,7 @@ test('a slideshow opened from a link keeps its clicks', async ({ context }) => {
 
 // Held down, Space and Enter repeat; once the gallery is closed, the repeats mustn't skip slides.
 test('holding the key that closes the gallery doesn’t skip slides', async ({ context }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   await clickCentre(page, show.locator(`[id="${LEFT}"] image`));
   await expect(stage(show)).toBeVisible();
   await page.keyboard.down(' ');
@@ -181,7 +173,7 @@ test('holding the key that closes the gallery doesn’t skip slides', async ({ c
 test('double clicking an image opens it, and the second click does nothing more', async ({
   context,
 }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   // On the photo, and in the gallery's safe area above the picture.
   const photo = await show.locator(`[id="${RIGHT}"] image`).boundingBox();
   const point = { x: photo.x + photo.width / 2, y: 50 };
@@ -195,7 +187,7 @@ test('double clicking an image opens it, and the second click does nothing more'
 });
 
 test('the gallery closes when the slide changes under it', async ({ context }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   await clickCentre(page, show.locator(`[id="${LEFT}"] image`));
   await expect(stage(show)).toBeVisible();
   // As auto-advance or the presenter view would, without a key or click on the gallery.

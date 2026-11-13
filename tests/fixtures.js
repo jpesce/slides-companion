@@ -17,6 +17,38 @@ export const deckUrl =
   process.env.TEST_DECK_URL ??
   'https://docs.google.com/presentation/d/1XouicC310558IOk_VJ7uu55kxBO7TY-19suR998ONOo/edit';
 
+// The test deck, by what each slide and element is for: Slides' page ids. In the editor, an element's
+// id has `editor-` before it (`inEditor`); in a slideshow it's as it is here.
+export const SLIDES = {
+  // Slide 1: the deck's logo, its only image.
+  first: 'p',
+  // Slide 2: text.
+  text: 'g35a1872bb6d_1_75',
+  // Slide 3: two photos side by side and a caption text box.
+  images: 'g35a1872bb6d_1_0',
+  // Slide 4: a photo linked to google.com, a video, and words under it linked to google.com too. The
+  // photo flies in from above as the slide starts.
+  links: 'h2c87d6044fe40693_46_0',
+  // A slide with a link to the next slide.
+  toNext: 'h32d70ce72e2f224_8_0',
+};
+export const IDS = {
+  logo: 'g35a1872bb6d_1_10',
+  left: 'g35a1872bb6d_1_2',
+  right: 'g35a1872bb6d_1_3',
+  caption: 'g35a1872bb6d_1_1',
+  linkedPhoto: 'h2c87d6044fe40693_46_2',
+  video: 'h2c87d6044fe40693_46_7',
+  // Slides draws a link on words as an <a opacity="0"> over them, unlike a picture's link, which
+  // holds the picture.
+  linkedWords: 'h24c32e9018c16eab_0_0',
+};
+export const inEditor = (id) => `editor-${id}`;
+// The deck in the editor, on a slide; and a slideshow in a tab of its own, from a slide.
+export const slideUrl = (slide) => `${deckUrl}#slide=id.${slide}`;
+export const presentUrl = (slide) =>
+  `${deckUrl.replace(/\/edit.*$/, '/present')}?slide=id.${slide}`;
+
 // The extension as a test loads it: a copy, made once per run for each kind.
 // - Chrome asks the presenter before giving the extension every site (Settings), and a test can't
 //   answer it. With `test.use({ allSites: true })`, the copy has every site from the start.
@@ -98,6 +130,35 @@ export const expect = test.expect;
 // ⋮, as a presenter can't open it that fast.
 export const slideshowSettled = (show) =>
   expect(show.locator('.captions-options-menu')).toBeAttached({ timeout: 15_000 });
+
+// The deck's slideshow, in its frame in the editor, from a slide (the images by default), once the
+// slide shows and `ready(show)`, if given, is done. With a `viewport`, in a window that size.
+export async function startSlideshow(context, { slide = SLIDES.images, viewport, ready } = {}) {
+  const page = await context.newPage();
+  if (viewport) await page.setViewportSize(viewport);
+  await page.goto(slideUrl(slide));
+  await page.locator('#punch-start-presentation-left').click();
+  const show = page.frameLocator('iframe.punch-present-iframe');
+  await expect(
+    show.locator(`.punch-viewer-svgpage-svgcontainer > svg > g[id="${slide}"]`),
+  ).toBeVisible();
+  await ready?.(show);
+  return { page, show };
+}
+
+// For startSlideshow's `ready`: until a picture shows, the slideshow can't be clicked on it.
+export const pictureShows = (id) => (show) =>
+  expect(show.locator(`[id="${id}"] image`).first()).toBeVisible();
+
+// The slide a slideshow is on, from its accessible label ("Slide 3 of 9").
+export const slideNumber = (show) =>
+  show
+    .locator('.punch-viewer-svgpage-a11yelement')
+    .getAttribute('aria-label')
+    .then((label) => Number(label.match(/\d+/)[0]));
+
+// Spotlight's stage, where it shows pictures and pages, in the editor or a slideshow.
+export const stage = (page) => page.locator('.slides-companion-spotlight');
 
 // Opens Settings from the companion, on a feature's page.
 export async function openSettings(page, feature) {

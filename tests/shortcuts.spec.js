@@ -1,21 +1,29 @@
-import { test, expect, deckUrl } from './fixtures.js';
+import {
+  test,
+  expect,
+  startSlideshow,
+  slideUrl,
+  SLIDES,
+  IDS,
+  inEditor,
+  presentUrl,
+} from './fixtures.js';
 
 // Our keys in Slides' Keyboard shortcuts dialog (Help › Keyboard shortcuts, ⌘+/ or Ctrl+/).
 // Slides' own words here are in the browser's language, ours in English (see fixtures.js).
-const slide = `${deckUrl}#slide=id.g35a1872bb6d_1_0`;
-const SLIDES = 'appsElementsKeyboardShortcutsDialog';
-const dialogIn = (root) => root.locator(`[role="dialog"]:has(.${SLIDES}ContentContainer)`);
+const DIALOG = 'appsElementsKeyboardShortcutsDialog';
+const dialogIn = (root) => root.locator(`[role="dialog"]:has(.${DIALOG}ContentContainer)`);
 const ours = (dialog) => dialog.locator('.slides-companion-shortcuts');
-const search = (dialog) => dialog.locator(`.${SLIDES}SearchInputField`);
-const categories = (dialog) => dialog.locator(`.${SLIDES}CategoryLabel`);
+const search = (dialog) => dialog.locator(`.${DIALOG}SearchInputField`);
+const categories = (dialog) => dialog.locator(`.${DIALOG}CategoryLabel`);
 
 // Each row as [what it does, its keys], the keys as read: "→ or ↓", "Shift S".
 const rowsOf = (section) =>
-  section.locator(`tr:has(.${SLIDES}ShortcutName)`).evaluateAll(
-    (rows, SLIDES) =>
+  section.locator(`tr:has(.${DIALOG}ShortcutName)`).evaluateAll(
+    (rows, DIALOG) =>
       rows.map((row) => [
-        row.querySelector(`.${SLIDES}ShortcutName`).textContent,
-        [...row.querySelector(`.${SLIDES}KeySequenceList`).childNodes]
+        row.querySelector(`.${DIALOG}ShortcutName`).textContent,
+        [...row.querySelector(`.${DIALOG}KeySequenceList`).childNodes]
           .map((node) =>
             node.nodeType === Node.TEXT_NODE
               ? node.textContent.trim()
@@ -24,7 +32,7 @@ const rowsOf = (section) =>
           .filter(Boolean)
           .join(' '),
       ]),
-    SLIDES,
+    DIALOG,
   );
 
 const IN_SPOTLIGHT_AND_SLIDESHOW = [
@@ -43,39 +51,27 @@ async function openEditorDialog(context) {
   const page = await context.newPage();
   const errors = [];
   page.on('pageerror', (error) => errors.push(error.message));
-  await page.goto(slide);
-  await expect(page.locator('#workspace [id="editor-g35a1872bb6d_1_3"] image')).toBeVisible();
+  await page.goto(slideUrl(SLIDES.images));
+  await expect(page.locator(`#workspace [id="${inEditor(IDS.right)}"] image`)).toBeVisible();
   await page.keyboard.press('ControlOrMeta+/');
   const dialog = dialogIn(page);
   await expect(ours(dialog)).toBeVisible();
   return { page, dialog, errors };
 }
 
-async function startSlideshow(context) {
-  const page = await context.newPage();
-  await page.goto(slide);
-  await page.locator('#punch-start-presentation-left').click();
-  const show = page.frameLocator('iframe.punch-present-iframe');
-  await expect(show.locator('.punch-viewer-svgpage-a11yelement')).toHaveAttribute(
-    'aria-label',
-    /3/,
-  );
-  return { page, show };
-}
-
 // What makes a section look like Slides': its heading, a row's words and line, a key cap.
 const looks = (section, SLIDES_) =>
-  section.evaluate((table, SLIDES) => {
+  section.evaluate((table, DIALOG) => {
     const style = (selector, properties) => {
       const css = getComputedStyle(table.querySelector(selector));
       return properties.map((property) => css[property]);
     };
     return {
-      heading: style(`.${SLIDES}CategoryLabel`, ['font', 'color']),
+      heading: style(`.${DIALOG}CategoryLabel`, ['font', 'color']),
       headingCell: style('thead th', ['height', 'padding']),
-      name: style(`.${SLIDES}ShortcutName`, ['font', 'color']),
-      cell: style(`tbody th:has(.${SLIDES}ShortcutName)`, ['padding', 'borderBottom', 'width']),
-      keys: style(`.${SLIDES}KeySequenceList`, [
+      name: style(`.${DIALOG}ShortcutName`, ['font', 'color']),
+      cell: style(`tbody th:has(.${DIALOG}ShortcutName)`, ['padding', 'borderBottom', 'width']),
+      keys: style(`.${DIALOG}KeySequenceList`, [
         'display',
         'gap',
         'padding',
@@ -98,9 +94,9 @@ test('Slides’ Keyboard shortcuts dialog lists our keys in a section like its o
   ]);
 
   // Made from one of Slides' sections: the same type, keys and lines, and none under the last row.
-  const slides = dialog.locator(`.${SLIDES}ShortcutTable:not(.slides-companion-shortcuts)`).first();
-  expect(await looks(ours(dialog), SLIDES)).toEqual(await looks(slides, SLIDES));
-  const lastCell = ours(dialog).locator(`tbody th:has(.${SLIDES}ShortcutName)`).last();
+  const slides = dialog.locator(`.${DIALOG}ShortcutTable:not(.slides-companion-shortcuts)`).first();
+  expect(await looks(ours(dialog), DIALOG)).toEqual(await looks(slides, DIALOG));
+  const lastCell = ours(dialog).locator(`tbody th:has(.${DIALOG}ShortcutName)`).last();
   await expect(lastCell).toHaveCSS('border-bottom-style', 'none');
   await expect(ours(dialog).locator('kbd', { hasText: /^S$/ })).toHaveAttribute('aria-label', 's');
 
@@ -120,9 +116,9 @@ test('the dialog’s search finds our keys as it finds Slides’ own, from the s
   context,
 }) => {
   const { dialog } = await openEditorDialog(context);
-  const notice = dialog.locator(`.${SLIDES}NoResultsNotice`);
+  const notice = dialog.locator(`.${DIALOG}NoResultsNotice`);
   const highlighted = (section) =>
-    section.locator(`.${SLIDES}ShortcutNameHighlight`).allTextContents();
+    section.locator(`.${DIALOG}ShortcutNameHighlight`).allTextContents();
 
   // Slides' zoom and ours.
   await search(dialog).fill('zoom');
@@ -212,7 +208,7 @@ test('a slideshow in a tab of its own, without floating notes, doesn’t list th
   context,
 }) => {
   const page = await context.newPage();
-  await page.goto(`${deckUrl.replace(/\/edit.*$/, '/present')}?slide=id.g35a1872bb6d_1_0`);
+  await page.goto(presentUrl(SLIDES.images));
   await expect(page.locator('.punch-viewer-svgpage-a11yelement')).toHaveAttribute(
     'aria-label',
     /3/,

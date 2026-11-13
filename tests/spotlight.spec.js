@@ -1,13 +1,20 @@
-import { test, expect, deckUrl, openSettings, press, pointTo } from './fixtures.js';
+import {
+  test,
+  expect,
+  openSettings,
+  press,
+  pointTo,
+  IDS,
+  inEditor,
+  stage,
+  slideUrl,
+  SLIDES,
+} from './fixtures.js';
 
 // Slide 3 of the test deck: two photos side by side and a caption text box.
-const slide = `${deckUrl}#slide=id.g35a1872bb6d_1_0`;
-const LEFT = 'editor-g35a1872bb6d_1_2';
-const RIGHT = 'editor-g35a1872bb6d_1_3';
-const CAPTION = 'editor-g35a1872bb6d_1_1';
+const [LEFT, RIGHT, CAPTION] = [IDS.left, IDS.right, IDS.caption].map(inEditor);
 const object = (id) => `#workspace [id="${id}"]`;
 
-const stage = (page) => page.locator('.slides-companion-spotlight');
 // The bar's buttons that show, by the names screen readers hear.
 const buttonsIn = (bar) =>
   bar
@@ -30,7 +37,7 @@ const showing = (page) =>
 
 async function openSlide(context) {
   const page = await context.newPage();
-  await page.goto(slide);
+  await page.goto(slideUrl(SLIDES.images));
   await expect(page.locator(`${object(RIGHT)} image`)).toBeVisible();
   return page;
 }
@@ -454,11 +461,11 @@ test('holding Space keeps the gallery open', async ({ context }) => {
 test('videos aren’t spotlighted', async ({ context }) => {
   const page = await openSlide(context);
   await page.locator('.punch-filmstrip-thumbnail').nth(3).click();
-  const video = '#workspace [id="editor-h2c87d6044fe40693_46_7"]';
+  const video = `#workspace [id="${inEditor(IDS.video)}"]`;
   await expect(page.locator(`${video} image`).first()).toBeVisible();
 
   await clickCentre(page, video);
-  await expect.poll(() => selected(page)).toEqual(['editor-h2c87d6044fe40693_46_7']);
+  await expect.poll(() => selected(page)).toEqual([inEditor(IDS.video)]);
   await page.keyboard.press('Space');
   await page.waitForTimeout(300);
   await expect(stage(page)).toHaveCount(0);

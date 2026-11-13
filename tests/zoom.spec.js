@@ -1,24 +1,18 @@
-import { test, expect, deckUrl, openSettings } from './fixtures.js';
+import {
+  test,
+  expect,
+  openSettings,
+  startSlideshow,
+  slideNumber,
+  SLIDES,
+  IDS,
+  slideUrl,
+  pictureShows,
+} from './fixtures.js';
 
-// Slide 3 of the test deck: two photos side by side and a caption text box.
-const slide = `${deckUrl}#slide=id.g35a1872bb6d_1_0`;
-const LEFT = 'g35a1872bb6d_1_2';
-
-async function startSlideshow(context, viewport) {
-  const page = await context.newPage();
-  if (viewport) await page.setViewportSize(viewport);
-  await page.goto(slide);
-  await page.locator('#punch-start-presentation-left').click();
-  const show = page.frameLocator('iframe.punch-present-iframe');
-  await expect(show.locator(`[id="${LEFT}"] image`)).toBeVisible();
-  return { page, show };
-}
-
-const slideNumber = (show) =>
-  show
-    .locator('.punch-viewer-svgpage-a11yelement')
-    .getAttribute('aria-label')
-    .then((label) => Number(label.match(/\d+/)[0]));
+// Slide 3's slideshow, once its photos show, in a window `viewport` big if given.
+const startShow = (context, viewport) =>
+  startSlideshow(context, { viewport, ready: pictureShows(IDS.left) });
 
 // The slide's zoom and shift, from its transform.
 const zoom = (show) =>
@@ -53,7 +47,7 @@ async function zoomIn(page, show, x, y) {
 test('scrolling zooms in where the pointer is, and back out to the whole slide', async ({
   context,
 }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   const { width, height } = page.viewportSize();
   await zoomIn(page, show, width * 0.75, height * 0.25);
   // The point under the pointer stays under it.
@@ -71,7 +65,7 @@ test('scrolling zooms in where the pointer is, and back out to the whole slide',
 
 // Zoomed all the way out is back to normal at once, even while the zoom is still easing out.
 test('a click right after zooming all the way out changes slides', async ({ context }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   const { width, height } = page.viewportSize();
   const [x, y] = [width * 0.9, height * 0.9]; // The empty bottom right of the slide.
   await zoomIn(page, show, x, y);
@@ -82,7 +76,7 @@ test('a click right after zooming all the way out changes slides', async ({ cont
 
 // Every frame of the easing, not just the end: the slide grows from under the pointer.
 test('while scrolling eases in, the point under the pointer stays put', async ({ context }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   const [px, py] = [900, 200];
   await page.mouse.move(px, py);
   const frames = show.locator('.sketchyViewerContent').evaluate(
@@ -109,8 +103,8 @@ test('while scrolling eases in, the point under the pointer stays put', async ({
 test('dragging while zoomed looks around without changing slides or spotlighting', async ({
   context,
 }) => {
-  const { page, show } = await startSlideshow(context);
-  const box = await show.locator(`[id="${LEFT}"] image`).boundingBox();
+  const { page, show } = await startShow(context);
+  const box = await show.locator(`[id="${IDS.left}"] image`).boundingBox();
   const [cx, cy] = [box.x + box.width / 2, box.y + box.height / 2];
   await zoomIn(page, show, cx, cy);
   const before = await zoom(show);
@@ -129,7 +123,7 @@ test('dragging while zoomed looks around without changing slides or spotlighting
 // Nothing a press does while zoomed in reaches Slides: not a click, nor two quick drags (a double
 // click to the browser), nor the pointer events Slides also listens to.
 test('while zoomed, clicks and drags never change slides', async ({ context }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   const { width, height } = page.viewportSize();
   const [x, y] = [width * 0.9, height * 0.9]; // The empty bottom right of the slide.
   await zoomIn(page, show, x, y);
@@ -155,11 +149,11 @@ test('while zoomed, clicks and drags never change slides', async ({ context }) =
 
 // Zoomed in, what shows a pointing hand can still be clicked: an image opens in the spotlight.
 test('while zoomed, clicking an image spotlights it', async ({ context }) => {
-  const { page, show } = await startSlideshow(context);
-  const box = await show.locator(`[id="${LEFT}"] image`).boundingBox();
+  const { page, show } = await startShow(context);
+  const box = await show.locator(`[id="${IDS.left}"] image`).boundingBox();
   const [x, y] = [box.x + box.width / 2, box.y + box.height / 2];
   await zoomIn(page, show, x, y);
-  await expect(show.locator(`[id="${LEFT}"] image`)).toHaveCSS('cursor', 'pointer');
+  await expect(show.locator(`[id="${IDS.left}"] image`)).toHaveCSS('cursor', 'pointer');
   await page.mouse.click(x, y);
   await expect(show.locator('.slides-companion-spotlight')).toBeVisible();
   expect(await slideNumber(show)).toBe(3);
@@ -170,14 +164,14 @@ test('while zoomed, with clicking to spotlight turned off, clicking an image doe
   context,
 }) => {
   const page = await context.newPage();
-  await page.goto(slide);
+  await page.goto(slideUrl(SLIDES.images));
   await openSettings(page, 'Spotlight');
   await page.getByRole('checkbox', { name: /Spotlight an image when you click it/ }).uncheck();
   await page.getByRole('button', { name: 'OK' }).click();
   await page.close();
 
-  const { page: presenting, show } = await startSlideshow(context);
-  const box = await show.locator(`[id="${LEFT}"] image`).boundingBox();
+  const { page: presenting, show } = await startShow(context);
+  const box = await show.locator(`[id="${IDS.left}"] image`).boundingBox();
   const [x, y] = [box.x + box.width / 2, box.y + box.height / 2];
   await zoomIn(presenting, show, x, y);
   await presenting.mouse.click(x, y);
@@ -188,7 +182,7 @@ test('while zoomed, with clicking to spotlight turned off, clicking an image doe
 
 // Slides draws the laser pointer at the pointer's place on the screen, on a layer of its own.
 test('while zoomed, the laser pointer stays under the pointer', async ({ context }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   await page.keyboard.press('l');
   const { width, height } = page.viewportSize();
   await zoomIn(page, show, width / 2, height / 2);
@@ -228,7 +222,7 @@ async function drawStroke(page, from, to) {
 }
 
 test('ink drawn while zoomed stays on the slide when zooming out', async ({ context }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   const { width, height } = page.viewportSize();
   await zoomIn(page, show, width / 2, height / 2);
   const { scale, x, y } = await zoom(show);
@@ -251,7 +245,7 @@ test('ink drawn while zoomed stays on the slide when zooming out', async ({ cont
 });
 
 test('ink drawn on the whole slide zooms with it', async ({ context }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   await page.keyboard.press('Shift+L');
   await drawStroke(page, [400, 300], [600, 420]);
   const drawn = await ink(show);
@@ -270,7 +264,7 @@ test('ink drawn on the whole slide zooms with it', async ({ context }) => {
 // Ink is like paint on the slide: a line is as thick on it whatever the zoom it was drawn at, and
 // zoomed in, the pen's dot under the pointer is as wide as the line it draws.
 test('lines drawn at any zoom are equally thick on the slide', async ({ context }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   const lines = () =>
     show
       .locator('.punch-slide-markup-surface path[stroke-width]')
@@ -300,7 +294,7 @@ test('lines drawn at any zoom are equally thick on the slide', async ({ context 
 });
 
 test('ink drawn while zoomed is in place after coming back to the slide', async ({ context }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   const { width, height } = page.viewportSize();
   await zoomIn(page, show, width / 2, height / 2);
   const { scale, x, y } = await zoom(show);
@@ -325,7 +319,7 @@ test('ink drawn while zoomed is in place after coming back to the slide', async 
 test('a dot tapped with the pen while zoomed lands under the pen, and stays on the slide', async ({
   context,
 }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   const { width, height } = page.viewportSize();
   await zoomIn(page, show, width / 2, height / 2);
   const { scale, x, y } = await zoom(show);
@@ -366,7 +360,7 @@ const samePlace = (a, b) => Math.max(Math.abs(a[0] - b[0]), Math.abs(a[1] - b[1]
 test('on a screen that isn’t the slide’s shape, ink stays on the slide at any zoom', async ({
   context,
 }) => {
-  const { page, show } = await startSlideshow(context, { width: 1280, height: 800 });
+  const { page, show } = await startShow(context, { width: 1280, height: 800 });
   await page.keyboard.press('Shift+L');
   await drawStroke(page, [400, 300], [600, 420]);
   const drawn = await inkOnSlide(show);
@@ -383,7 +377,7 @@ test('on a screen that isn’t the slide’s shape, ink stays on the slide at an
 
 // Moving to a projector, say.
 test('a new window size keeps the zoomed-in view and the ink in place', async ({ context }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   await zoomIn(page, show, 900, 200);
   await page.keyboard.press('Shift+L');
   await drawStroke(page, [400, 300], [600, 420]);
@@ -406,7 +400,7 @@ test('a new window size keeps the zoomed-in view and the ink in place', async ({
 test('scrolling or changing slides mid-drag isn’t undone by the rest of the drag', async ({
   context,
 }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   const [x, y] = [640, 360];
   await zoomIn(page, show, x, y);
   await page.mouse.down();
@@ -428,7 +422,7 @@ test('scrolling or changing slides mid-drag isn’t undone by the rest of the dr
 test('a press stays the zoom’s until its click, whatever happens in between', async ({
   context,
 }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   const { width, height } = page.viewportSize();
   const [x, y] = [width * 0.9, height * 0.9];
   await zoomIn(page, show, x, y);
@@ -452,7 +446,7 @@ test('a press stays the zoom’s until its click, whatever happens in between', 
 });
 
 test('changing slides while zoomed starts the next slide whole', async ({ context }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   const { width, height } = page.viewportSize();
   await zoomIn(page, show, width / 2, height / 2);
   await page.keyboard.press('ArrowRight');
@@ -461,7 +455,7 @@ test('changing slides while zoomed starts the next slide whole', async ({ contex
 });
 
 test('+ and − zoom in and out around the pointer, back to the whole slide', async ({ context }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   const { width, height } = page.viewportSize();
   await page.mouse.move(width * 0.75, height * 0.25);
   // = is + without Shift, and the number pad's + counts too.
@@ -483,7 +477,7 @@ test('+ and − zoom in and out around the pointer, back to the whole slide', as
 
 // Any key brings back the slide from Slides' black or white screen, and + does just that.
 test('on a black screen, + brings the slide back whole', async ({ context }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   await page.mouse.move(640, 360);
   await page.keyboard.press('b');
   await expect(show.locator('.punch-viewer-interruption-black')).toBeVisible();
@@ -496,7 +490,7 @@ test('on a black screen, + brings the slide back whole', async ({ context }) => 
 });
 
 test('with the pointer hidden, + zooms into the middle of the slide', async ({ context }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   const { width, height } = page.viewportSize();
   await page.mouse.move(width * 0.75, height * 0.25);
   // Slides hides the pointer when it's left still.
@@ -514,7 +508,7 @@ test('with the pointer hidden, + zooms into the middle of the slide', async ({ c
 test('with the pointer gone from the window, + zooms into the middle of the slide', async ({
   context,
 }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   const { width, height } = page.viewportSize();
   await page.mouse.move(width * 0.75, height * 0.25);
   await page.mouse.move(-10, height * 0.25);
@@ -530,7 +524,7 @@ test('with the pointer gone from the window, + zooms into the middle of the slid
 test('mid-drag, + zooms around the pointer, and the drag goes on from there', async ({
   context,
 }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   const [x, y] = [600, 340];
   await zoomIn(page, show, 640, 360);
   await page.mouse.down();
@@ -556,12 +550,12 @@ test('with scrolling set to do nothing, + still zooms, and drawing keeps the zoo
 }) => {
   await chooseSlideshowScroll(context, /Do nothing/);
   const editor = await context.newPage();
-  await editor.goto(slide);
+  await editor.goto(slideUrl(SLIDES.images));
   await openSettings(editor, 'Pen');
   await editor.getByRole('checkbox', { name: /Keep what you draw/ }).check();
   await editor.getByRole('button', { name: 'OK' }).click();
   await editor.close();
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   await page.mouse.move(640, 360);
   await page.keyboard.press('+');
   await page.keyboard.press('+');
@@ -574,7 +568,7 @@ test('with scrolling set to do nothing, + still zooms, and drawing keeps the zoo
 
 test('with the pointer over a video, + zooms into the video', async ({ context }) => {
   const page = await context.newPage();
-  await page.goto(`${deckUrl}#slide=id.h2c87d6044fe40693_46_0`);
+  await page.goto(slideUrl(SLIDES.links));
   await page.locator('#punch-start-presentation-left').click();
   const show = page.frameLocator('iframe.punch-present-iframe');
   const video = show.locator('.sketchyViewerContent iframe');
@@ -595,7 +589,7 @@ test('with the pointer over a video, + zooms into the video', async ({ context }
 // Picks what scrolling does during a slideshow, in Settings.
 async function chooseSlideshowScroll(context, choice) {
   const page = await context.newPage();
-  await page.goto(slide);
+  await page.goto(slideUrl(SLIDES.images));
   await openSettings(page, 'Zoom & scroll');
   await page
     .getByRole('group', { name: 'When you scroll during a slideshow' })
@@ -608,7 +602,7 @@ async function chooseSlideshowScroll(context, choice) {
 
 test('set to change slides in Settings, scrolling changes slides', async ({ context }) => {
   await chooseSlideshowScroll(context, /Go to the next or previous slide/);
-  const { page: presenting, show } = await startSlideshow(context);
+  const { page: presenting, show } = await startShow(context);
   const { width, height } = presenting.viewportSize();
   await presenting.mouse.move(width / 2, height / 2);
   await presenting.mouse.wheel(0, 300);
@@ -620,7 +614,7 @@ test('set to do nothing in Settings, scrolling neither zooms nor changes slides'
   context,
 }) => {
   await chooseSlideshowScroll(context, /Do nothing/);
-  const { page: presenting, show } = await startSlideshow(context);
+  const { page: presenting, show } = await startShow(context);
   const { width, height } = presenting.viewportSize();
   await presenting.mouse.move(width / 2, height / 2);
   for (let i = 0; i < 3; i++) await presenting.mouse.wheel(0, 300);
@@ -632,7 +626,7 @@ test('set to do nothing in Settings, scrolling neither zooms nor changes slides'
 
 // Scrolling never skips a slide, but everything else that changes slides still does.
 test('keys and clicks still change slides', async ({ context }) => {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   const { width, height } = page.viewportSize();
   await page.mouse.move(width / 2, height / 2);
   await page.mouse.wheel(0, 300);

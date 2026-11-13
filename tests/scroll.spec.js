@@ -1,8 +1,7 @@
-import { test, expect, deckUrl, openSettings } from './fixtures.js';
+import { test, expect, openSettings, IDS, inEditor, slideUrl, SLIDES } from './fixtures.js';
 
 // Slide 3 of the test deck, in the editor.
-const slide = `${deckUrl}#slide=id.g35a1872bb6d_1_0`;
-const SLIDE_3 = 'g35a1872bb6d_1_0';
+const SLIDE_3 = SLIDES.images;
 const current = (page) => page.evaluate(() => location.hash.replace('#slide=id.', ''));
 // Whether something cancelled the wheel event the page last got, after waiting for one.
 async function lastWheelCancelled(page) {
@@ -20,8 +19,8 @@ async function openSlide(context) {
   await page.addInitScript(() =>
     window.addEventListener('wheel', (event) => (window.lastWheel = event), true),
   );
-  await page.goto(slide);
-  await expect(page.locator('#workspace [id="editor-g35a1872bb6d_1_2"] image')).toBeVisible();
+  await page.goto(slideUrl(SLIDES.images));
+  await expect(page.locator(`#workspace [id="${inEditor(IDS.left)}"] image`)).toBeVisible();
   return page;
 }
 

@@ -1,24 +1,18 @@
-import { test, expect, deckUrl, openSettings } from './fixtures.js';
+import {
+  test,
+  expect,
+  openSettings,
+  startSlideshow,
+  slideNumber,
+  slideUrl,
+  SLIDES,
+  pictureShows,
+  IDS,
+} from './fixtures.js';
 
-// Slide 3 of the test deck: two photos side by side and a caption text box.
-const slide = `${deckUrl}#slide=id.g35a1872bb6d_1_0`;
-const LEFT = 'g35a1872bb6d_1_2';
-
-async function startSlideshow(context, viewport) {
-  const page = await context.newPage();
-  if (viewport) await page.setViewportSize(viewport);
-  await page.goto(slide);
-  await page.locator('#punch-start-presentation-left').click();
-  const show = page.frameLocator('iframe.punch-present-iframe');
-  await expect(show.locator(`[id="${LEFT}"] image`)).toBeVisible();
-  return { page, show };
-}
-
-const slideNumber = (show) =>
-  show
-    .locator('.punch-viewer-svgpage-a11yelement')
-    .getAttribute('aria-label')
-    .then((label) => Number(label.match(/\d+/)[0]));
+// Slide 3's slideshow, once its photos show, in a window `viewport` big if given.
+const startShow = (context, viewport) =>
+  startSlideshow(context, { viewport, ready: pictureShows(IDS.left) });
 
 async function drawStroke(page, from, to) {
   await page.mouse.move(...from);
@@ -29,7 +23,7 @@ async function drawStroke(page, from, to) {
 
 // Draws with the pen and leaves the slideshow, once the stroke is saved.
 async function drawAndLeave(context, draw) {
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   await page.keyboard.press('Shift+L');
   await draw(page);
   const drawn = await strokes(show, `path:not(${KEPT}), circle:not(${KEPT})`);
@@ -69,7 +63,7 @@ const strokes = (show, selector = KEPT) =>
 // Keeping is on unless it's turned off in Settings.
 async function turnOffKeeping(context) {
   const page = await context.newPage();
-  await page.goto(slide);
+  await page.goto(slideUrl(SLIDES.images));
   await openSettings(page, 'Pen');
   await page.getByRole('checkbox', { name: /Keep what you draw/ }).uncheck();
   await page.getByRole('button', { name: 'OK' }).click();
@@ -84,7 +78,7 @@ test('with keeping turned off in Settings, as in Slides, the pen’s ink goes wh
 }) => {
   await turnOffKeeping(context);
   await drawAndLeave(context, (page) => drawStroke(page, [400, 300], [600, 420]));
-  const { page, show } = await startSlideshow(context);
+  const { page, show } = await startShow(context);
   await page.waitForTimeout(500);
   await expect(ink(show)).toHaveCount(0);
 });
@@ -96,7 +90,7 @@ test.describe('kept from the start', () => {
     const drawn = await drawAndLeave(context, (page) => drawStroke(page, [400, 300], [600, 420]));
     expect(drawn).toHaveLength(1);
 
-    const { show } = await startSlideshow(context);
+    const { show } = await startShow(context);
     const kept = await strokes(show);
     expect(kept).toHaveLength(1);
     expect(kept[0].colour).toBe(drawn[0].colour);
@@ -110,7 +104,7 @@ test.describe('kept from the start', () => {
     const drawn = await drawAndLeave(context, (page) => drawStroke(page, [400, 300], [600, 420]));
 
     // Another window shape: the slide sits between bars, at another size.
-    const { page, show } = await startSlideshow(context, { width: 1000, height: 700 });
+    const { page, show } = await startShow(context, { width: 1000, height: 700 });
     expect(near(await strokes(show), drawn)).toBe(true);
     // Slide 4 has a video, where Slides' ← does nothing, so this goes back a slide and returns.
     await page.keyboard.press('ArrowLeft');
@@ -135,7 +129,7 @@ test.describe('kept from the start', () => {
       await page.mouse.click(700, 200);
     });
 
-    const { show } = await startSlideshow(context);
+    const { show } = await startShow(context);
     const kept = await strokes(show);
     expect(kept.map((stroke) => stroke.shape)).toEqual(['path', 'path', 'circle']);
     expect(near(kept.slice(1), drawn)).toBe(true);
@@ -143,7 +137,7 @@ test.describe('kept from the start', () => {
   });
 
   test('ink drawn while zoomed in is kept where it was drawn on the slide', async ({ context }) => {
-    const { page, show } = await startSlideshow(context);
+    const { page, show } = await startShow(context);
     await page.mouse.move(640, 360);
     for (let i = 0; i < 3; i++) await page.mouse.wheel(0, -200);
     await page.waitForTimeout(500);
@@ -156,7 +150,7 @@ test.describe('kept from the start', () => {
     const drawn = await strokes(show, 'path');
     await page.close();
 
-    const again = await startSlideshow(context);
+    const again = await startShow(context);
     const kept = await strokes(again.show);
     expect(near(kept, drawn)).toBe(true);
     expect(kept[0].thickness).toBe(drawn[0].thickness);
@@ -187,7 +181,7 @@ test.describe('kept from the start', () => {
     context,
   }) => {
     await drawAndLeave(context, (page) => drawStroke(page, [400, 300], [600, 420]));
-    const { page, show } = await startSlideshow(context);
+    const { page, show } = await startShow(context);
     await expect(show.locator(KEPT)).toHaveCount(1);
     const search = show.locator('.appsElementsKeyboardShortcutsDialogSearchInputField');
     // The slideshow takes keys a moment after it shows.
@@ -205,7 +199,7 @@ test.describe('kept from the start', () => {
   for (const [way, eraseAll] of Object.entries(ERASE_ALL)) {
     test(`Erase all with ${way} erases kept ink too, for good`, async ({ context }) => {
       await drawAndLeave(context, (page) => drawStroke(page, [400, 300], [600, 420]));
-      const { page, show } = await startSlideshow(context);
+      const { page, show } = await startShow(context);
       await expect(show.locator(KEPT)).toHaveCount(1);
       await page.keyboard.press('Shift+L');
       await drawStroke(page, [400, 500], [600, 520]);
@@ -215,7 +209,7 @@ test.describe('kept from the start', () => {
       await page.waitForTimeout(300);
       await page.close();
 
-      const again = await startSlideshow(context);
+      const again = await startShow(context);
       await expect(again.show.locator('.punch-viewer-svgpage-a11yelement')).toHaveCount(1);
       await again.page.waitForTimeout(500);
       await expect(ink(again.show)).toHaveCount(0);
