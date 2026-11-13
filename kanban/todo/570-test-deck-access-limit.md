@@ -13,3 +13,5 @@
 - [ ] The limit is measured and written here.
 - [ ] Three full runs in a row show no test failing on the banner.
 - [ ] A test that meets the banner fails saying so.
+
+**From card 430 (13 November 2026):** two full runs in a row after card 430 (15.0 and 15.1 minutes) had 15 and 8 failures, all passing when run again one at a time. Of these, 4 and 8 (the ink and slideshow tests in run 2, three Spotlight and download tests in run 1, whose last screen shows the banner) never got the deck's Present button. Card 430's last check, two full runs in a row passing, moved here: it's the same as this card's three.
