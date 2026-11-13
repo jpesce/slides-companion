@@ -36,14 +36,10 @@
   justify-content: center;
 }
 
+/* Sized and placed by fitPicture() in spotlight.js. */
 .slides-companion-spotlight-picture svg {
+  position: absolute;
   display: block;
-  width: min(
-    100%,
-    (100vh - 2 * var(--slides-companion-safe-area)) * var(--slides-companion-ratio, 1)
-  );
-  aspect-ratio: var(--slides-companion-ratio, 1);
-  max-height: 100%;
 }
 
 /* The controls sit in the safe area below the picture, on the black stage: light icons on a very dark

@@ -66,6 +66,48 @@ test('Space spotlights the selected image and Escape closes it', async ({ contex
   expect(await selected(page)).toEqual([RIGHT]);
 });
 
+test('the picture sits on whole pixels, so the slide behind it never shows along its edges', async ({
+  context,
+}) => {
+  const page = await openSlide(context);
+  // A window size that puts the picture on fractional pixels, and the slide's background red, so
+  // any of it showing along the black and white photo's edges stands out.
+  await page.setViewportSize({ width: 1001, height: 704 });
+  await page.evaluate(() => {
+    for (const shape of document.querySelectorAll('#workspace [id$="-bg"] path'))
+      shape.style.fill = '#ff0000';
+  });
+  await clickCentre(page, `${object(RIGHT)} image`);
+  await page.keyboard.press('Space');
+  const picture = stage(page).locator('.slides-companion-spotlight-picture svg');
+  await expect(picture).toBeVisible();
+  await expect(stage(page)).toHaveCSS('opacity', '1');
+
+  // How much redder than grey the picture's outermost pixels are, at most.
+  const box = await picture.boundingBox();
+  const shot = await page.screenshot({
+    clip: { x: box.x - 2, y: box.y - 2, width: box.width + 4, height: box.height + 4 },
+  });
+  const reddest = await page.evaluate(async (png) => {
+    const image = new Image();
+    image.src = `data:image/png;base64,${png}`;
+    await image.decode();
+    const canvas = new OffscreenCanvas(image.width, image.height);
+    const context = canvas.getContext('2d');
+    context.drawImage(image, 0, 0);
+    const { data, width, height } = context.getImageData(0, 0, image.width, image.height);
+    let most = 0;
+    for (let y = 0; y < height; y++)
+      for (let x = 0; x < width; x++) {
+        if (x > 4 && x < width - 5 && y > 4 && y < height - 5) continue;
+        const i = (y * width + x) * 4;
+        most = Math.max(most, data[i] - Math.max(data[i + 1], data[i + 2]));
+      }
+    return most;
+  }, shot.toString('base64'));
+  expect(reddest).toBeLessThan(8);
+});
+
 test('arrow keys go through the slide in reading order and stop at the ends', async ({
   context,
 }) => {

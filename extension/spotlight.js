@@ -223,6 +223,26 @@
 
   // ----- Rendering -----
 
+  // The picture, as large as fits the stage, on a box of whole screen pixels. On fractional pixels,
+  // the pixels along its edges are part picture and part the slide's background copied behind it
+  // (for pictures with transparency): a thin light line on the black stage. The drawing stretches
+  // to the box, by less than a pixel.
+  function fitPicture(area) {
+    const svg = area.querySelector(':scope > svg');
+    if (!svg) return;
+    const ratio = Number(svg.dataset.ratio);
+    const box = area.getBoundingClientRect();
+    const pixel = 1 / devicePixelRatio;
+    const down = (length) => Math.floor(length / pixel) * pixel;
+    const near = (length) => Math.round(length / pixel) * pixel;
+    const width = down(Math.min(box.width, box.height * ratio));
+    const height = down(Math.min(box.height, box.width / ratio));
+    svg.style.width = `${width}px`;
+    svg.style.height = `${height}px`;
+    svg.style.left = `${near(box.left + (box.width - width) / 2) - box.left}px`;
+    svg.style.top = `${near(box.top + (box.height - height) / 2) - box.top}px`;
+  }
+
   // A fresh SVG with the slide background and the object, cropped to what the object shows.
   function render(object) {
     const slide = slideOf(object);
@@ -232,7 +252,9 @@
 
     const svg = document.createElementNS(SVG_NS, 'svg');
     svg.setAttribute('viewBox', `${bounds.x} ${bounds.y} ${bounds.width} ${bounds.height}`);
-    svg.style.setProperty('--slides-companion-ratio', bounds.width / bounds.height);
+    svg.dataset.ratio = bounds.width / bounds.height;
+    // fitPicture() gives it a box on whole pixels, which its drawing fills exactly.
+    svg.setAttribute('preserveAspectRatio', 'none');
     svg.append(background(slide).cloneNode(true));
 
     // Keep any transform from groups the object sits in.
@@ -380,6 +402,8 @@
     );
 
     document.body.append(stage);
+    const area = stage.querySelector('.slides-companion-spotlight-picture');
+    new ResizeObserver(() => fitPicture(area)).observe(area);
     if (!show(start)) {
       stage.remove();
       gallery = null;
@@ -404,7 +428,9 @@
     const picture = isPage(item) ? pageFrame(item) : render(item);
     if (!picture) return false;
     gallery.index = index;
-    gallery.stage.querySelector('.slides-companion-spotlight-picture').replaceChildren(picture);
+    const area = gallery.stage.querySelector('.slides-companion-spotlight-picture');
+    area.replaceChildren(picture);
+    fitPicture(area);
     if (isPage(item)) checkPage(item);
     updateNavbar();
     const count = gallery.items.length;

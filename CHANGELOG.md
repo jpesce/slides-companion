@@ -8,7 +8,7 @@ What changed in each version, newest first. Each version's section becomes its t
 
 Presenter tools for Google Slides, still free, open source, and working entirely in your browser. Spotlight is still here, rebuilt, alongside new tools for presenting. Settings open from the companion in Slides' toolbar, or from the extension's button in your browser.
 
-- **Spotlight:** select an image and press <kbd>Space</kbd>, or right-click it and choose Spotlight image, to see it full screen. Go through the slide's other images with the arrow keys or the bar below the picture. During a slideshow, click an image to spotlight it. Choose whether grouped images show as one picture or each on its own.
+- **Spotlight:** select an image and press <kbd>Space</kbd>, or right-click it and choose Spotlight image, to see it full screen. Go through the slide's other images with the arrow keys or the bar below the picture. During a slideshow, click an image to spotlight it. Choose whether grouped images show as one picture or each on its own. Pictures stay crisp right to their edges, with no stray light line along a side.
 - **Download image:** right-click an image and save it as it was added to the deck, under the deck's name.
 - **Links:** during a slideshow, links on words, pictures and shapes open over your slide, and <kbd>Esc</kbd> brings you back right where you left it. Back and Forward work as in a tab, PDFs open in Google's viewer, YouTube and Drive videos play in their own players, and when a site won't show inside the slideshow, you can allow every site or open it in a new tab.
 - **Zoom & scroll:** zoom into a slide with your trackpad, mouse wheel or <kbd>+</kbd> and <kbd>-</kbd> to show a detail up close. Scrolling no longer skips slides by accident.
