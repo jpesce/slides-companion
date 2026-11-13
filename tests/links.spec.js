@@ -21,7 +21,8 @@ const link = (show) => show.locator(`[id="${LINKED_PHOTO}"] a`).first();
 const landed = (show) => flownIn(link(show));
 
 // Slides sends the link through google.com/url; the page it goes to is played by these.
-const PAGE = `<title>Linked page</title><h1>Hello from the link</h1><a href="/second">Second page</a>`;
+// It's long enough to scroll.
+const PAGE = `<title>Linked page</title><h1>Hello from the link</h1><a href="/second">Second page</a><div style="height: 300vh"></div>`;
 async function servePages(context) {
   await context.route('https://www.google.com/', (route) =>
     route.fulfill({ contentType: 'text/html', body: PAGE }),
@@ -73,7 +74,7 @@ test('a click on a link, after the pointer rested there and hid, still opens its
   expect(await slideNumber(show)).toBe(4);
 });
 
-test('clicking a link during a slideshow opens its page over the slide, and Esc goes back', async ({
+test('clicking a link during a slideshow opens its page over the slide, and Esc goes back, even after the pointer was over the page', async ({
   context,
 }) => {
   const { page, show } = await startShow(context);
@@ -100,6 +101,10 @@ test('clicking a link during a slideshow opens its page over the slide, and Esc 
   // Without every site allowed, the page can't say where it is: no Back or Forward.
   await expect(stage(show).locator('.slides-companion-spotlight-back')).toBeHidden();
 
+  // Esc goes back even once the pointer has been over the page and scrolled it.
+  await overPage(page, show);
+  await page.mouse.wheel(0, 400);
+  await expect.poll(() => linked.locator('html').evaluate(() => scrollY)).toBeGreaterThan(0);
   await page.keyboard.press('Escape');
   await expect(stage(show)).toHaveCount(0);
   // Still presenting, on the same slide, and no tab was opened.

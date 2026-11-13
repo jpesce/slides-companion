@@ -128,7 +128,17 @@
       event.clientY >= area.top &&
       event.clientY <= area.bottom;
     if (over && Math.hypot(event.clientX - restingAt.x, event.clientY - restingAt.y) > 4)
-      frame.inert = false;
+      wake(frame);
+  }
+
+  // A page that shares Slides' process (one on google.com, such as a Doc) gets the wheel once it
+  // wakes, but Chrome keeps scrolling it as if it were still inert: taking the frame out of the
+  // layout for a moment has Chrome look at it again. It doesn't reload the page.
+  function wake(frame) {
+    frame.inert = false;
+    frame.style.display = 'none';
+    frame.getBoundingClientRect();
+    frame.style.display = '';
   }
 
   // From page.js, through background.js to each of the tab's frames: the one showing the
