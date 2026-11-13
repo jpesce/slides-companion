@@ -14,7 +14,7 @@ Presenter tools for Google Slides, still free, open source, and working entirely
 - **Zoom & scroll:** zoom into a slide with your trackpad, mouse wheel or <kbd>+</kbd> and <kbd>-</kbd> to show a detail up close. Scrolling no longer skips slides by accident.
 - **Pen:** what you draw with Slides' pen stays on the slide for the next time you present.
 - **Timer:** in presenter view, count down from how long you have, with a bar that fills as you go and an orange warning near the end. Each deck remembers its time.
-- **Floating notes:** your speaker notes in a small window that floats over the full-screen slideshow, and that meeting apps leave out when you share only the slideshow's tab. Open it from View › Show floating notes, the slideshow's ⋮ menu or <kbd>Shift</kbd>+<kbd>S</kbd>.
+- **Floating notes:** your speaker notes, in their own fonts, in a small window that floats over the full-screen slideshow, and that meeting apps leave out when you share only the slideshow's tab. Open it from View › Show floating notes, the slideshow's ⋮ menu or <kbd>Shift</kbd>+<kbd>S</kbd>.
 - **Live edits:** edits to the deck, by you or anyone else, reach a slideshow that's already running.
 - **Keyboard:** our shortcuts are listed in Slides' Keyboard shortcuts dialog, and our menu items work with the arrow keys and access keys like Slides' own.
 - **Languages:** the extension speaks Slides' language, in 33 languages, right to left in Arabic and Hebrew.

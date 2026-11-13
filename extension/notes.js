@@ -239,9 +239,25 @@
       return Number(word.getAttribute('x') ?? 0) - end > 1 ? ' ' : '';
     }
 
+    // The words name the deck's fonts as the editor loads them, "docs-" and the font's name, as
+    // FontFace objects of its own (not @font-face rules, which couldn't be shared). The window gets
+    // the same objects, so nothing loads twice and every font the deck uses works; without them,
+    // its words fall back to a serif font. Fonts the deck takes on later come with the next render.
+    function shareFonts(doc) {
+      for (const face of document.fonts) {
+        if (!face.family.replace(/^"/, '').startsWith('docs-')) continue;
+        try {
+          doc.fonts.add(face);
+        } catch {
+          // One defined by an @font-face rule belongs to its document.
+        }
+      }
+    }
+
     function render() {
       if (!floating) return;
       const doc = floating.document;
+      shareFonts(doc);
       const slide = slideName();
       const zoomable = doc.querySelector('.punch-viewer-speakernotes-text-body-zoomable');
       const written = doc.createElement('div');

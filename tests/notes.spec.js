@@ -77,6 +77,42 @@ test('Shift+S opens the slide’s notes in a floating window that follows the sl
   await expect(show.locator('.punch-viewer-svgpage-a11yelement')).toBeAttached();
 });
 
+test('floating notes show the notes in the deck’s own fonts', async ({ context }) => {
+  const { page } = await startSlideshow(context);
+  const notes = await openNotes(context, page);
+  await notes.keyboard.press('PageDown');
+  await expect(header(notes)).toHaveText(/^\D*4\D+11$/);
+  // The test deck's notes are in Arial. Its slides use Google Fonts, which the editor has loaded:
+  // the first three words take three of them, a plain one, a serif and a handwritten one.
+  const FONTS = ['docs-Roboto', '"docs-Playfair Display"', 'docs-Pacifico'];
+  await expect(body(notes).locator('p').first()).toHaveText(/^Lorem ipsum/);
+  await page.evaluate((fonts) => {
+    const words = document.querySelectorAll(
+      '#speakernotes-workspace g.sketchy-text-content-text text',
+    );
+    fonts.forEach((font, i) => (words[i].style.fontFamily = font));
+  }, FONTS);
+  for (const font of FONTS) {
+    const run = body(notes).locator(`span[style*='${font.replaceAll('"', '')}']`);
+    await expect(run).toHaveCount(1);
+    // Drawn in that font, not in the serif one the window falls back to.
+    await expect
+      .poll(() =>
+        run.evaluate(async (span) => {
+          await document.fonts.ready;
+          const width = span.getBoundingClientRect().width;
+          const fallback = span.cloneNode(true);
+          fallback.style.fontFamily = 'serif';
+          span.after(fallback);
+          const fallbackWidth = fallback.getBoundingClientRect().width;
+          fallback.remove();
+          return width !== fallbackWidth;
+        }),
+      )
+      .toBe(true);
+  }
+});
+
 test('the slideshow’s ⋮ menu opens and closes the floating notes', async ({ context }) => {
   const { page, show } = await startSlideshow(context);
   const item = show.locator('.slides-companion-notes-menuitem');
