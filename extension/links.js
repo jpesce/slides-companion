@@ -48,7 +48,12 @@
     // every site allowed.
     // Google's viewer shows nothing until it has loaded, and it then says what it got: a web page's
     // code doesn't flash meanwhile.
-    const reveal = inPdfViewer(item) ? hideWhileChecking(frame, VIEWER_WAIT_MS) : null;
+    let reveal = inPdfViewer(item) ? hideWhileChecking(frame, VIEWER_WAIT_MS) : null;
+    if (reveal)
+      askViewerAgain(frame, () => {
+        reveal();
+        reveal = hideWhileChecking(frame, VIEWER_WAIT_MS);
+      });
     frame.addEventListener('load', () => {
       try {
         frame.contentWindow.addEventListener('keydown', onPageKeydown, true);
@@ -359,6 +364,33 @@
   }
   const pdfViewer = (address) => (/\.pdf$/i.test(address.pathname) ? viewerAddress(address) : null);
 
+  // Now and then the viewer answers nothing (204 No Content) at once, sometimes several times in a
+  // row when it's asked often: it's asked again, a little later each time.
+  //
+  // A frame can't hear it: no `load` comes, and it would stay empty. But its document is on Slides'
+  // own site, so the slideshow sees whether the viewer's page has come: within a second when it
+  // answers, while `load` can take several more. Without it by then, the frame asks again, waiting
+  // longer each time (a slow network gets its page on a later try, as it would have anyway).
+  // `waitAgain` restarts the wait out of sight.
+  const FRAME_ASKS_AGAIN_MS = [2000, 3000, 4000];
+  function askViewerAgain(frame, waitAgain, tries = 0) {
+    const asked = frame.src;
+    if (tries === FRAME_ASKS_AGAIN_MS.length) return;
+    setTimeout(() => {
+      if (!frame.isConnected || frame.src !== asked) return;
+      let blank;
+      try {
+        blank = frame.contentDocument?.URL === 'about:blank';
+      } catch {
+        return;
+      }
+      if (!blank) return;
+      waitAgain();
+      frame.src = asked;
+      askViewerAgain(frame, waitAgain, tries + 1);
+    }, FRAME_ASKS_AGAIN_MS[tries]);
+  }
+
   // What the viewer got, as its page says ("application/pdf", "text/html"), read from Slides' own
   // site: a PDF, a web page, or null when it got nothing ("No preview available") or can't tell
   // (Google changed its page).
@@ -404,15 +436,18 @@
   }
 
   // The slideshow is on the viewer's own site, so it's asked with fetch, which (unlike a frame,
-  // where nothing loads) sees when the viewer answers nothing: now and then it answers 204 No
-  // Content at once, and asked again, it answers.
-  async function viewerSays(address, again = true) {
+  // where nothing loads) sees when the viewer answers nothing (see askViewerAgain).
+  const FETCH_ASKS_AGAIN_MS = [500, 1500, 3000];
+  async function viewerSays(address, tries = 0) {
     try {
       const answer = await fetch(viewerAddress(address), {
         credentials: 'include',
         signal: AbortSignal.timeout(VIEWER_WAIT_MS),
       });
-      if (answer.status === 204 && again) return viewerSays(address, false);
+      if (answer.status === 204 && tries < FETCH_ASKS_AGAIN_MS.length) {
+        await new Promise((resolve) => setTimeout(resolve, FETCH_ASKS_AGAIN_MS[tries]));
+        return viewerSays(address, tries + 1);
+      }
       return gotFrom(await answer.text());
     } catch {
       return null;

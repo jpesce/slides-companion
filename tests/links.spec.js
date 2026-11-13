@@ -284,21 +284,24 @@ test('Shorts, live videos and Drive files open in their players', async ({ conte
   }
 });
 
+// Google's viewer now and then answers nothing (204 No Content) for an address it was asked for
+// moments before, and the tests ask for the same ones over and over. Each test asks for an address
+// of its own (the same file, with a query of its own), as a presenter's first click does.
+const ownAddress = (address) =>
+  `${address}?slides-companion-test=${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+
 // These need Google's viewer, which fetches the PDF from Google's servers, and the PDF's site,
-// online. Now and then the viewer answers nothing (204 No Content). Asked whether an address is a
-// PDF, the extension asks again; but the frame showing the PDF can't tell it got nothing, and stays
-// empty. A retry tells that apart from a failure of ours, and Playwright reports it as flaky rather
-// than passed.
+// online. Now and then the viewer answers nothing (204 No Content): the extension asks it again,
+// both when it asks whether an address is a PDF and in the frame showing the PDF.
 test.describe('in Google’s PDF viewer', () => {
-  test.describe.configure({ retries: 1 });
-
-  // Chrome's PDF viewer isn't let into the page's frame, and a link in it would take the
-  // whole tab. Google's servers fetch the PDF, so it's a real one, online.
-  const PDF = 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf';
-
   test('a PDF opens in Google’s viewer, in Slides’ language, where Esc goes back too', async ({
     context,
   }) => {
+    // Chrome's PDF viewer isn't let into the page's frame, and a link in it would take the
+    // whole tab. Google's servers fetch the PDF, so it's a real one, online.
+    const PDF = ownAddress(
+      'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+    );
     const { page, show } = await startShow(context);
     await linkTo(show, `https://www.google.com/url?q=${encodeURIComponent(PDF)}&sa=D`);
     await clickLink(page, show);
@@ -335,7 +338,7 @@ test.describe('in Google’s PDF viewer', () => {
   test('a PDF whose address doesn’t end in .pdf (arXiv’s) shows in Google’s viewer too', async ({
     context,
   }) => {
-    const ARXIV = 'https://arxiv.org/pdf/1706.03762';
+    const ARXIV = ownAddress('https://arxiv.org/pdf/1706.03762');
     const { page, show } = await startShow(context);
     await linkTo(show, ARXIV);
     await clickLink(page, show);
@@ -356,7 +359,9 @@ test.describe('in Google’s PDF viewer', () => {
   test('a .pdf address that’s a web page opens as one, not in the PDF viewer', async ({
     context,
   }) => {
-    const GITHUB = 'https://github.com/mozilla/pdf.js/blob/master/test/pdfs/tracemonkey.pdf';
+    const GITHUB = ownAddress(
+      'https://github.com/mozilla/pdf.js/blob/master/test/pdfs/tracemonkey.pdf',
+    );
     const { page, show } = await startShow(context);
     await linkTo(show, GITHUB);
     // Whether the viewer ever shows, with the page's code in it.
@@ -539,6 +544,31 @@ test('when Google’s viewer answers nothing once, it’s asked again, and the P
   await expect(website(show)).toHaveAttribute('src', viewer.href, CHECKED);
   await expect(refusal(show)).toHaveCount(0);
   expect(asked).toBeGreaterThanOrEqual(2);
+});
+
+// The frame showing a PDF can't hear the viewer answer nothing: no load comes. It asks again once
+// the viewer's page hasn't come in time. Played here: nothing first, then a PDF.
+test('when Google’s viewer answers the PDF’s frame with nothing, it asks again, and the PDF shows', async ({
+  context,
+}) => {
+  const { page, show } = await startShow(context);
+  let asked = 0;
+  await context.route(/^https:\/\/docs\.google\.com\/viewer\?/, (route) => {
+    asked += 1;
+    return asked === 1
+      ? route.fulfill({ status: 204 })
+      : route.fulfill({
+          contentType: 'text/html',
+          body: '<script>const type = "application/pdf";</script><h1>The PDF</h1>',
+        });
+  });
+  await linkTo(show, 'https://example.com/file.pdf');
+  await clickLink(page, show);
+  const pdf = show.frameLocator('iframe.slides-companion-spotlight-website');
+  await expect(pdf.getByRole('heading', { name: 'The PDF' })).toBeVisible();
+  await expect(website(show)).not.toHaveClass(/slides-companion-spotlight-checking/);
+  await expect(website(show)).toBeVisible();
+  expect(asked).toBe(2);
 });
 
 test('the message looks like Slides’ dialogs in Google’s dark theme', async ({ context }) => {

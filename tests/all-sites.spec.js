@@ -100,19 +100,23 @@ test('Open in new tab opens the page browsed to', async ({ context }) => {
   await expect(stage(show)).toHaveCount(0);
 });
 
-// These need Google's viewer, which fetches the PDF from Google's servers, and the PDF's site,
-// online. Now and then the viewer answers nothing (204 No Content). Asked whether an address is a
-// PDF, the extension asks again; but the frame showing the PDF can't tell it got nothing, and stays
-// empty. A retry tells that apart from a failure of ours, and Playwright reports it as flaky rather
-// than passed.
-test.describe('in Google’s PDF viewer', () => {
-  test.describe.configure({ retries: 1 });
+// Google's viewer now and then answers nothing (204 No Content) for an address it was asked for
+// moments before, and the tests ask for the same ones over and over. Each test asks for an address
+// of its own (the same file, with a query of its own), as a presenter's first click does.
+const ownAddress = (address) =>
+  `${address}?slides-companion-test=${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
 
+// These need Google's viewer, which fetches the PDF from Google's servers, and the PDF's site,
+// online. Now and then the viewer answers nothing (204 No Content): the extension asks it again,
+// both when it asks whether an address is a PDF and in the frame showing the PDF.
+test.describe('in Google’s PDF viewer', () => {
   // Google's viewer shows a PDF, page.js in it too, and the bar is the PDF's.
   test('a PDF opens in Google’s viewer, with the PDF’s site, and Esc and Open in new tab work there', async ({
     context,
   }) => {
-    const PDF = 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf';
+    const PDF = ownAddress(
+      'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+    );
     const page = await context.newPage();
     await page.goto(slideUrl(SLIDES.links));
     await expect(page.locator(`#workspace [id="editor-${LINKED_PHOTO}"] image`)).toBeVisible();
@@ -175,7 +179,7 @@ test.describe('in Google’s PDF viewer', () => {
   test('a PDF whose address doesn’t end in .pdf (arXiv’s) shows in Google’s viewer', async ({
     context,
   }) => {
-    const ARXIV = 'https://arxiv.org/pdf/1706.03762';
+    const ARXIV = ownAddress('https://arxiv.org/pdf/1706.03762');
     const page = await context.newPage();
     await page.goto(slideUrl(SLIDES.links));
     await expect(page.locator(`#workspace [id="editor-${LINKED_PHOTO}"] image`)).toBeVisible();
