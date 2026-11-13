@@ -64,6 +64,8 @@
 - With just your notes, Start slideshow ▾ › Presenter view: whether the slideshow still goes full screen after the notes window took the click's activation.
 - Automatic with a second screen connected: presenter view opens in Slides' own window.
 
+**Checked in the maintainer's Dia (13 November 2026), with real clicks:** Start slideshow ▾ › Presenter view opened Slides' presenter view in the floating window, all of it working: the timer running, slide 1 of 11, the next slide, the speaker notes, and our countdown button beside Reset. The window was named for the deck, so the countdown finds its time. Dia placed it bottom left and sized it 665×726, not the 730×580 asked: the size is only a hint, and Chrome keeps the size the presenter last gave a picture-in-picture window. The slideshow's tab wasn't the one in front, so it didn't go full screen, and the checks above need the presenter at the computer: the maintainer was in a call, and full screen would have taken over their screen.
+
 **Left as Slides does:** Enter on presenter view's menu item from the keyboard, and a slideshow in a tab of its own (`/present`), open Slides' own window.
 
 **Done when:**
