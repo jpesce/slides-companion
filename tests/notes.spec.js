@@ -323,6 +323,20 @@ test('opening the floating notes keeps the slideshow going in a window, and thei
   expect(notes.isClosed()).toBe(false);
 });
 
+// On macOS, closing the window takes the browser out of full screen, which would end the slideshow.
+// Headless Chromium doesn't, so the test does it.
+test('closing the floating notes in full screen keeps the slideshow going', async ({ context }) => {
+  const { page } = await startShow(context);
+  const notes = await openNotes(context, page);
+  await notesOpened(page);
+  expect(await isFullScreen(page)).toBe(true);
+  await notes.close();
+  await page.evaluate(() => document.exitFullscreen());
+  await expect.poll(() => isFullScreen(page)).toBe(false);
+  await page.waitForTimeout(500);
+  await expect(page.locator('iframe.punch-present-iframe')).toBeVisible();
+});
+
 // The slideshow's ⋮ menu takes the keyboard when ⋮ is reached with Tab and opened with Space or
 // Enter (opened with the pointer, the keys stay with the slideshow). The pointer shows the bar ⋮ is
 // on, and stays there, off the menu.

@@ -380,6 +380,36 @@
     // Floating presenter view opens a window the same way (presenter-view.js).
     globalThis.slidesCompanion.keepSlideshowThroughOpening = keepSlideshowThroughOpening;
 
+    // Closing the window can take the browser out of full screen too, where full screen is a space
+    // of its own (macOS): the slideshow goes on as when the window opens. Esc, with the window still
+    // open, ends the slideshow as always. The window is followed from the picture-in-picture API's
+    // `enter`, as Slides writes presenter view's window afresh, which drops listeners on it.
+    let lastWindow = null;
+    let lastFullScreen = null;
+    let closing = false;
+    if ('documentPictureInPicture' in window)
+      documentPictureInPicture.addEventListener('enter', (event) => (lastWindow = event.window));
+    function keepThroughClosing(event) {
+      if (document.fullscreenElement) {
+        lastFullScreen = document.fullscreenElement;
+        // Closed before this, out of full screen: leaving it now is the presenter's.
+        if (lastWindow?.closed) lastWindow = null;
+        return;
+      }
+      if (lastWindow?.closed) {
+        lastWindow = null;
+        closing = true;
+        // Both of a change's events (fullscreenchange, webkitfullscreenchange) come in this task.
+        setTimeout(() => (closing = false));
+      }
+      if (!closing) return;
+      // Ahead of Slides, which listens further down.
+      event.stopImmediatePropagation();
+      fullScreenToRestore = lastFullScreen;
+      showWindowed();
+    }
+    FULL_SCREEN_CHANGES.forEach((type) => window.addEventListener(type, keepThroughClosing, true));
+
     const restoreFullScreen = () => fullScreenToRestore?.requestFullscreen().catch(() => {});
     document.addEventListener(FULL_SCREEN_EVENT, restoreFullScreen);
 

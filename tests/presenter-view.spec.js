@@ -79,6 +79,48 @@ test('S floats presenter view over the slideshow, all of it working, and S again
   }).toPass({ timeout: 5000 });
 });
 
+const isFullScreen = (page) => page.evaluate(() => Boolean(document.fullscreenElement));
+// Back to full screen with Slides' ⋮ › Enter full screen, should opening the window have left it.
+async function fullScreen(page, show) {
+  await expect(page.locator('html')).not.toHaveAttribute('data-slides-companion-opening-notes');
+  if (await isFullScreen(page)) return;
+  await page.mouse.move(300, 500);
+  await show.locator('.punch-viewer-navbar-more').click();
+  await show
+    .locator('.punch-viewer-navbar-menu .goog-menuitem:has(.docs-icon-fullscreen)')
+    .filter({ visible: true })
+    .click();
+  await expect.poll(() => isFullScreen(page)).toBe(true);
+}
+
+// On macOS, where full screen is a space of its own, closing the window takes the browser out of
+// full screen, which would end the slideshow. Headless Chromium doesn't, so the test does it.
+test('closed in full screen, the slideshow goes on; leaving full screen while it floats still ends it', async ({
+  context,
+}) => {
+  const { page, show } = await startShow(context);
+  let opened = context.waitForEvent('page');
+  await page.keyboard.press('s');
+  const presenter = await opened;
+  await expect(timer(presenter)).toBeVisible();
+  await fullScreen(page, show);
+  await presenter.close();
+  await page.evaluate(() => document.exitFullscreen());
+  await expect.poll(() => isFullScreen(page)).toBe(false);
+  // Not even a moment later.
+  await page.waitForTimeout(500);
+  await expect(page.locator('iframe.punch-present-iframe')).toBeVisible();
+
+  // With the window open, leaving full screen (Esc) ends the slideshow, as it does in Slides.
+  await fullScreen(page, show);
+  opened = context.waitForEvent('page');
+  await page.keyboard.press('s');
+  await expect(timer(await opened)).toBeVisible();
+  await fullScreen(page, show);
+  await page.evaluate(() => document.exitFullscreen());
+  await expect(page.locator('iframe.punch-present-iframe')).toBeHidden();
+});
+
 test('the slideshow’s ⋮ menu floats presenter view', async ({ context }) => {
   const { show } = await startShow(context);
   const presenter = await fromMenu(context, show);
