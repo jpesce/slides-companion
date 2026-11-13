@@ -1,4 +1,4 @@
-import { test, expect, deckUrl } from './fixtures.js';
+import { test, expect, deckUrl, slideshowSettled } from './fixtures.js';
 
 // Our words speak Slides' language, here Portuguese, beside Slides' own in each window.
 test.use({ slidesLanguage: 'pt-BR' });
@@ -90,6 +90,7 @@ test('with Slides in Portuguese, the slideshow’s ⋮ menu and the floating not
     /3/,
   );
   await expect(show.locator('html')).toHaveAttribute('lang', 'pt-BR');
+  await slideshowSettled(show);
 
   await page.mouse.move(300, 500);
   await show.locator('.punch-viewer-navbar-more').click();

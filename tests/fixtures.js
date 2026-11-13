@@ -92,6 +92,13 @@ export const test = base.extend({
 
 export const expect = test.expect;
 
+// Slides loads its captions code a moment after a slideshow starts, up to a second or so on a busy
+// machine, and then builds the slideshow's ⋮ menu again: an open menu closes, and the keyboard goes
+// back to the slide. The captions options menu is the last thing it adds. Wait for it before opening
+// ⋮, as a presenter can't open it that fast.
+export const slideshowSettled = (show) =>
+  expect(show.locator('.captions-options-menu')).toBeAttached({ timeout: 15_000 });
+
 // Opens Settings from the companion, on a feature's page.
 export async function openSettings(page, feature) {
   await page.locator('.slides-companion-button').click();

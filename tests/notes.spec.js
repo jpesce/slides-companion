@@ -1,4 +1,4 @@
-import { test, expect, deckUrl } from './fixtures.js';
+import { test, expect, deckUrl, slideshowSettled } from './fixtures.js';
 
 // Slide 3 of the test deck has no notes; slide 4 has five paragraphs of lorem ipsum, a blank
 // line apart.
@@ -15,6 +15,7 @@ async function startSlideshow(context) {
     'aria-label',
     /3/,
   );
+  await slideshowSettled(show);
   return { page, show };
 }
 

@@ -1,4 +1,4 @@
-import { test, expect, deckUrl, openSettings } from './fixtures.js';
+import { test, expect, deckUrl, openSettings, slideshowSettled } from './fixtures.js';
 
 // The extension as it comes, live edits on.
 test.use({ settings: {} });
@@ -339,6 +339,7 @@ test('auto-play carries on, at the same pace, looping', async ({ context }) => {
   const page = await startSlideshow(context);
   // Slides' ⋮ menu › Auto-play: every 5 seconds, loop, play. Its submenu opens on hover.
   const own = page.frameLocator(PLAYER);
+  await slideshowSettled(own);
   async function autoPlay(nth) {
     const more = own.locator('.punch-viewer-navbar-more');
     if (!(await own.locator('.goog-menuitem[aria-haspopup]').filter({ visible: true }).count())) {
