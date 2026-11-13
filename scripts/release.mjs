@@ -114,7 +114,7 @@ function ensureTested() {
   const commit = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : null;
   if (!commit || commit !== committed()) {
     throw new Error(
-      `v${number} hasn't passed the tests on its build at this commit. Run \`make test-build\` (about 45 minutes) first.`,
+      `v${number} hasn't passed the tests on its build at this commit. Run \`make test-build\` (about 20 minutes) first.`,
     );
   }
 }

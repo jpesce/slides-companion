@@ -81,6 +81,78 @@ function extensionCopy({ allSites, englishOnly }) {
 const SLIDES_PAGE =
   /^https:\/\/docs\.google\.com\/presentation\/d\/[^/]+\/(edit|present|localpresent)\b/;
 
+// Opened too often in a short time, signed out, Slides limits the test deck, under a banner: "Some
+// tools may be unavailable due to the high number of accesses to this file", in Slides' language.
+// It shows the deck either without its editor (the banner then has a "Learn more" link, the same in
+// every language), or with it, "Trying to connect…" and its Present button greyed out, and the limit
+// can come after the editor has loaded. Measured on 13 November 2026, opening the deck four at a time
+// in fresh browsers: the banner came after 52 opens in 3.2 minutes (16 a minute), and was gone 36
+// seconds later. A full run opens it about 240 times, so the opens take turns, across workers, one
+// every OPEN_GAP_MS (12 a minute), and a test that still meets the limit fails saying so.
+const OPEN_GAP_MS = 5_000;
+const LAST_OPEN = path.join(os.tmpdir(), 'slides-companion-test-deck-last-open');
+const DECK_LIMITED =
+  'Slides limited the test deck: it was opened too often in a short time. Run this test again in ' +
+  'a minute.';
+
+// How long until this open's turn, which it takes.
+async function turn() {
+  const lock = `${LAST_OPEN}.lock`;
+  for (;;) {
+    try {
+      fs.mkdirSync(lock);
+      break;
+    } catch {
+      // Another worker is taking its turn; a lock left by a worker that stopped goes after a second.
+      if (Date.now() - (fs.statSync(lock, { throwIfNoEntry: false })?.mtimeMs ?? 0) > 1000)
+        fs.rmSync(lock, { recursive: true, force: true });
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    }
+  }
+  try {
+    let last = 0;
+    try {
+      last = Number(fs.readFileSync(LAST_OPEN, 'utf8')) || 0;
+    } catch {
+      // The first open.
+    }
+    const at = Math.max(Date.now(), last + OPEN_GAP_MS);
+    fs.writeFileSync(LAST_OPEN, String(at));
+    return at - Date.now();
+  } finally {
+    fs.rmSync(lock, { recursive: true, force: true });
+  }
+}
+
+// Each page's goto and reload to one of Slides' pages wait their turn, and the test gets the time.
+function takeTurns(page, testInfo) {
+  for (const method of ['goto', 'reload']) {
+    const original = page[method].bind(page);
+    page[method] = async (...args) => {
+      const url = method === 'goto' ? args[0] : page.url();
+      const wait = SLIDES_PAGE.test(url) ? await turn() : 0;
+      if (wait > 0) {
+        testInfo.setTimeout(testInfo.timeout + wait);
+        await new Promise((resolve) => setTimeout(resolve, wait));
+      }
+      return original(...args);
+    };
+  }
+  return page;
+}
+
+async function deckLimited(context) {
+  for (const page of context.pages()) {
+    const banner = page
+      .locator('a[href*="support.google.com/docs/answer/2494822"]')
+      .or(page.locator('#docs-full-bleed-notification-banner .appsElementsBannerText:not(:empty)'));
+    const present = page.locator('#punch-start-presentation-left:not([aria-disabled="true"])');
+    const count = (locator) => locator.count().catch(() => 0);
+    if ((await count(banner)) && !(await count(present))) return true;
+  }
+  return false;
+}
+
 // Branded Chrome ignores --load-extension since v137, so this uses Playwright's Chromium.
 export const test = base.extend({
   allSites: [false, { option: true }],
@@ -94,7 +166,7 @@ export const test = base.extend({
   // Slides finishing its filmstrip can look like one, so other tests would find two players. Its own
   // tests, and Settings', use the extension's defaults: `test.use({ settings: {} })`.
   settings: [{ liveEdits: 'off' }, { option: true }],
-  context: async ({ headless, allSites, slidesLanguage, settings }, use) => {
+  context: async ({ headless, allSites, slidesLanguage, settings }, use, testInfo) => {
     const extension = extensionCopy({ allSites, englishOnly: !slidesLanguage });
     const context = await chromium.launchPersistentContext('', {
       channel: 'chromium',
@@ -113,8 +185,12 @@ export const test = base.extend({
         return route.continue({ url: url.href });
       });
     }
+    const newPage = context.newPage.bind(context);
+    context.newPage = async () => takeTurns(await newPage(), testInfo);
     await use(context);
+    const limited = testInfo.status !== testInfo.expectedStatus && (await deckLimited(context));
     await context.close();
+    if (limited) throw new Error(DECK_LIMITED);
   },
   serviceWorker: async ({ context }, use) => {
     const [worker] = context.serviceWorkers();

@@ -59,7 +59,7 @@ npm test
 
 Each run lints first, then launches Playwright's Chromium with `extension/` loaded and checks it against a [public test deck](https://docs.google.com/presentation/d/1XouicC310558IOk_VJ7uu55kxBO7TY-19suR998ONOo/edit). The tests only view it, so a copy works too: make one, share it as "Anyone with the link can view", and set `TEST_DECK_URL` to its address. Only the deck's owner can change the shared one, so if a test needs a new slide, say so in your pull request.
 
-A full run takes about 45 minutes, four tests at a time. The tests need the network, and on a very busy computer some of them time out: run the failed ones again with `npx playwright test --last-failed --workers=1` before looking for a bug.
+A full run takes about 20 minutes, four tests at a time. Slides limits a deck opened too often, so the tests take turns opening it, one every 5 seconds. The tests need the network, and on a very busy computer some of them time out: run the failed ones again with `npx playwright test --last-failed --workers=1` before looking for a bug.
 
 - `npm run test:offline`: only the tests that need no Google Slides, in a few seconds. GitHub runs these, with the lint and the release build, on every push and pull request.
 - `npm run test:headed`: watch the tests run.
@@ -118,7 +118,7 @@ Every card states the presenter's problem, the evidence that people need it, the
 1. `make bump` raises the version in `extension/manifest.json` and starts its section in CHANGELOG.md.
 2. Write what changed there, from the presenter's side, and replace "Unreleased" with the date.
 3. Commit and push to `main`.
-4. `make test-build` runs every test on the release build, in about 45 minutes, and marks the commit as tested if they pass.
+4. `make test-build` runs every test on the release build, in about 20 minutes, and marks the commit as tested if they pass.
 5. `make all` checks that this commit passed, builds, then asks before it tags the version with its changelog section, pushes the tag, and creates the GitHub release with the zip attached.
 6. Upload the zip at the [Chrome Web Store dashboard](https://chrome.google.com/webstore/devconsole), with the listing text from [STORE.md](STORE.md) if it changed.
 
