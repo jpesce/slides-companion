@@ -125,6 +125,8 @@
   "liveEditsLaterHint": { "message": "agar slide tidak pernah berubah saat Anda sedang membahasnya" },
   "liveEditsOff": { "message": "Baru di slideshow berikutnya" },
   "liveEditsOffHint": { "message": "seluruh slideshow tidak berubah sejak Anda memulainya, seperti yang biasa dilakukan Google Slide" },
+  "liveEditsStopped": { "message": "Pengeditan langsung berhenti berfungsi selama slideshow tadi. Pembaruan seharusnya mengembalikannya." },
+  "liveEditsReport": { "message": "Laporkan" },
   "shortcutSpotlight": { "message": "Sorot gambar yang dipilih" },
   "shortcutNextImage": { "message": "Gambar berikutnya di Sorotan" },
   "shortcutPreviousImage": { "message": "Gambar sebelumnya di Sorotan" },

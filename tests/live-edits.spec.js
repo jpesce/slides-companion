@@ -176,6 +176,34 @@ test('when Slides no longer has a part live edits leans on, live edits turns its
   await expect(words(page, 'Lisbon')).toHaveCount(0);
   await page.keyboard.press('ArrowLeft');
   await expect.poll(() => shownSlide(page)).toBe(2);
+
+  // Once the slideshow has ended, the editor says so, in Slides' own toast (drawn by Slides'
+  // stylesheet, bottom left), with a report to send us, filled in.
+  await page.keyboard.press('Escape');
+  await expect(page.locator(PLAYER)).toHaveCount(0);
+  const toast = page.locator('.docs-ui-toast');
+  await expect(toast).toContainText('Live edits stopped working during that slideshow');
+  await expect(toast).toHaveCSS('background-color', 'rgb(48, 48, 48)');
+  const box = await toast.boundingBox();
+  expect(box.x).toBe(24);
+  expect(box.y + box.height).toBe(page.viewportSize().height - 24);
+  await page.screenshot({ path: test.info().outputPath('toast.png') });
+
+  await context.route('https://github.com/**', (route) => route.fulfill({ body: '' }));
+  const opened = context.waitForEvent('page');
+  await toast.getByRole('button', { name: 'Report' }).click();
+  const report = new URL((await opened).url());
+  expect(report.origin + report.pathname).toBe(
+    'https://github.com/jpesce/slides-companion-for-google-slides/issues/new',
+  );
+  expect(report.searchParams.get('template')).toBe('bug.yml');
+  expect(report.searchParams.get('what')).toContain('Slides no longer has SK_viewerDataApi.');
+  expect(report.searchParams.get('version')).toMatch(/^\d+\.\d+/);
+  expect(report.searchParams.get('browser')).toMatch(/ \d+$/);
+  // Slides' own language, which signed out is the location's.
+  const language = await page.evaluate(() => document.documentElement.lang);
+  expect(report.searchParams.get('language')).toMatch(new RegExp(`, ${language}$`));
+  await expect(toast).toHaveCount(0);
 });
 
 test('an edit to another slide changes nothing on screen, and shows when you get there', async ({

@@ -125,6 +125,8 @@
   "liveEditsLaterHint": { "message": "สไลด์จึงไม่เปลี่ยนขณะที่คุณกำลังพูดถึง" },
   "liveEditsOff": { "message": "ไม่เปลี่ยนจนกว่าจะถึงภาพสไลด์ครั้งถัดไป" },
   "liveEditsOffHint": { "message": "ภาพสไลด์ทั้งหมดจะคงเดิมเหมือนตอนที่คุณเริ่ม ตามปกติของ Google สไลด์" },
+  "liveEditsStopped": { "message": "การแก้ไขแบบเรียลไทม์หยุดทำงานระหว่างสไลด์โชว์นั้น การอัปเดตน่าจะทำให้กลับมาใช้ได้" },
+  "liveEditsReport": { "message": "รายงาน" },
   "shortcutSpotlight": { "message": "แสดงรูปภาพที่เลือกในสปอตไลท์" },
   "shortcutNextImage": { "message": "รูปภาพถัดไปในสปอตไลท์" },
   "shortcutPreviousImage": { "message": "รูปภาพก่อนหน้าในสปอตไลท์" },

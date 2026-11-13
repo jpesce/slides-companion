@@ -1,6 +1,6 @@
 # Privacy Policy
 
-_Last updated: November 8, 2026_
+_Last updated: November 13, 2026_
 
 This policy explains what Slides Companion (formerly Image Spotlight for Google Slides) does with your data. In short: nothing leaves your browser for us. There is no account, no server of ours, and no analytics.
 
@@ -12,6 +12,7 @@ We do **not** collect, transmit, or store any personal information. The extensio
 
 - **Your settings** (for example, what a click on a link does during a slideshow) are saved with Chrome's sync storage, so they follow you to your other computers if you've turned on Chrome sync. Chrome syncs them with your Google account, as it does your bookmarks; we never see them.
 - **What you draw** with Slides' pen, **your timer's time** for each deck, the **size and zoom of the floating notes window**, and the words Slides uses in your language to name a slide and an empty notes box (so the floating notes window says them the same way) are saved on your computer only.
+- **When live edits stopped working** during a slideshow (because Google changed Slides): what stopped, when, the extension's version, your browser and its version, and Slides' language, for the last five times. They're saved on your computer only, and leave it only if you click **Report** and then submit the bug report GitHub shows you, filled in with them, from your own GitHub account.
 
 You can remove all of it by removing the extension.
 
@@ -31,6 +32,7 @@ The extension makes no requests to us. Some features load things from the web, a
 - A PDF opens in Google's PDF viewer (`docs.google.com/viewer`), which loads it from its address. To tell whether a link is a PDF, the extension may ask the link's site for the file's type first, without your cookies, if you've allowed every site.
 - YouTube and Google Drive links open in their own players.
 - The extension's windows use Google's fonts, from Google Fonts.
+- **Report**, in the message after live edits stopped working, opens our bug form on GitHub in a new tab, filled in. Nothing is sent until you submit it there.
 
 ## 5. Data sharing
 

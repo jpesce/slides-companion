@@ -128,6 +128,8 @@
   "liveEditsLaterHint": { "message": "설명하는 도중에는 슬라이드가 바뀌지 않습니다" },
   "liveEditsOff": { "message": "다음 슬라이드쇼부터" },
   "liveEditsOffHint": { "message": "슬라이드쇼 전체가 시작할 때 그대로 유지됩니다. Google Slides 기본 방식입니다" },
+  "liveEditsStopped": { "message": "방금 슬라이드쇼에서 실시간 수정이 작동을 멈췄습니다. 업데이트하면 다시 작동할 것입니다." },
+  "liveEditsReport": { "message": "신고" },
   "shortcutSpotlight": { "message": "선택한 이미지를 스포트라이트로 보기" },
   "shortcutNextImage": { "message": "스포트라이트에서 다음 이미지" },
   "shortcutPreviousImage": { "message": "스포트라이트에서 이전 이미지" },

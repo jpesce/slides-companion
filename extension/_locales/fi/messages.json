@@ -128,6 +128,8 @@
   "liveEditsLaterHint": { "message": "niin se ei koskaan muutu, kun puhut siitä" },
   "liveEditsOff": { "message": "Vasta seuraavassa diasarjassa" },
   "liveEditsOffHint": { "message": "koko diasarja pysyy sellaisena kuin se oli aloittaessasi, kuten Slidesissa tavallisesti" },
+  "liveEditsStopped": { "message": "Live-muokkaukset lakkasivat toimimasta tuon diaesityksen aikana. Päivityksen pitäisi palauttaa ne." },
+  "liveEditsReport": { "message": "Ilmoita" },
   "shortcutSpotlight": { "message": "Näytä valittu kuva valokeilassa" },
   "shortcutNextImage": { "message": "Seuraava kuva valokeilassa" },
   "shortcutPreviousImage": { "message": "Edellinen kuva valokeilassa" },

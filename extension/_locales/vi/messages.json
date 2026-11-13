@@ -125,6 +125,8 @@
   "liveEditsLaterHint": { "message": "để trang không bao giờ thay đổi khi bạn đang nói về nó" },
   "liveEditsOff": { "message": "Chỉ ở lần trình chiếu tiếp theo" },
   "liveEditsOffHint": { "message": "toàn bộ bản trình chiếu giữ nguyên từ lúc bạn bắt đầu, như Google Trang trình bày vẫn làm" },
+  "liveEditsStopped": { "message": "Chỉnh sửa trực tiếp đã ngừng hoạt động trong bản trình chiếu đó. Một bản cập nhật sẽ khôi phục tính năng này." },
+  "liveEditsReport": { "message": "Báo cáo" },
   "shortcutSpotlight": { "message": "Xem hình ảnh đã chọn trong Tiêu điểm" },
   "shortcutNextImage": { "message": "Hình ảnh tiếp theo trong Tiêu điểm" },
   "shortcutPreviousImage": { "message": "Hình ảnh trước trong Tiêu điểm" },

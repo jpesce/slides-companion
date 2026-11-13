@@ -128,6 +128,8 @@
   "liveEditsLaterHint": { "message": "zo verandert de dia nooit terwijl je erover vertelt" },
   "liveEditsOff": { "message": "Pas bij de volgende diavoorstelling" },
   "liveEditsOffHint": { "message": "de hele diavoorstelling blijft zoals die was toen je begon, zoals Presentaties het standaard doet" },
+  "liveEditsStopped": { "message": "Livebewerkingen werkten niet meer tijdens die diavoorstelling. Een update zou ze moeten herstellen." },
+  "liveEditsReport": { "message": "Melden" },
   "shortcutSpotlight": { "message": "Geselecteerde afbeelding in de spotlight zetten" },
   "shortcutNextImage": { "message": "Volgende afbeelding in Spotlight" },
   "shortcutPreviousImage": { "message": "Vorige afbeelding in Spotlight" },

@@ -128,6 +128,8 @@
   "liveEditsLaterHint": { "message": "så det aldri endres mens du snakker om det" },
   "liveEditsOff": { "message": "Først ved neste fremvisning" },
   "liveEditsOffHint": { "message": "hele fremvisningen forblir som da du startet, slik Presentasjoner vanligvis gjør" },
+  "liveEditsStopped": { "message": "Endringer i sanntid sluttet å virke under den lysbildefremvisningen. En oppdatering bør få dem tilbake." },
+  "liveEditsReport": { "message": "Rapportér" },
   "shortcutSpotlight": { "message": "Vis det valgte bildet i Spotlight" },
   "shortcutNextImage": { "message": "Neste bilde i Spotlight" },
   "shortcutPreviousImage": { "message": "Forrige bilde i Spotlight" },

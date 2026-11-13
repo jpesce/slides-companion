@@ -131,6 +131,8 @@
   "liveEditsLaterHint": { "message": "כך שהוא אף פעם לא ישתנה בזמן שמדברים עליו" },
   "liveEditsOff": { "message": "רק במצגת הבאה" },
   "liveEditsOffHint": { "message": "כל המצגת נשארת כפי שהייתה בתחילתה, כמו בברירת המחדל של Slides" },
+  "liveEditsStopped": { "message": "העריכה בזמן אמת הפסיקה לפעול במהלך המצגת הזו. עדכון אמור להחזיר אותה." },
+  "liveEditsReport": { "message": "דיווח" },
   "shortcutSpotlight": { "message": "זרקור על התמונה שנבחרה" },
   "shortcutNextImage": { "message": "התמונה הבאה בזרקור" },
   "shortcutPreviousImage": { "message": "התמונה הקודמת בזרקור" },

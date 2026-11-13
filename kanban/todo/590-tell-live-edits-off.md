@@ -17,6 +17,13 @@
 
 **Done when:**
 - [x] The maintainer has chosen one.
-- [ ] After a slideshow where live edits turned off, the editor shows the toast once, looking like Slides' snackbar in light and dark.
-- [ ] Report opens the bug form filled in with what broke, the version, the browser and the language, and nothing is sent otherwise.
-- [ ] PRIVACY.md describes the local log; a test covers the toast and the report's address, and CHANGELOG.md says it.
+- [ ] After a slideshow where live edits turned off, the editor shows the toast once, looking like Slides' snackbar in light and dark. (Built, not compared yet: see below.)
+- [x] Report opens the bug form filled in with what broke, the version, the browser and the language, and nothing is sent otherwise.
+- [x] PRIVACY.md describes the local log; a test covers the toast and the report's address, and CHANGELOG.md says it.
+
+**Built (13 November 2026):**
+- The toast is Slides' own: a `docs-ui-toast` with its content, control bar and close bar, drawn by Slides' stylesheet (found in the editor's stylesheets: `#303030` from `--gm3-sys-color-inverse-surface`, bottom left at 24px, 16px 24px padding, the action in `--ws-sys-color-extended-yellow-tonal`). Only the close icon is ours (`live-edits.css`). So it takes Slides' colours in any theme, and the test checks Slides still draws it.
+- It stays until the presenter closes it or clicks Report: it's rare, and it's the only way to report.
+- The log is `liveEditsLog` in `chrome.storage.local`, the last five times. The report names Slides' language as Slides gives it (`<html lang>`), with its English name.
+
+**Still open:** the side-by-side with a real Slides toast. None shows in the view-only test deck (tried copy, delete, undo, save and the screen reader shortcut), so the markup follows Slides' stylesheet, not a toast seen on screen. To check, in a deck you can edit: make Slides show a toast (deleting a slide or an image may offer "Undo"), and compare it with ours in the test's screenshot (`toast.png`, saved by "live edits turns itself off and says why"): its markup, size, spacing and the action's colour.

@@ -128,6 +128,8 @@
   "liveEditsLaterHint": { "message": "dzięki temu nie zmieni się, gdy o nim mówisz" },
   "liveEditsOff": { "message": "Dopiero przy następnym pokazie slajdów" },
   "liveEditsOffHint": { "message": "cały pokaz slajdów pozostaje bez zmian od początku do końca, jak domyślnie w Prezentacjach" },
+  "liveEditsStopped": { "message": "Zmiany na żywo przestały działać podczas tego pokazu slajdów. Aktualizacja powinna je przywrócić." },
+  "liveEditsReport": { "message": "Zgłoś" },
   "shortcutSpotlight": { "message": "Pokaż zaznaczony obraz w zbliżeniu" },
   "shortcutNextImage": { "message": "Następny obraz w zbliżeniu" },
   "shortcutPreviousImage": { "message": "Poprzedni obraz w zbliżeniu" },

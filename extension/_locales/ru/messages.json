@@ -128,6 +128,8 @@
   "liveEditsLaterHint": { "message": "чтобы он не менялся, пока вы о нем рассказываете" },
   "liveEditsOff": { "message": "Только при следующем слайд-шоу" },
   "liveEditsOffHint": { "message": "слайд-шоу целиком остается таким, каким было в начале, как обычно в Google Презентациях" },
+  "liveEditsStopped": { "message": "Правки в реальном времени перестали работать во время этого показа. Обновление должно их вернуть." },
+  "liveEditsReport": { "message": "Сообщить" },
   "shortcutSpotlight": { "message": "Показать выбранное изображение крупным планом" },
   "shortcutNextImage": { "message": "Следующее изображение крупным планом" },
   "shortcutPreviousImage": { "message": "Предыдущее изображение крупным планом" },

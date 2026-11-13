@@ -128,6 +128,8 @@
   "liveEditsLaterHint": { "message": "elle ne change donc jamais pendant que vous en parlez" },
   "liveEditsOff": { "message": "Pas avant le prochain diaporama" },
   "liveEditsOffHint": { "message": "tout le diaporama reste tel qu’il était au début, comme Slides le fait d’habitude" },
+  "liveEditsStopped": { "message": "Les modifications en direct ont cessé de fonctionner pendant ce diaporama. Une mise à jour devrait les rétablir." },
+  "liveEditsReport": { "message": "Signaler" },
   "shortcutSpotlight": { "message": "Afficher l’image sélectionnée en mode Pleins feux" },
   "shortcutNextImage": { "message": "Image suivante (Pleins feux)" },
   "shortcutPreviousImage": { "message": "Image précédente (Pleins feux)" },

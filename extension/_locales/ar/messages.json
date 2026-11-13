@@ -131,6 +131,8 @@
   "liveEditsLaterHint": { "message": "كي لا تتغيّر أبدًا وأنت تتحدّث عنها" },
   "liveEditsOff": { "message": "ليس قبل عرض الشرائح التالي" },
   "liveEditsOffHint": { "message": "يبقى عرض الشرائح بالكامل كما كان عند بدئه، كما يفعل تطبيق \"العروض التقديمية\" عادةً" },
+  "liveEditsStopped": { "message": "توقّفت التعديلات المباشرة عن العمل خلال عرض الشرائح هذا. من المفترض أن يعيدها التحديث." },
+  "liveEditsReport": { "message": "إبلاغ" },
   "shortcutSpotlight": { "message": "تسليط الضوء على الصورة المحدّدة" },
   "shortcutNextImage": { "message": "الصورة التالية في تسليط الضوء" },
   "shortcutPreviousImage": { "message": "الصورة السابقة في تسليط الضوء" },

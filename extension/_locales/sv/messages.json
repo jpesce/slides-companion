@@ -128,6 +128,8 @@
   "liveEditsLaterHint": { "message": "så att den aldrig ändras medan du pratar om den" },
   "liveEditsOff": { "message": "Inte förrän nästa bildspel" },
   "liveEditsOffHint": { "message": "hela bildspelet förblir som det var när du startade, som Presentationer normalt gör" },
+  "liveEditsStopped": { "message": "Liveändringar slutade fungera under det bildspelet. En uppdatering bör få tillbaka dem." },
+  "liveEditsReport": { "message": "Rapportera" },
   "shortcutSpotlight": { "message": "Visa den markerade bilden i Spotlight" },
   "shortcutNextImage": { "message": "Nästa bild i Spotlight" },
   "shortcutPreviousImage": { "message": "Föregående bild i Spotlight" },

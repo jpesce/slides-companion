@@ -466,6 +466,14 @@
     "message": "the whole slideshow stays as it was when you started, as Slides does on its own",
     "description": "The note after it, shown in brackets."
   },
+  "liveEditsStopped": {
+    "message": "Live edits stopped working during that slideshow. An update should bring them back.",
+    "description": "A toast in the editor, after a slideshow in which live edits turned itself off because Google Slides changed: it stopped, and an update of the extension should bring it back."
+  },
+  "liveEditsReport": {
+    "message": "Report",
+    "description": "The toast's action: opens a bug report to the extension's makers, filled in, for the presenter to send."
+  },
   "shortcutSpotlight": {
     "message": "Spotlight the selected image",
     "description": "In Slides' Keyboard shortcuts dialog, what Space does while editing."

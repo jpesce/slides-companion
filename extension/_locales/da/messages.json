@@ -128,6 +128,8 @@
   "liveEditsLaterHint": { "message": "så det aldrig ændres, mens du taler om det" },
   "liveEditsOff": { "message": "Først ved næste diasshow" },
   "liveEditsOffHint": { "message": "hele diasshowet forbliver, som det var, da du startede, som Slides normalt gør" },
+  "liveEditsStopped": { "message": "Liveændringer holdt op med at virke under det diasshow. En opdatering burde få dem tilbage." },
+  "liveEditsReport": { "message": "Rapportér" },
   "shortcutSpotlight": { "message": "Vis det markerede billede i Spotlight" },
   "shortcutNextImage": { "message": "Næste billede i Spotlight" },
   "shortcutPreviousImage": { "message": "Forrige billede i Spotlight" },

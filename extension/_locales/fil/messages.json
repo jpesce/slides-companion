@@ -125,6 +125,8 @@
   "liveEditsLaterHint": { "message": "para hindi ito kailanman magbago habang pinag-uusapan mo ito" },
   "liveEditsOff": { "message": "Sa susunod na slideshow pa" },
   "liveEditsOffHint": { "message": "hindi magbabago ang buong slideshow mula nang magsimula ka, gaya ng karaniwang ginagawa ng Google Slides" },
+  "liveEditsStopped": { "message": "Huminto sa paggana ang live na pag-edit sa slideshow na iyon. Dapat itong maibalik ng isang update." },
+  "liveEditsReport": { "message": "Iulat" },
   "shortcutSpotlight": { "message": "I-spotlight ang napiling larawan" },
   "shortcutNextImage": { "message": "Susunod na larawan sa Spotlight" },
   "shortcutPreviousImage": { "message": "Nakaraang larawan sa Spotlight" },

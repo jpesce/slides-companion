@@ -128,6 +128,8 @@
   "liveEditsLaterHint": { "message": "話している最中にスライドが変わることはありません" },
   "liveEditsOff": { "message": "次のスライドショーから" },
   "liveEditsOffHint": { "message": "スライドショー全体が開始時のまま変わりません。Google スライド本来の動作です" },
+  "liveEditsStopped": { "message": "先ほどのスライドショーでライブ編集が動作しなくなりました。アップデートで元に戻るはずです。" },
+  "liveEditsReport": { "message": "報告" },
   "shortcutSpotlight": { "message": "選択した画像をスポットライトで表示" },
   "shortcutNextImage": { "message": "スポットライトで次の画像に移動" },
   "shortcutPreviousImage": { "message": "スポットライトで前の画像に移動" },

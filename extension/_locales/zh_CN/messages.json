@@ -128,6 +128,8 @@
   "liveEditsLaterHint": { "message": "这样在您讲解时幻灯片绝不会变化" },
   "liveEditsOff": { "message": "下次幻灯片演示时" },
   "liveEditsOffHint": { "message": "整个幻灯片演示保持开始时的样子，与 Google 幻灯片的默认方式相同" },
+  "liveEditsStopped": { "message": "在刚才的幻灯片放映中，实时编辑停止了工作。更新后应该就能恢复。" },
+  "liveEditsReport": { "message": "报告" },
   "shortcutSpotlight": { "message": "聚焦显示所选图片" },
   "shortcutNextImage": { "message": "聚焦中的下一张图片" },
   "shortcutPreviousImage": { "message": "聚焦中的上一张图片" },

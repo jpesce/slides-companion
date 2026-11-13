@@ -448,13 +448,14 @@
 
   // Slides no longer has a part live edits leans on (see live-edits-main.js): for the rest of the
   // slideshow, it's as if live edits were off, rather than show a wrong slide.
-  let gaveUp = false;
+  // What it no longer has, once it has given up.
+  let gaveUp = null;
   function giveUp(missing) {
     if (!gaveUp)
       console.warn(
         `Slides Companion turned live edits off for this slideshow: Slides no longer has ${missing.join(', ')}.`,
       );
-    gaveUp = true;
+    gaveUp = missing;
     sync();
   }
 
@@ -495,8 +496,115 @@
       frame.inert = false;
     }
     watching = false;
-    gaveUp = false;
+    if (gaveUp) stopped(gaveUp);
+    gaveUp = null;
     filmstrip.disconnect();
+  }
+
+  // ----- Telling the presenter -----
+
+  // After a slideshow in which live edits gave up, the editor says so, never during it: in Slides'
+  // own toast (its docs-ui-toast, which Slides' stylesheet draws, in Slides' colours), with Report,
+  // which opens our bug form on GitHub filled in, through the issue form's URL fields (ids from
+  // .github/ISSUE_TEMPLATE/bug.yml). Nothing is sent: what broke is kept on this computer, the last
+  // few times, and goes only into a report the presenter submits (PRIVACY.md).
+  const LOG_KEY = 'liveEditsLog';
+  const LOG_LENGTH = 5;
+  const BUG_FORM = 'https://github.com/jpesce/slides-companion-for-google-slides/issues/new';
+  const CLOSE_ICON = globalThis.slidesCompanion.ui.icon(
+    'M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z',
+  );
+
+  // As the form asks: "Chrome 142", from the browser's own brand (Chrome, Edge, Brave…), else
+  // Chromium's.
+  function browserName() {
+    const brands = navigator.userAgentData?.brands ?? [];
+    const brand =
+      brands.find(({ brand }) => !/not.?a.?brand|chromium/i.test(brand)) ??
+      brands.find(({ brand }) => /chromium/i.test(brand));
+    return brand ? `${brand.brand} ${brand.version}` : navigator.userAgent;
+  }
+
+  // Slides' language, named in English for us, with its code: "Portuguese (Brazil), pt-BR".
+  function languageName(code) {
+    try {
+      return `${new Intl.DisplayNames(['en'], { type: 'language' }).of(code)}, ${code}`;
+    } catch {
+      return code;
+    }
+  }
+
+  async function stopped(missing) {
+    const entry = {
+      at: new Date().toISOString(),
+      missing,
+      version: chrome.runtime.getManifest().version,
+      browser: browserName(),
+      language: document.documentElement.lang || globalThis.slidesCompanion.locale(),
+    };
+    let log = [entry];
+    try {
+      const kept = (await chrome.storage.local.get(LOG_KEY))[LOG_KEY];
+      log = [entry, ...(Array.isArray(kept) ? kept : [])].slice(0, LOG_LENGTH);
+      await chrome.storage.local.set({ [LOG_KEY]: log });
+    } catch {} // The extension was updated or reloaded since this page opened.
+    showToast(reportAddress(log));
+  }
+
+  function reportAddress(log) {
+    const [latest] = log;
+    const form = new URL(BUG_FORM);
+    const fields = {
+      template: 'bug.yml',
+      title: 'Live edits turned itself off',
+      what: [
+        `Live edits turned itself off during a slideshow: Slides no longer has ${latest.missing.join(', ')}.`,
+        '',
+        "From the extension's log on my computer, the latest first:",
+        ...log.map(({ at, version, missing }) => `- ${at}, ${version}: ${missing.join(', ')}`),
+      ].join('\n'),
+      steps: "1. Start the slideshow from the editor.\n2. Edit the deck while it's presented.",
+      browser: latest.browser,
+      version: latest.version,
+      language: languageName(latest.language),
+    };
+    for (const [name, value] of Object.entries(fields)) form.searchParams.set(name, value);
+    return form.href;
+  }
+
+  let toast = null;
+  function showToast(address) {
+    const { html } = globalThis.slidesCompanion;
+    toast?.remove();
+    toast = document.createElement('div');
+    toast.className = 'docs-ui-toast slides-companion-toast';
+    toast.setAttribute('role', 'alert');
+    toast.innerHTML = `
+      <div class="docs-ui-toast-content">${html('liveEditsStopped')}</div>
+      <div class="docs-ui-toast-control-bar">
+        <div class="docs-ui-toast-control" role="button" tabindex="0">${html('liveEditsReport')}</div>
+      </div>
+      <div class="docs-ui-toast-close-bar">
+        <button type="button" class="docs-ui-toast-close" aria-label="${html('spotlightClose')}">${CLOSE_ICON}</button>
+      </div>`;
+    const shown = toast;
+    const close = () => {
+      shown.remove();
+      if (toast === shown) toast = null;
+    };
+    const report = () => {
+      close();
+      window.open(address, '_blank', 'noopener');
+    };
+    const control = toast.querySelector('.docs-ui-toast-control');
+    control.addEventListener('click', report);
+    control.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      report();
+    });
+    toast.querySelector('.docs-ui-toast-close').addEventListener('click', close);
+    document.body.append(toast);
   }
 
   if (IN_EDITOR) {

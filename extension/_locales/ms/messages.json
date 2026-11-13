@@ -125,6 +125,8 @@
   "liveEditsLaterHint": { "message": "supaya slaid tidak pernah berubah semasa anda sedang membincangkannya" },
   "liveEditsOff": { "message": "Hanya pada tayangan slaid seterusnya" },
   "liveEditsOffHint": { "message": "seluruh tayangan slaid tidak berubah sejak anda memulakannya, seperti kebiasaan Google Slides" },
+  "liveEditsStopped": { "message": "Pengeditan langsung berhenti berfungsi semasa tayangan slaid itu. Kemas kini sepatutnya mengembalikannya." },
+  "liveEditsReport": { "message": "Laporkan" },
   "shortcutSpotlight": { "message": "Tunjukkan imej yang dipilih dalam Tumpuan" },
   "shortcutNextImage": { "message": "Imej seterusnya dalam Tumpuan" },
   "shortcutPreviousImage": { "message": "Imej sebelumnya dalam Tumpuan" },

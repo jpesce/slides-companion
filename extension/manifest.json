@@ -52,7 +52,13 @@
         "notes.js",
         "shortcuts.js"
       ],
-      "css": ["palette.css", "companion.css", "settings-dialog.css", "spotlight.css"],
+      "css": [
+        "palette.css",
+        "companion.css",
+        "settings-dialog.css",
+        "spotlight.css",
+        "live-edits.css"
+      ],
       "run_at": "document_idle"
     },
     {

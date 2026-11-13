@@ -128,6 +128,8 @@
   "liveEditsLaterHint": { "message": "így sosem változik, miközben éppen róla beszél" },
   "liveEditsOff": { "message": "Csak a következő diavetítésben" },
   "liveEditsOffHint": { "message": "az egész diavetítés olyan marad, amilyen az elején volt, ahogy a Diák alapesetben is működik" },
+  "liveEditsStopped": { "message": "Az élő változtatások leálltak a diavetítés közben. Egy frissítésnek vissza kell hoznia őket." },
+  "liveEditsReport": { "message": "Jelentés" },
   "shortcutSpotlight": { "message": "A kijelölt kép reflektorfénybe állítása" },
   "shortcutNextImage": { "message": "Következő kép a reflektorfényben" },
   "shortcutPreviousImage": { "message": "Előző kép a reflektorfényben" },

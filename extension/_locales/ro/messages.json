@@ -128,6 +128,8 @@
   "liveEditsLaterHint": { "message": "astfel nu se schimbă niciodată în timp ce vorbești despre el" },
   "liveEditsOff": { "message": "Abia la următorul slideshow" },
   "liveEditsOffHint": { "message": "tot slideshow-ul rămâne la fel ca la început, cum face în mod obișnuit aplicația Prezentări" },
+  "liveEditsStopped": { "message": "Modificările live au încetat să funcționeze în timpul acelei prezentări. O actualizare ar trebui să le readucă." },
+  "liveEditsReport": { "message": "Raportează" },
   "shortcutSpotlight": { "message": "Evidențiază imaginea selectată" },
   "shortcutNextImage": { "message": "Imaginea următoare în Evidențiere" },
   "shortcutPreviousImage": { "message": "Imaginea anterioară în Evidențiere" },

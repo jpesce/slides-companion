@@ -125,6 +125,8 @@
   "liveEditsLaterHint": { "message": "ताकि जिस स्लाइड के बारे में आप बात कर रहे हों, वह कभी न बदले" },
   "liveEditsOff": { "message": "अगले स्लाइड शो तक नहीं" },
   "liveEditsOffHint": { "message": "पूरा स्लाइड शो वैसा ही रहता है जैसा शुरू करते समय था, Slides में आम तौर पर ऐसा ही होता है" },
+  "liveEditsStopped": { "message": "उस स्लाइड शो के दौरान लाइव बदलाव काम करना बंद कर गए। अपडेट से ये वापस आ जाने चाहिए।" },
+  "liveEditsReport": { "message": "रिपोर्ट करें" },
   "shortcutSpotlight": { "message": "चुनी गई इमेज को स्पॉटलाइट करें" },
   "shortcutNextImage": { "message": "स्पॉटलाइट में अगली इमेज" },
   "shortcutPreviousImage": { "message": "स्पॉटलाइट में पिछली इमेज" },

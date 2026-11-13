@@ -1,0 +1,14 @@
+/* The toast after a slideshow in which live edits stopped (live-edits.js) is Slides' own
+   docs-ui-toast, drawn by Slides' stylesheet. Only its close button's icon is ours: Material's
+   close, at Slides' icon size, in the toast's text colour. */
+.slides-companion-toast .docs-ui-toast-close {
+  color: inherit;
+  cursor: pointer;
+}
+
+.slides-companion-toast .docs-ui-toast-close svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}

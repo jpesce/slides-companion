@@ -128,6 +128,8 @@
   "liveEditsLaterHint": { "message": "這樣在您講解時投影片絕不會變動" },
   "liveEditsOff": { "message": "下次投影播放時" },
   "liveEditsOffHint": { "message": "整個投影播放會維持開始時的樣子，與 Google 簡報的預設做法相同" },
+  "liveEditsStopped": { "message": "在剛才的投影片放映中，即時編輯停止運作。更新後應該就能恢復。" },
+  "liveEditsReport": { "message": "回報" },
   "shortcutSpotlight": { "message": "聚焦顯示所選圖片" },
   "shortcutNextImage": { "message": "聚焦中的下一張圖片" },
   "shortcutPreviousImage": { "message": "聚焦中的上一張圖片" },

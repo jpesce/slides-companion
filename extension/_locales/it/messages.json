@@ -128,6 +128,8 @@
   "liveEditsLaterHint": { "message": "così non cambia mai mentre ne stai parlando" },
   "liveEditsOff": { "message": "Solo alla prossima presentazione" },
   "liveEditsOffHint": { "message": "l’intera presentazione resta com’era quando hai iniziato, come fa normalmente Presentazioni" },
+  "liveEditsStopped": { "message": "Le modifiche in tempo reale hanno smesso di funzionare durante quella presentazione. Un aggiornamento dovrebbe ripristinarle." },
+  "liveEditsReport": { "message": "Segnala" },
   "shortcutSpotlight": { "message": "Evidenzia l’immagine selezionata" },
   "shortcutNextImage": { "message": "Immagine successiva in evidenza" },
   "shortcutPreviousImage": { "message": "Immagine precedente in evidenza" },

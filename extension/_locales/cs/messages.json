@@ -128,6 +128,8 @@
   "liveEditsLaterHint": { "message": "nikdy se tak nezmění, zatímco o něm mluvíte" },
   "liveEditsOff": { "message": "Až při příští prezentaci" },
   "liveEditsOffHint": { "message": "celá prezentace zůstane taková, jaká byla na začátku, jako v samotných Prezentacích" },
+  "liveEditsStopped": { "message": "Živé úpravy během té prezentace přestaly fungovat. Aktualizace by je měla vrátit." },
+  "liveEditsReport": { "message": "Nahlásit" },
   "shortcutSpotlight": { "message": "Zobrazit vybraný obrázek zblízka" },
   "shortcutNextImage": { "message": "Další obrázek zblízka" },
   "shortcutPreviousImage": { "message": "Předchozí obrázek zblízka" },

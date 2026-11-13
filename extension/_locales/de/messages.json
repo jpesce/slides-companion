@@ -128,6 +128,8 @@
   "liveEditsLaterHint": { "message": "so ändert sie sich nie, während Sie darüber sprechen" },
   "liveEditsOff": { "message": "Erst bei der nächsten Diashow" },
   "liveEditsOffHint": { "message": "die ganze Diashow bleibt so, wie sie beim Start war, wie bei Google Präsentationen üblich" },
+  "liveEditsStopped": { "message": "Live-Änderungen haben in dieser Präsentation nicht mehr funktioniert. Ein Update sollte sie zurückbringen." },
+  "liveEditsReport": { "message": "Melden" },
   "shortcutSpotlight": { "message": "Ausgewähltes Bild im Spotlight anzeigen" },
   "shortcutNextImage": { "message": "Nächstes Bild im Spotlight" },
   "shortcutPreviousImage": { "message": "Vorheriges Bild im Spotlight" },

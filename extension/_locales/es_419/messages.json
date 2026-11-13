@@ -128,6 +128,8 @@
   "liveEditsLaterHint": { "message": "así nunca cambia mientras hablas de ella" },
   "liveEditsOff": { "message": "Solo en la próxima presentación de diapositivas" },
   "liveEditsOffHint": { "message": "toda la presentación de diapositivas queda como estaba cuando empezaste, como lo hace Presentaciones normalmente" },
+  "liveEditsStopped": { "message": "Las ediciones en vivo dejaron de funcionar durante esa presentación. Una actualización debería recuperarlas." },
+  "liveEditsReport": { "message": "Informar" },
   "shortcutSpotlight": { "message": "Destacar la imagen seleccionada" },
   "shortcutNextImage": { "message": "Destacar la siguiente imagen" },
   "shortcutPreviousImage": { "message": "Destacar la imagen anterior" },

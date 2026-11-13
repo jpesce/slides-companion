@@ -131,6 +131,8 @@
   "liveEditsLaterHint": { "message": "böylece siz ondan bahsederken asla değişmez" },
   "liveEditsOff": { "message": "Bir sonraki slayt gösterisinde" },
   "liveEditsOffHint": { "message": "slayt gösterisinin tamamı başladığınız andaki hâliyle kalır, Slaytlar’ın normalde yaptığı gibi" },
+  "liveEditsStopped": { "message": "Canlı düzenlemeler o slayt gösterisi sırasında çalışmayı durdurdu. Bir güncelleme onları geri getirecektir." },
+  "liveEditsReport": { "message": "Bildir" },
   "shortcutSpotlight": { "message": "Seçili resmi spot ışığında göster" },
   "shortcutNextImage": { "message": "Spot ışığında sonraki resim" },
   "shortcutPreviousImage": { "message": "Spot ışığında önceki resim" },
