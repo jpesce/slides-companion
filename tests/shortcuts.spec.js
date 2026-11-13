@@ -162,6 +162,7 @@ test('during a slideshow, the dialog lists the keys that work there, and typing 
   await search(dialog).pressSequentially('pot');
   await expect(search(dialog)).toHaveValue('Spot');
   await expect(categories(dialog)).toHaveText(['Slides Companion']);
+  // Typing in the search box opens nothing, even a moment later.
   await page.waitForTimeout(500);
   expect(context.pages()).toHaveLength(pages);
 });

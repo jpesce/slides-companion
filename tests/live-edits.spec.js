@@ -181,6 +181,7 @@ test('presenter view moves to the new player, without another window', async ({ 
     200,
   );
   await expect(words(page, 'Lisbon')).toBeVisible({ timeout: 15000 });
+  // Watched for three seconds, as the slideshow carries on.
   await page.waitForTimeout(3000);
   clearInterval(watching);
   expect(context.pages().length).toBe(windows);
@@ -242,6 +243,7 @@ test('presenter view’s countdown and its bar stay put while a new player takes
   const watching = setInterval(() => look().then((seen) => seen && looks.push(seen)), 100);
   await edit(page, SLIDE_3, 'Lisbon');
   await expect(words(page, 'Lisbon')).toBeVisible({ timeout: 15000 });
+  // Watched for a while after the edit shows.
   await page.waitForTimeout(2500);
   clearInterval(watching);
   expect(looks.length).toBeGreaterThan(20);
@@ -260,6 +262,7 @@ test('it waits for a calm moment: an image spotlit keeps the slide as it is', as
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
   await expect(shown(page).locator('.slides-companion-spotlight')).toBeVisible();
   await edit(page, SLIDE_3, 'Lisbon');
+  // While the picture is spotlit, no other player takes over, through several checks.
   await page.waitForTimeout(6000);
   await expect(slidesOwn(page)).not.toHaveAttribute('data-slides-companion-player');
   await page.keyboard.press('Escape');
@@ -295,6 +298,7 @@ test('set to show edits once you’ve moved on, the slide on screen stays as it 
   await choose(context, /Once you’ve moved to another slide/);
   const page = await startEditableSlideshow(context);
   await edit(page, SLIDE_3, 'Lisbon');
+  // On screen, the edit doesn't show, through several checks.
   await page.waitForTimeout(7000);
   await expect(words(page, 'Lisbon')).toHaveCount(0);
   await page.keyboard.press('ArrowLeft');
@@ -307,6 +311,7 @@ test('set to wait for the next slideshow, nothing changes', async ({ context }) 
   await choose(context, /Not until the next slideshow/);
   const page = await startEditableSlideshow(context);
   await edit(page, SLIDE_3, 'Lisbon');
+  // The edit doesn't show in this slideshow, through several checks.
   await page.waitForTimeout(7000);
   await expect(copies(page)).toHaveCount(0);
   await expect(words(page, 'Lisbon')).toHaveCount(0);
@@ -320,6 +325,7 @@ test('a slide drawn again, unedited but numbered differently, loads no new playe
   await page.evaluate(() => (window.renumbered = true));
   // Slides redraws the slide's thumbnail, as it does when it's busy, with nothing edited.
   await edit(page, SLIDE_3);
+  // Nothing edited, nothing takes over, through several checks.
   await page.waitForTimeout(7000);
   await expect(copies(page)).toHaveCount(0);
   await expect(page.locator(PLAYER)).toHaveCount(1);
@@ -332,8 +338,10 @@ test('a slide drawn again, unedited but numbered differently, loads no new playe
 test('an edit undone before it shows changes nothing', async ({ context }) => {
   const page = await startEditableSlideshow(context);
   await edit(page, SLIDE_3, 'Lisbon');
+  // Undone within a second, before a check can take it.
   await page.waitForTimeout(400);
   await edit(page, SLIDE_3, null);
+  // Undone, nothing takes over, through several checks.
   await page.waitForTimeout(7000);
   await expect(slidesOwn(page)).not.toHaveAttribute('data-slides-companion-player');
   await expect(copies(page)).toHaveCount(0);
@@ -471,6 +479,7 @@ test('presenting through Meet, a new player waiting out of sight leaves Meet wit
   await expect(copies(page)).toHaveAttribute('data-slides-companion-loaded', '', {
     timeout: 15000,
   });
+  // Ready, the new player doesn't take over the slide Meet is on, even a moment later.
   await page.waitForTimeout(2000);
   expect(await meetHas(page)).toBe('Slides’ own');
   // Moving on from Meet, the new player takes over on the slide moved to, and Meet has it.

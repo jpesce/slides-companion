@@ -59,7 +59,7 @@ test('Shift+S opens the slide’s notes in a floating window that follows the sl
   // first key can go to the video's step instead.)
   for (let tries = 0; (await slideNumber(show)) !== 5 && tries < 3; tries++) {
     await page.keyboard.press('PageDown');
-    await page.waitForTimeout(1500);
+    await reaches(show, 5);
   }
   await expect(header(notes)).toHaveText(/^\D*5\D+11$/);
   await expect(body(notes)).not.toHaveText(new RegExp(`^${SLIDE_4_STARTS}`));
@@ -161,7 +161,7 @@ test('the floating notes look like presenter view’s and zoom like them', async
 
   // Presenter view, beside the slideshow, on the same slide. (Opening a window takes the browser
   // out of full screen, so not while the notes are still opening.)
-  await page.waitForTimeout(1600);
+  await notesOpened(page);
   await page.mouse.move(300, 500);
   const presenting = context.waitForEvent('page');
   await page.keyboard.press('s');
@@ -248,6 +248,16 @@ async function openNotesLeavingFullScreen(context, page) {
   return notes;
 }
 const isFullScreen = (page) => page.evaluate(() => Boolean(document.fullscreenElement));
+// For about a second and a half after the notes window opens, the slideshow ignores leaving full
+// screen, as opening a window does that (notes.js marks the page meanwhile).
+// Waits for the slideshow to get to a slide, for a moment: the key may have gone to a video's step.
+const reaches = (show, number) =>
+  expect
+    .poll(() => slideNumber(show), { timeout: 1500 })
+    .toBe(number)
+    .catch(() => {});
+const notesOpened = (page) =>
+  expect(page.locator('html')).not.toHaveAttribute('data-slides-companion-opening-notes');
 
 async function openSlideshowMenu(page, show) {
   await page.mouse.move(300, 500);
@@ -282,6 +292,7 @@ test('opening the floating notes keeps the slideshow going in a window, and thei
   await closeFromInside(opened);
 
   const notes = await openNotesLeavingFullScreen(context, page);
+  // The slideshow doesn't end a moment later either.
   await page.waitForTimeout(500);
   await expect(page.locator('iframe.punch-present-iframe')).toBeVisible();
   expect(notes.isClosed()).toBe(false);
@@ -300,7 +311,7 @@ test('opening the floating notes keeps the slideshow going in a window, and thei
   await expect(page.locator('iframe.punch-present-iframe')).toBeVisible();
 
   // Leaving full screen later still ends the slideshow, as it does in Slides.
-  await page.waitForTimeout(1600);
+  await notesOpened(page);
   await page.evaluate(() => document.exitFullscreen());
   await expect(page.locator('iframe.punch-present-iframe')).toBeHidden();
   expect(notes.isClosed()).toBe(false);
@@ -424,7 +435,7 @@ test('out of full screen, the slideshow’s ⋮ menu and ⌘+Shift+F take it bac
   await expect(enterItem(show)).toBeHidden();
   await closeSlideshowMenu(show);
 
-  await page.waitForTimeout(1600);
+  await notesOpened(page);
   await openNotesLeavingFullScreen(context, page);
   await page.keyboard.press('ControlOrMeta+Shift+F');
   await expect.poll(() => isFullScreen(page)).toBe(true);
@@ -470,7 +481,7 @@ test('the floating notes leave out what Slides writes in an empty notes box', as
   // key can go to the video's step instead.
   for (let tries = 0; (await slideNumber(show)) !== 5 && tries < 3; tries++) {
     await notes.keyboard.press('PageDown');
-    await page.waitForTimeout(1500);
+    await reaches(show, 5);
   }
   expect(await slideNumber(show)).toBe(5);
   await expect(body(notes)).not.toHaveText(new RegExp(`^${SLIDE_4_STARTS}`));
@@ -487,6 +498,7 @@ test('the floating notes stay open after the slideshow, and follow the slide sel
   await expect(header(notes)).toHaveText(/^\D*3\D+11$/);
   await page.keyboard.press('Escape');
   await expect(page.locator('iframe.punch-present-iframe')).toBeHidden();
+  // Nor does the window close a moment later.
   await page.waitForTimeout(500);
   expect(notes.isClosed()).toBe(false);
 

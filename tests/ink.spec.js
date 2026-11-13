@@ -8,6 +8,7 @@ import {
   SLIDES,
   pictureShows,
   IDS,
+  zoomSettled,
 } from './fixtures.js';
 
 // Slide 3's slideshow, once its photos show, in a window `viewport` big if given.
@@ -21,13 +22,24 @@ async function drawStroke(page, from, to) {
   await page.mouse.up();
 }
 
-// Draws with the pen and leaves the slideshow, once the stroke is saved.
-async function drawAndLeave(context, draw) {
+// How many strokes are kept on the slide, as ink.js saved them (under "ink <the deck's id>").
+const saved = (context) =>
+  context.serviceWorkers()[0].evaluate(async (slide) => {
+    const stored = await chrome.storage.local.get(null);
+    const deck = Object.keys(stored).find((key) => key.startsWith('ink '));
+    return stored[deck]?.[slide]?.length ?? 0;
+  }, SLIDES.images);
+
+// Draws with the pen and leaves the slideshow, once the stroke is saved (unless keeping is off).
+async function drawAndLeave(context, draw, { keeping = true } = {}) {
   const { page, show } = await startShow(context);
   await page.keyboard.press('Shift+L');
   await draw(page);
   const drawn = await strokes(show, `path:not(${KEPT}), circle:not(${KEPT})`);
-  await page.waitForTimeout(300);
+  const kept = await penLayer(show).locator(`:scope > :is(${KEPT})`).count();
+  if (keeping) await expect.poll(() => saved(context)).toBe(kept + drawn.length);
+  // Off, nothing is saved, even a moment later.
+  else await page.waitForTimeout(300);
   await page.close();
   return drawn;
 }
@@ -77,8 +89,11 @@ test('with keeping turned off in Settings, as in Slides, the pen’s ink goes wh
   context,
 }) => {
   await turnOffKeeping(context);
-  await drawAndLeave(context, (page) => drawStroke(page, [400, 300], [600, 420]));
+  await drawAndLeave(context, (page) => drawStroke(page, [400, 300], [600, 420]), {
+    keeping: false,
+  });
   const { page, show } = await startShow(context);
+  // No kept ink comes, even a moment after the slide shows.
   await page.waitForTimeout(500);
   await expect(ink(show)).toHaveCount(0);
 });
@@ -140,13 +155,13 @@ test.describe('kept from the start', () => {
     const { page, show } = await startShow(context);
     await page.mouse.move(640, 360);
     for (let i = 0; i < 3; i++) await page.mouse.wheel(0, -200);
-    await page.waitForTimeout(500);
+    await zoomSettled(show);
     await page.keyboard.press('Shift+L');
     await drawStroke(page, [400, 300], [600, 420]);
     await page.keyboard.press('Shift+L');
     // Zoomed out, where the stroke sits on the whole slide.
     for (let i = 0; i < 6; i++) await page.mouse.wheel(0, 300);
-    await page.waitForTimeout(500);
+    await zoomSettled(show);
     const drawn = await strokes(show, 'path');
     await page.close();
 
@@ -192,6 +207,7 @@ test.describe('kept from the start', () => {
     await search.click();
     await page.keyboard.press('Shift+A');
     await expect(search).toHaveValue('A');
+    // Typed there, it erases nothing, even a moment later.
     await page.waitForTimeout(300);
     await expect(show.locator(KEPT)).toHaveCount(1);
   });
@@ -206,11 +222,12 @@ test.describe('kept from the start', () => {
       await page.keyboard.press('Shift+L');
       await eraseAll(page, show);
       await expect(ink(show)).toHaveCount(0);
-      await page.waitForTimeout(300);
+      await expect.poll(() => saved(context)).toBe(0);
       await page.close();
 
       const again = await startShow(context);
       await expect(again.show.locator('.punch-viewer-svgpage-a11yelement')).toHaveCount(1);
+      // No kept ink comes back, even a moment after the slide shows.
       await again.page.waitForTimeout(500);
       await expect(ink(again.show)).toHaveCount(0);
     });

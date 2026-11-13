@@ -10,6 +10,7 @@ import {
   SLIDES,
   slideUrl,
   presentUrl,
+  stopsChanging,
 } from './fixtures.js';
 
 // Slide 4 of the test deck: a photo linked to google.com, and a video. The photo flies in from
@@ -110,6 +111,7 @@ test('linked words open over the slide too, but not before they show', async ({ 
   // Waiting for an entrance animation, the words are see-through: the click is the slideshow's.
   await words.evaluate((box) => (box.style.opacity = '0'));
   await clickCentre(page, words.locator('a'));
+  // Nothing opens, even a moment later.
   await page.waitForTimeout(500);
   await expect(stage(show)).toHaveCount(0);
 });
@@ -149,6 +151,7 @@ test('Ctrl/⌘-click on a link is left to Slides', async ({ context }) => {
   await page.keyboard.down('ControlOrMeta');
   await clickLink(page, show);
   await page.keyboard.up('ControlOrMeta');
+  // Nothing opens over the slide, even a moment later.
   await page.waitForTimeout(500);
   await expect(stage(show)).toHaveCount(0);
 });
@@ -214,6 +217,7 @@ test('a page can’t take over the slideshow’s window', async ({ context }) =>
       .frameLocator('iframe.slides-companion-spotlight-website')
       .getByRole('heading', { name: 'Busting' }),
   ).toBeVisible();
+  // The page's script has had its moment to take the window, and didn't.
   await page.waitForTimeout(1000);
   expect(page.url()).toContain('/edit');
   await expect(stage(show)).toBeVisible();
@@ -375,6 +379,7 @@ test('a link that isn’t shown yet leaves the click to the slideshow', async ({
   const { page, show } = await startShow(context);
   await show.locator(`[id="${LINKED_PHOTO}"]`).evaluate((photo) => (photo.style.opacity = '0'));
   await clickLink(page, show);
+  // Nothing opens, even a moment later.
   await page.waitForTimeout(500);
   await expect(stage(show)).toHaveCount(0);
 });
@@ -396,6 +401,7 @@ test('a page can’t take the keys until the pointer goes over it, so Esc still 
 
   await clickLink(page, show);
   await expect(input).toBeAttached();
+  // The page's script tries to take the keys 300 ms after it loads; it still hasn't them after.
   await page.waitForTimeout(600);
   expect(await keysInPage()).toBe(false);
   await page.keyboard.press('Escape');
@@ -574,6 +580,7 @@ test('a site that lets itself be shown never shows the message', async ({ contex
       .frameLocator('iframe.slides-companion-spotlight-website')
       .getByRole('heading', { name: 'Hello from the link' }),
   ).toBeVisible();
+  // No message comes once the check is over, a moment later.
   await page.waitForTimeout(1500);
   await expect(refusal(show)).toHaveCount(0);
   // Checked and done: nothing's left loading out of sight.
@@ -588,8 +595,9 @@ test('a link to another slide of the deck is Slides’ own to follow', async ({ 
   const toNext = show.locator('.punch-viewer-svgpage-svgcontainer a[*|href="#slide=next"]').first();
   await expect(toNext).toBeAttached();
   await page.keyboard.press('ArrowRight');
+  // It flies in.
   await expect.poll(async () => (await toNext.boundingBox())?.x).toBeGreaterThan(0);
-  await page.waitForTimeout(1000);
+  await stopsChanging(() => toNext.boundingBox());
   await clickCentre(page, toNext);
   await expect.poll(() => slideNumber(show)).toBe(6);
   await expect(stage(show)).toHaveCount(0);

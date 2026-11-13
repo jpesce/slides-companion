@@ -314,6 +314,7 @@ test('Back and Forward keep up with the page: a tidied address, the tab’s own 
   await expect.poll(shown).toBe('https://example.com/');
   await press(page, back);
   await expect.poll(shown).toBe('https://www.google.com/');
+  // The page passed on the way says where it is 500 ms late; once it has, the site shown is still the right one.
   await page.waitForTimeout(1200);
   await expect(site(show)).toHaveText('google.com');
   await expect(back).toBeDisabled();

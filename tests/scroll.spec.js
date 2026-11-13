@@ -50,6 +50,7 @@ test('set to do nothing, scrolling stays on the slide, but still moves around a 
   await chooseEditorScroll(page, /Do nothing/);
   await page.mouse.move(700, 350);
   for (let i = 0; i < 3; i++) await page.mouse.wheel(0, 300);
+  // It stays on the slide, even a moment later.
   await page.waitForTimeout(500);
   expect(await current(page)).toBe(SLIDE_3);
   // As in Slides, the wheel is cancelled where the slide can't scroll, so the browser doesn't take
@@ -72,6 +73,7 @@ test('set to do nothing, scrolling stays on the slide, but still moves around a 
   expect(await lastWheelCancelled(page)).toBe(false);
   // Past the bottom, it still stays on the slide.
   for (let i = 0; i < 6; i++) await page.mouse.wheel(0, 300);
+  // It stays on the slide, even a moment later.
   await page.waitForTimeout(500);
   expect(await current(page)).toBe(SLIDE_3);
 });

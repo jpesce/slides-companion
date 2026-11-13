@@ -64,6 +64,7 @@ test('Esc stays kept until the key that closed the gallery is released', async (
   await page.keyboard.down('Escape');
   await expect(stage(show)).toHaveCount(0);
   await page.keyboard.down('Escape'); // A repeat while held.
+  // The repeat doesn't end the slideshow, even a moment later.
   await page.waitForTimeout(300);
   expect(await requests()).toEqual([true]);
   expect(await slideNumber(show)).toBe(3);
@@ -87,6 +88,7 @@ test('in the gallery, clicks, keys and the scroll wheel stay out of the slidesho
   await page.keyboard.press('PageDown');
   await page.keyboard.press('Space');
   await expect(stage(show)).toHaveCount(0);
+  // The keys that closed it don't also change the slide, even a moment later.
   await page.waitForTimeout(500);
   expect(await slideNumber(show)).toBe(3);
 });
@@ -118,6 +120,7 @@ test('with the pen on, clicking an image leaves it to the pen', async ({ context
   await page.keyboard.press('Shift+L');
   await expect(show.locator('.sketchyViewerContent.disable-pointer-events')).toHaveCount(1);
   await clickCentre(page, show.locator(`[id="${LEFT}"] image`));
+  // With the pen on, nothing opens and the slide doesn't change, even a moment later.
   await page.waitForTimeout(500);
   await expect(stage(show)).toHaveCount(0);
   expect(await slideNumber(show)).toBe(3);
@@ -162,6 +165,7 @@ test('holding the key that closes the gallery doesn’t skip slides', async ({ c
   await expect(stage(show)).toHaveCount(0);
   for (let i = 0; i < 5; i++) await page.keyboard.down(' '); // Repeats while held.
   await page.keyboard.up(' ');
+  // The repeats and the release don't change the slide, even a moment later.
   await page.waitForTimeout(500);
   expect(await slideNumber(show)).toBe(3);
   // Released, Space goes on to the next slide as usual.
@@ -179,6 +183,7 @@ test('double clicking an image opens it, and the second click does nothing more'
   const point = { x: photo.x + photo.width / 2, y: 50 };
   expect(point.y).toBeGreaterThan(photo.y);
   await page.mouse.dblclick(point.x, point.y);
+  // The double click's second click doesn't close it, even a moment later.
   await page.waitForTimeout(300);
   await expect(stage(show)).toBeVisible();
   // A fresh click works as usual.

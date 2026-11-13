@@ -61,6 +61,7 @@ test('choosing a time in the timer’s menu counts down from it, and Slides’ P
 
   await pause(presenter).click();
   const paused = await secondsLeft(presenter);
+  // Paused, the time doesn't move, two seconds on.
   await presenter.waitForTimeout(2000);
   expect(await secondsLeft(presenter)).toBe(paused);
 

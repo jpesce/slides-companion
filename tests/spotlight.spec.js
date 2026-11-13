@@ -175,6 +175,7 @@ test('the bar shows when the gallery opens, then only when the pointer is above 
   await page.mouse.move(width / 2, height / 2);
   await page.mouse.move(width / 2 + 20, height / 2 + 20);
   await page.keyboard.press('ArrowRight');
+  // The bar stays hidden, even a moment later.
   await page.waitForTimeout(500);
   await expect(bar).toHaveCSS('opacity', '0');
 
@@ -257,6 +258,7 @@ test('the bar’s buttons show Slides’ tooltip: after a moment, above the butt
   await page.mouse.down();
   await page.mouse.up();
   await expect(tooltip).toBeHidden();
+  // It stays hidden while the pointer stays.
   await page.waitForTimeout(600);
   await expect(tooltip).toBeHidden();
   // Next is now disabled (the last image), and still says what it is.
@@ -343,6 +345,7 @@ test('Space does nothing when the selection has no image', async ({ context }) =
   await expect.poll(() => selected(page)).toEqual([CAPTION]);
 
   await page.keyboard.press('Space');
+  // Nothing opens, even a moment later.
   await page.waitForTimeout(300);
   await expect(stage(page)).toHaveCount(0);
 });
@@ -453,6 +456,7 @@ test('holding Space keeps the gallery open', async ({ context }) => {
   await expect(stage(page)).toBeVisible();
   for (let i = 0; i < 5; i++) await page.keyboard.down(' '); // Repeats while held.
   await page.keyboard.up(' ');
+  // The repeats and the release don't close it, even a moment later.
   await page.waitForTimeout(300);
   await expect(stage(page)).toBeVisible();
 });
@@ -467,6 +471,7 @@ test('videos aren’t spotlighted', async ({ context }) => {
   await clickCentre(page, video);
   await expect.poll(() => selected(page)).toEqual([inEditor(IDS.video)]);
   await page.keyboard.press('Space');
+  // Nothing opens, even a moment later.
   await page.waitForTimeout(300);
   await expect(stage(page)).toHaveCount(0);
 });

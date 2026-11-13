@@ -347,11 +347,22 @@
 
     // Keeps the slideshow going through the browser leaving full screen as the window opens.
     // Returns what stops it, once the window is open (or didn't open).
+    // While any opening does, the page says so (`data-slides-companion-opening-notes`), for the
+    // tests to wait on.
+    let keeping = 0;
     function keepSlideshowThroughOpening() {
       const fullScreen = document.fullscreenElement;
       if (!fullScreen) return () => {};
-      const stop = () =>
+      const marked = document.documentElement.dataset;
+      keeping++;
+      marked.slidesCompanionOpeningNotes = '';
+      let stopped = false;
+      const stop = () => {
         FULL_SCREEN_CHANGES.forEach((type) => window.removeEventListener(type, hide, true));
+        if (stopped) return;
+        stopped = true;
+        if (!--keeping) delete marked.slidesCompanionOpeningNotes;
+      };
       function hide(event) {
         if (document.fullscreenElement) return;
         // Ahead of Slides, which listens further down.

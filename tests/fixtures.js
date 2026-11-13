@@ -157,6 +157,33 @@ export const slideNumber = (show) =>
     .getAttribute('aria-label')
     .then((label) => Number(label.match(/\d+/)[0]));
 
+// A slideshow's zoom and shift (zoom.js), from the slide's transform.
+export const slideZoom = (show) =>
+  show.locator('.sketchyViewerContent').evaluate((element) => {
+    const { a, e, f } = new DOMMatrix(element.style.transform);
+    return { scale: Math.round(a * 100) / 100, x: Math.round(e), y: Math.round(f) };
+  });
+
+// Waits until `read()` gives the same twice in a row, a tenth of a second apart: something easing
+// or flying in has come to rest.
+export async function stopsChanging(read) {
+  let last;
+  await expect
+    .poll(
+      async () => {
+        const now = JSON.stringify(await read());
+        const still = now === last;
+        last = now;
+        return still;
+      },
+      { intervals: [100] },
+    )
+    .toBe(true);
+}
+
+// Scrolling eases to its zoom; this waits until it's there.
+export const zoomSettled = (show) => stopsChanging(() => slideZoom(show));
+
 // Spotlight's stage, where it shows pictures and pages, in the editor or a slideshow.
 export const stage = (page) => page.locator('.slides-companion-spotlight');
 
