@@ -6,6 +6,8 @@
 
 **Approach:** first find what moves the focus to the editor's document (Slides' own handlers when the pointer leaves the slideshow's frame for ours, or ours), then either keep the focus in the slideshow's frame while the stage is open, or listen for Esc in the editor's document too (content.js runs there) and close the stage from there.
 
+**Not reproduced in the test Chromium (13 November 2026), set aside for a check in Chrome:** with the extension at commit `dc904d9`, in Playwright's Chromium, on the test deck's slide 4, a link's page was opened, the pointer moved over it (in 5 steps, and in one jump as the demo's script does), the page scrolled with the wheel, then Esc pressed. Every time the slideshow's frame kept the focus (`document.hasFocus()` true, the editor's `activeElement` the slideshow's iframe) and Esc closed the page, in all of these: a played page, the real google.com and en.wikipedia.org/wiki/Earthrise with every site allowed, the photo's link and the words' link, at 1280×720 and the demo's 1600×900, and after the demo's own way there (a picture spotlit on the slide before, closed with Esc after the pointer rested, then → to the links slide). What differed in the demo capture isn't known: its own deck, or `deviceScaleFactor: 4`, or something since fixed. Next: try it in Chrome itself, signed in (the card asks for that anyway); if it doesn't happen there either, drop the card, or keep only a test that moves the pointer over the page and scrolls before Esc.
+
 **Done when:**
 - [ ] With a link's page open, Esc brings the slide back after the pointer has moved over the page and scrolled it.
 - [ ] Checked in Chrome as well as in the test Chromium.
