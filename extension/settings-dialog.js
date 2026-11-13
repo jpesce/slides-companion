@@ -3,8 +3,6 @@
 // buttons and motion. Each feature has a page of its own, chosen from a list down the side as in
 // Google Meet's Settings.
 {
-  // Matches the closing fade in settings-dialog.css.
-  const EXIT_MS = 75;
   // Material's checkmark, drawn in by stroke (see settings-dialog.css).
   const CHECKMARK = '<svg viewBox="0 0 24 24"><path d="M1.73 12.91 8.1 19.28 22.79 4.59"/></svg>';
 
@@ -37,8 +35,7 @@
   const legend = (key) => `<legend class="slides-companion-dialog-legend">${words(key)}</legend>`;
 
   // Material Symbols (Apache 2.0), the icons Meet's Settings uses.
-  const icon = (path) =>
-    `<svg viewBox="0 -960 960 960" aria-hidden="true"><path d="${path}"/></svg>`;
+  const icon = (path) => globalThis.slidesCompanion.ui.icon(path, '0 -960 960 960');
 
   // One row in the list down the side for each feature, and its page of settings.
   const FEATURES = [
@@ -281,10 +278,7 @@
     root = null;
     closing.classList.remove('slides-companion-dialog-open');
     closing.classList.add('slides-companion-dialog-closing');
-    setTimeout(
-      () => closing.remove(),
-      matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : EXIT_MS,
-    );
+    globalThis.slidesCompanion.ui.afterExitFade(() => closing.remove());
     // The companion may be gone, hidden by these very settings.
     if (returnFocusTo?.isConnected) returnFocusTo.focus();
   }

@@ -14,11 +14,9 @@
   // Slides outlines each selected object with a path in this colour, inside the object's group.
   const SELECTION_OUTLINE = 'path[stroke="#8ab4f8"]';
   const MENU_ITEM_CLASS = 'slides-companion-spotlight-menuitem';
-  // Matches the duration of the exit fade in spotlight.css.
-  const EXIT_MS = 75;
   // The pointer hides after resting this long; the controls also show this long when the gallery opens.
   const IDLE_MS = 2000;
-  const icon = (path) => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${path}"/></svg>`;
+  const { icon, afterExitFade } = globalThis.slidesCompanion.ui;
   const CLOSE_ICON = icon(
     'M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z',
   );
@@ -338,19 +336,14 @@
         </div>
       </div>
       <div class="slides-companion-spotlight-status" aria-live="polite"></div>
-      <div class="slides-companion-spotlight-tooltip" aria-hidden="true" hidden></div>`;
+`;
 
     // pressed: whether a press has started on the stage. The second click of a double click that
     // opened it began before it (its press counts on from the first), so it does nothing.
     // returnFocusTo: where keys went before, for them to go there again once it closes.
     const returnFocusTo = document.activeElement;
-    // tip: the control the pointer is on, and whether its tooltip shows (see Tooltips).
-    const tip = {
-      element: stage.querySelector('.slides-companion-spotlight-tooltip'),
-      over: null,
-      shown: false,
-      timer: 0,
-    };
+    // tip: the controls' tooltip (see Tooltips).
+    const tip = controlsTip(stage);
     gallery = {
       stage,
       items,
@@ -380,10 +373,10 @@
     );
     stage.addEventListener('mousedown', (event) => {
       if (event.detail === 1) gallery.pressed = true;
-      hideTip();
+      tip.press();
     });
     stage.addEventListener('mouseover', (event) =>
-      pointAt(event.target.closest('[data-slides-companion-tip]')),
+      tip.pointAt(event.target.closest('[data-slides-companion-tip]')),
     );
     stage.addEventListener('click', onClick);
     stage.addEventListener('mousemove', onMouseMove);
@@ -392,7 +385,7 @@
     const pointerGone = () => {
       if (!gallery) return;
       gallery.pointer = null;
-      pointAt(null);
+      tip.pointAt(null);
       updateBars();
     };
     stage.addEventListener('mouseleave', pointerGone);
@@ -485,16 +478,13 @@
     gallery = null;
     clearTimeout(idleTimer);
     clearTimeout(flashTimer);
-    clearTimeout(closing.tip.timer);
+    closing.tip.hide();
     if (IN_SLIDESHOW) keepEscape(false);
     if (isPage(closing.items[0])) askBackground({ type: 'page-closed' });
     // A click on a button or into a page took the keys onto the stage.
     if (stage.contains(document.activeElement)) returnFocusTo?.focus({ preventScroll: true });
     stage.classList.remove('slides-companion-spotlight-open');
-    setTimeout(
-      () => stage.remove(),
-      matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : EXIT_MS,
-    );
+    afterExitFade(() => stage.remove());
   }
 
   // ----- Controls -----
@@ -578,41 +568,17 @@
 
   // ----- Tooltips -----
 
-  // Like Slides' own in the editor (its jfk-tooltip, measured there): once the pointer has been on a
-  // control for a moment, its name, centred below it, or above where there's no room. Going straight
-  // to another control moves it at once; it goes a moment after the pointer leaves, and at once on a
-  // press, not to come back until the pointer has left the control.
-  const TIP_SHOW_MS = 350;
-  const TIP_HIDE_MS = 170;
-  const TIP_GAP = 5;
-
-  function pointAt(control) {
-    const { tip } = gallery;
-    if (control === tip.over) return;
-    tip.over = control;
-    clearTimeout(tip.timer);
-    if (!control) tip.timer = setTimeout(hideTip, TIP_HIDE_MS);
-    else if (tip.shown) showTip(control);
-    else tip.timer = setTimeout(() => showTip(control), TIP_SHOW_MS);
-  }
-
-  function showTip(control) {
-    const { tip } = gallery;
-    tip.element.textContent = control.dataset.slidesCompanionTip;
-    tip.element.hidden = false;
-    tip.shown = true;
-    const anchor = control.getBoundingClientRect();
-    const { width, height } = tip.element.getBoundingClientRect();
-    const below = anchor.bottom + TIP_GAP;
-    tip.element.style.top = `${below + height <= innerHeight ? below : anchor.top - TIP_GAP - height}px`;
-    tip.element.style.left = `${Math.min(Math.max(anchor.left + anchor.width / 2 - width / 2, 0), innerWidth - width)}px`;
-  }
-
-  function hideTip() {
-    const { tip } = gallery;
-    clearTimeout(tip.timer);
-    tip.element.hidden = true;
-    tip.shown = false;
+  // Like Slides' own in the editor's toolbar: the control's name, centred 5px below it, or above
+  // where there's no room.
+  function controlsTip(stage) {
+    const tooltip = globalThis.slidesCompanion.ui.tooltip({
+      className: 'slides-companion-spotlight-tooltip',
+      parent: stage,
+    });
+    return globalThis.slidesCompanion.ui.hoverTip(tooltip, (control) => {
+      tooltip.say(control.dataset.slidesCompanionTip);
+      tooltip.place(control.getBoundingClientRect(), { gap: 5, flip: true });
+    });
   }
 
   // Its release, if it happens with the page gone, comes to this window (see onKeyUp).
@@ -759,13 +725,19 @@
     else checkRefusal(item);
   }
 
-  function checkRefusal(item) {
-    const page = gallery.stage.querySelector('.slides-companion-spotlight-website');
+  // A frame out of sight, without scripts, that asks about an address.
+  function probeFrame() {
     const probe = document.createElement('iframe');
     probe.className = 'slides-companion-spotlight-probe';
     probe.setAttribute('sandbox', 'allow-same-origin');
     probe.setAttribute('aria-hidden', 'true');
     probe.tabIndex = -1;
+    return probe;
+  }
+
+  function checkRefusal(item) {
+    const page = gallery.stage.querySelector('.slides-companion-spotlight-website');
+    const probe = probeFrame();
     const reveal = hideWhileChecking(page, CHECK_HIDES_MS);
     const decided = (refused) => {
       probe.remove();
@@ -1219,11 +1191,7 @@
   function askViewer(item, page) {
     if (gallery?.items[gallery.index] !== item) return;
     const reveal = hideWhileChecking(page);
-    const probe = document.createElement('iframe');
-    probe.className = 'slides-companion-spotlight-probe';
-    probe.setAttribute('sandbox', 'allow-same-origin');
-    probe.setAttribute('aria-hidden', 'true');
-    probe.tabIndex = -1;
+    const probe = probeFrame();
     let done = false;
     const decided = (got) => {
       if (done) return;

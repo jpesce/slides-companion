@@ -4,9 +4,6 @@
 {
   const DRAWING = globalThis.slidesCompanion.companionDrawing;
 
-  // Slides shows its toolbar tooltips after about this long.
-  const TOOLTIP_DELAY_MS = 300;
-
   function createCompanion() {
     const button = document.createElement('div');
     button.className = 'slides-companion-button';
@@ -16,7 +13,7 @@
     button.innerHTML = DRAWING.svg;
 
     const openSettings = () => {
-      hideTooltip();
+      tip.hide();
       globalThis.slidesCompanion.openSettings(button);
     };
     button.addEventListener('click', openSettings);
@@ -30,41 +27,19 @@
     return button;
   }
 
-  // Slides' tooltip manager only knows its own buttons, so we draw the same `jfk-tooltip`
-  // (Slides' own styles) centred 1px below the button, as Slides does.
-  let tooltip = null;
-  let tooltipTimer = 0;
+  // Slides' tooltip manager only knows its own buttons, so we draw the same `jfk-tooltip` (Slides'
+  // own styles, which add 4px) centred 1px below the button, as Slides does on this toolbar, and up
+  // to the window's edge.
+  const tooltip = globalThis.slidesCompanion.ui.tooltip();
+  const tip = globalThis.slidesCompanion.ui.hoverTip(tooltip, (button) => {
+    tooltip.say(globalThis.slidesCompanion.text('settingsLabel'));
+    tooltip.place(button.getBoundingClientRect(), { gap: 1 });
+  });
 
   function showTooltipOnHover(button) {
-    button.addEventListener('mouseenter', () => {
-      tooltipTimer = setTimeout(() => showTooltip(button), TOOLTIP_DELAY_MS);
-    });
-    button.addEventListener('mouseleave', hideTooltip);
-    button.addEventListener('mousedown', hideTooltip);
-  }
-
-  function showTooltip(button) {
-    hideTooltip();
-    tooltip = document.createElement('div');
-    tooltip.className = 'jfk-tooltip';
-    tooltip.setAttribute('role', 'tooltip');
-    tooltip.setAttribute('aria-hidden', 'true');
-    const content = document.createElement('div');
-    content.className = 'jfk-tooltip-contentId';
-    content.textContent = globalThis.slidesCompanion.text('settingsLabel');
-    tooltip.append(content);
-    document.body.append(tooltip);
-
-    const anchor = button.getBoundingClientRect();
-    const left = anchor.left + anchor.width / 2 - tooltip.offsetWidth / 2;
-    tooltip.style.left = `${Math.max(4, Math.min(left, innerWidth - tooltip.offsetWidth - 4)) + scrollX}px`;
-    tooltip.style.top = `${anchor.bottom + 1 + scrollY}px`;
-  }
-
-  function hideTooltip() {
-    clearTimeout(tooltipTimer);
-    tooltip?.remove();
-    tooltip = null;
+    button.addEventListener('mouseenter', () => tip.pointAt(button));
+    button.addEventListener('mouseleave', () => tip.pointAt(null));
+    button.addEventListener('mousedown', tip.press);
   }
 
   // ---- How he moves ----
@@ -472,7 +447,7 @@
   function update() {
     const shown = settings.get('showCompanion') && sideToolbar;
     if (shown && button?.isConnected) return;
-    hideTooltip();
+    tip.hide();
     // Any other copy goes too: a previous copy of this script (e.g. before an extension reload)
     // may have left one behind, or put one in after this one started.
     for (const old of document.querySelectorAll('.slides-companion-button')) old.remove();

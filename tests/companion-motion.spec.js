@@ -20,7 +20,7 @@ async function companion(page, { random = 0.99 } = {}) {
     };
     globalThis.chrome = { storage: { onChanged: { addListener() {} } } };
   }, random);
-  for (const file of ['companion-drawing.js', 'companion.js'])
+  for (const file of ['ui.js', 'companion-drawing.js', 'companion.js'])
     await page.addScriptTag({ content: read(file) });
   return page.locator('.slides-companion-button');
 }

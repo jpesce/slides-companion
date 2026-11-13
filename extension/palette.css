@@ -1,0 +1,27 @@
+/* Slides' colours, Google's Material 3 system colours by their Material names, for every stylesheet
+   of ours: Slides keeps its own inside its stylesheets, not in custom properties we could read.
+   The dark theme's are for what we show on black, as Slides' slideshow bar is (Spotlight, and the
+   message over the slide). Some dark ones match a light one under another name. */
+:root {
+  --slides-companion-primary: #0b57d0;
+  --slides-companion-on-primary: #fff;
+  --slides-companion-primary-container: #d3e3fd;
+  --slides-companion-on-primary-container: #041e49;
+  --slides-companion-surface: #fff;
+  --slides-companion-surface-container: #f0f4f9;
+  --slides-companion-surface-container-highest: #dde3ea;
+  --slides-companion-on-surface: #1f1f1f;
+  --slides-companion-on-surface-variant: #444746;
+  --slides-companion-outline: #747775;
+  --slides-companion-outline-variant: #c4c7c5;
+  --slides-companion-error: #b3261e;
+
+  --slides-companion-dark-primary: #a8c7fa;
+  --slides-companion-dark-on-primary: #062e6f;
+  --slides-companion-dark-surface-container: #1f1f1f;
+  --slides-companion-dark-on-surface: #e3e3e3;
+  --slides-companion-dark-on-surface-variant: #c4c7c5;
+  --slides-companion-dark-outline-variant: #444746;
+  --slides-companion-dark-inverse-surface: #e3e3e3;
+  --slides-companion-dark-inverse-on-surface: #303030;
+}

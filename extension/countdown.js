@@ -191,46 +191,22 @@
     show();
   }
 
-  // Below the field, a tooltip like Slides' says what Enter does, or what the field can read.
+  // Below the field, a tooltip like Slides' says what Enter does, or what the field can read: its
+  // arrow pointing up at the field's middle, centred unless that would take it past the field's left
+  // edge, where presenter view's window begins.
   function tooltip(field) {
-    const element = document.createElement('div');
-    element.className = 'jfk-tooltip';
-    element.id = 'slides-companion-countdown-hint';
-    element.setAttribute('role', 'tooltip');
-    const text = Object.assign(document.createElement('div'), {
-      className: 'jfk-tooltip-contentId',
-    });
-    const arrow = Object.assign(document.createElement('div'), {
-      className: 'jfk-tooltip-arrow jfk-tooltip-arrowup',
-    });
-    arrow.append(
-      ...['before', 'after'].map((part) =>
-        Object.assign(document.createElement('div'), { className: `jfk-tooltip-arrowimpl${part}` }),
-      ),
-    );
-    element.append(text, arrow);
-    field.setAttribute('aria-describedby', element.id);
-    document.body.append(element);
-    // Under the field, its arrow pointing up at the field's middle; centred, unless that would take it
-    // past the field's left edge, where presenter view's window begins.
-    element.say = (words) => {
-      text.textContent = words;
-      // Measured from the window's edge, so its old place doesn't squeeze it.
-      element.style.left = '0px';
-      const box = field.getBoundingClientRect();
-      const middle = box.left + box.width / 2;
-      const left = Math.max(
-        0,
-        Math.min(
-          Math.max(box.left, middle - element.offsetWidth / 2),
-          innerWidth - element.offsetWidth,
-        ),
-      );
-      element.style.left = `${left + scrollX}px`;
-      element.style.top = `${box.bottom + 8 + scrollY}px`;
-      arrow.style.left = `${middle - left}px`;
+    const hint = globalThis.slidesCompanion.ui.tooltip({ arrow: true });
+    hint.element.id = 'slides-companion-countdown-hint';
+    field.setAttribute('aria-describedby', hint.element.id);
+    return {
+      say(words) {
+        hint.say(words);
+        const box = field.getBoundingClientRect();
+        const left = hint.place(box, { gap: 8, from: box.left });
+        hint.arrow.style.left = `${box.left + box.width / 2 - left}px`;
+      },
+      remove: hint.hide,
     };
-    return element;
   }
 
   // Typing a time, in place of the time shown. Enter counts down from it; Escape, clicking elsewhere

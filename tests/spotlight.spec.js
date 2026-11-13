@@ -239,7 +239,8 @@ test('the bar’s buttons show Slides’ tooltip: after a moment, above the butt
     stage(page).getByRole('button', { name: 'Close' }).boundingBox(),
   ]);
   expect(tip.height).toBe(24);
-  expect(tip.x + tip.width / 2).toBeCloseTo(button.x + button.width / 2, 0);
+  // On a whole pixel, as Slides puts its own.
+  expect(Math.abs(tip.x + tip.width / 2 - (button.x + button.width / 2))).toBeLessThan(1);
   expect(button.y - (tip.y + tip.height)).toBeCloseTo(5, 0);
 
   // Straight to another button, it moves at once.

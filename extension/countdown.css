@@ -17,7 +17,7 @@
     :focus-within
   ),
 .slides-companion-countdown-container.slides-companion-countdown-open {
-  border-color: var(--gm3-sys-color-outline-variant, #c4c7c5);
+  border-color: var(--gm3-sys-color-outline-variant, var(--slides-companion-outline-variant));
 }
 
 /* The menu is presenter view's own (see countdown.js), so Slides' styles dress it. */
@@ -28,11 +28,11 @@
   height: 28px;
   margin: -2px -7px;
   padding: 0 5px;
-  border: 2px solid var(--gm3-sys-color-primary, #0b57d0);
+  border: 2px solid var(--gm3-sys-color-primary, var(--slides-companion-primary));
   border-radius: 4px;
   outline: none;
   background: transparent;
-  color: var(--gm3-sys-color-on-surface, #1f1f1f);
+  color: var(--gm3-sys-color-on-surface, var(--slides-companion-on-surface));
   font: inherit;
   font-size: 1.5rem;
   font-weight: 500;
@@ -40,7 +40,7 @@
 
 /* A time it can't read, in Slides' error colour. */
 .slides-companion-countdown-container .slides-companion-countdown-input[aria-invalid='true'] {
-  border-color: var(--gm3-sys-color-error, #b3261e);
+  border-color: var(--gm3-sys-color-error, var(--slides-companion-error));
 }
 
 /* Slides leaves a gap after each of its buttons; after the last, there's only just room for it. */
@@ -54,7 +54,7 @@
 }
 
 .slides-companion-countdown.slides-companion-countdown-over {
-  color: var(--gm3-sys-color-error, #b3261e);
+  color: var(--gm3-sys-color-error, var(--slides-companion-error));
 }
 
 /* Past the end, the minus sign sits in the margin before the time, so the buttons beside it stay put.
@@ -99,13 +99,16 @@
   height: 8px;
   overflow: hidden;
   border-radius: 8px;
-  background-color: var(--gm3-sys-color-surface-container-highest, #dde3ea);
+  background-color: var(
+    --gm3-sys-color-surface-container-highest,
+    var(--slides-companion-surface-container-highest)
+  );
 }
 
 .slides-companion-countdown-bar-fill {
   height: 100%;
   border-radius: inherit;
-  background-color: var(--gm3-sys-color-outline, #747775);
+  background-color: var(--gm3-sys-color-outline, var(--slides-companion-outline));
 }
 
 .slides-companion-countdown-bar.slides-companion-countdown-warning
@@ -115,7 +118,7 @@
 
 .slides-companion-countdown-bar.slides-companion-countdown-over
   .slides-companion-countdown-bar-fill {
-  background-color: var(--gm3-sys-color-error, #b3261e);
+  background-color: var(--gm3-sys-color-error, var(--slides-companion-error));
 }
 
 /* A high-contrast mode takes away background colours: the track is outlined in its text colour, and

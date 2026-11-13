@@ -54,7 +54,7 @@
   align-items: center;
   padding: 4px;
   border-radius: 9999px;
-  background: #1f1f1f;
+  background: var(--slides-companion-dark-surface-container);
   cursor: default;
   opacity: 0;
   pointer-events: none;
@@ -77,14 +77,14 @@
 }
 
 /* Sections are split like Slides' toolbar: a 1px line, 20px tall, 4px from the buttons beside it,
-   in Material's outline variant (#c4c7c5 there, #444746 in the dark theme). */
+   in Material's outline variant, here in the dark theme's. */
 .slides-companion-spotlight-group:not([hidden])
   ~ .slides-companion-spotlight-group:not([hidden])::before {
   content: '';
   width: 1px;
   height: 20px;
   margin: 0 2px;
-  background: #444746;
+  background: var(--slides-companion-dark-outline-variant);
 }
 
 .slides-companion-spotlight-bar button {
@@ -94,7 +94,7 @@
   border: 0;
   border-radius: 20px;
   background: transparent;
-  color: #e3e3e3;
+  color: var(--slides-companion-dark-on-surface);
   cursor: pointer;
 }
 
@@ -121,15 +121,15 @@
 }
 
 /* Slides' tooltip in the editor (jfk-tooltip, in its Material 3 look), measured there. Its colours are
-   Material's on-surface and inverse-on-surface, here in their dark theme values like the bar's. */
+   Material's inverse surface and inverse on-surface, here in the dark theme's like the bar's. */
 .slides-companion-spotlight-tooltip {
   position: absolute;
   min-height: 16px;
   padding: 3px 8px;
   border: 1px solid transparent;
   border-radius: 4px;
-  background: #e3e3e3;
-  color: #303030;
+  background: var(--slides-companion-dark-inverse-surface);
+  color: var(--slides-companion-dark-inverse-on-surface);
   font:
     400 12px/16px 'Google Sans',
     Roboto,
@@ -145,13 +145,9 @@
 
 /* Our words read in their own direction, whichever way the bar is laid out: English in a
    right-to-left Slides we don't speak (Persian, Urdu) stays "Next (←)", not "(←) Next". */
-.slides-companion-spotlight-tooltip,
+.slides-companion-spotlight-tooltip .jfk-tooltip-contentId,
 .slides-companion-spotlight-status {
   unicode-bidi: plaintext;
-}
-
-.slides-companion-spotlight-tooltip[hidden] {
-  display: none;
 }
 
 /* A page a link goes to fills the picture's space. Pages that don't paint a background show white,
@@ -213,7 +209,7 @@
   min-width: 26px;
   margin: 0 4px;
   padding: 0 9px;
-  color: #e3e3e3;
+  color: var(--slides-companion-dark-on-surface);
   font:
     500 16px/28px Roboto,
     Arial,

@@ -19,8 +19,8 @@ body {
   padding-block: 16px;
   padding-inline: 64px 24px;
   border-radius: 16px;
-  background: #f0f4f9;
-  color: #444746;
+  background: var(--slides-companion-surface-container);
+  color: var(--slides-companion-on-surface-variant);
 }
 
 .slides-companion-banner[hidden] {
@@ -54,6 +54,6 @@ body {
 
 /* Focus moved in from the dialog's Tab shows like the dialog's own buttons'. */
 .slides-companion-tabbed .slides-companion-banner-action:focus {
-  outline: 3px solid #0b57d0;
+  outline: 3px solid var(--slides-companion-primary);
   outline-offset: 2px;
 }
