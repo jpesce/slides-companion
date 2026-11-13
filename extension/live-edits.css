@@ -1,14 +1,78 @@
-/* The toast after a slideshow in which live edits stopped (live-edits.js) is Slides' own
-   docs-ui-toast, drawn by Slides' stylesheet. Only its close button's icon is ours: Material's
-   close, at Slides' icon size, in the toast's text colour. */
-.slides-companion-toast .docs-ui-toast-close {
-  color: inherit;
+/* The snackbar after a slideshow in which live edits stopped (live-edits.js) is Slides' own
+   Material 3 snackbar, drawn by Slides' stylesheet. Its Report and close are Material 3's text and
+   icon buttons, which Slides builds from components we can't reuse: these draw them from the
+   snackbar's own variables (its colours, font and sizes), with the state layer Material 3 lays
+   over a button that's hovered (8%) or pressed (10%). */
+.slides-companion-toast button {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  margin-block: 0;
+  padding: 0;
+  border: none;
+  background: none;
   cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.slides-companion-toast .docs-ui-toast-close svg {
+.slides-companion-toast button::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: currentColor;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.slides-companion-toast button:hover::before {
+  opacity: var(--slides-companion-hover-opacity);
+}
+
+.slides-companion-toast button:active::before {
+  opacity: var(--slides-companion-pressed-opacity);
+}
+
+.slides-companion-toast button:focus-visible {
+  outline: 2px solid var(--gm3-sys-color-inverse-primary, #a8c7fa);
+  outline-offset: 2px;
+}
+
+.slides-companion-toast .appsElementsGm3WizSnackbar-snackbar__action {
+  --slides-companion-hover-opacity: var(--gm3-button-text-hover-state-layer-opacity);
+  --slides-companion-pressed-opacity: var(--gm3-button-text-pressed-state-layer-opacity);
+  height: 40px;
+  min-width: 64px;
+  padding-inline: 12px;
+  border-radius: 20px;
+  color: var(--gm3-button-text-label-text-color);
+  font-family: var(--gm3-button-text-label-text-font);
+  font-size: var(--gm3-button-text-label-text-size);
+  font-weight: var(--gm3-button-text-label-text-weight);
+  letter-spacing: var(--gm3-button-text-label-text-tracking);
+  line-height: 20px;
+  white-space: nowrap;
+}
+
+.slides-companion-toast .appsElementsGm3WizSnackbar-snackbar__dismiss {
+  --slides-companion-hover-opacity: var(
+    --gm3-icon-button-standard-unselected-hover-state-layer-opacity
+  );
+  --slides-companion-pressed-opacity: var(
+    --gm3-icon-button-standard-unselected-pressed-state-layer-opacity
+  );
+  width: var(--gm3-icon-button-standard-container-width);
+  height: var(--gm3-icon-button-standard-container-height);
+  border-radius: 50%;
+  color: var(--gm3-icon-button-standard-unselected-icon-color);
+}
+
+.slides-companion-toast .appsElementsGm3WizSnackbar-snackbar__dismiss svg {
   display: block;
-  width: 20px;
-  height: 20px;
+  width: var(--gm3-icon-button-standard-icon-size);
+  height: var(--gm3-icon-button-standard-icon-size);
   fill: currentColor;
 }

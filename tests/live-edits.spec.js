@@ -177,16 +177,22 @@ test('when Slides no longer has a part live edits leans on, live edits turns its
   await page.keyboard.press('ArrowLeft');
   await expect.poll(() => shownSlide(page)).toBe(2);
 
-  // Once the slideshow has ended, the editor says so, in Slides' own toast (drawn by Slides'
-  // stylesheet, bottom left), with a report to send us, filled in.
+  // Once the slideshow has ended, the editor says so, in Slides' own snackbar (drawn by Slides'
+  // stylesheet, 8px from the bottom left), with a report to send us, filled in.
   await page.keyboard.press('Escape');
   await expect(page.locator(PLAYER)).toHaveCount(0);
-  const toast = page.locator('.docs-ui-toast');
+  const toast = page.locator('.slides-companion-toast');
   await expect(toast).toContainText('Live edits stopped working during that slideshow');
-  await expect(toast).toHaveCSS('background-color', 'rgb(48, 48, 48)');
-  const box = await toast.boundingBox();
-  expect(box.x).toBe(24);
-  expect(box.y + box.height).toBe(page.viewportSize().height - 24);
+  const surface = toast.locator('.appsElementsGm3WizSnackbar-snackbar__surface');
+  await expect(surface).toHaveCSS('background-color', 'rgb(48, 48, 48)');
+  await expect(surface).toHaveCSS('opacity', '1');
+  await expect(toast.locator('.appsElementsGm3WizSnackbar-snackbar__label')).toHaveCSS(
+    'font-size',
+    '14px',
+  );
+  const box = await surface.boundingBox();
+  expect(box.x).toBe(8);
+  expect(box.y + box.height).toBe(page.viewportSize().height - 8);
   await page.screenshot({ path: test.info().outputPath('toast.png') });
 
   await context.route('https://github.com/**', (route) => route.fulfill({ body: '' }));

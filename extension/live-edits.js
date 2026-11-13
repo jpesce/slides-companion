@@ -504,15 +504,17 @@
   // ----- Telling the presenter -----
 
   // After a slideshow in which live edits gave up, the editor says so, never during it: in Slides'
-  // own toast (its docs-ui-toast, which Slides' stylesheet draws, in Slides' colours), with Report,
-  // which opens our bug form on GitHub filled in, through the issue form's URL fields (ids from
+  // own snackbar (which Slides' stylesheet draws, in Slides' colours), with Report, which opens our
+  // bug form on GitHub filled in, through the issue form's URL fields (ids from
   // .github/ISSUE_TEMPLATE/bug.yml). Nothing is sent: what broke is kept on this computer, the last
   // few times, and goes only into a report the presenter submits (PRIVACY.md).
   const LOG_KEY = 'liveEditsLog';
   const LOG_LENGTH = 5;
   const BUG_FORM = 'https://github.com/jpesce/slides-companion-for-google-slides/issues/new';
+  // Material Symbols' close, as Slides' Material 3 snackbar draws it.
   const CLOSE_ICON = globalThis.slidesCompanion.ui.icon(
-    'M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z',
+    'm256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z',
+    '0 -960 960 960',
   );
 
   // As the form asks: "Chrome 142", from the browser's own brand (Chrome, Edge, Brave…), else
@@ -572,39 +574,49 @@
     return form.href;
   }
 
+  // Slides' snackbar classes, as Slides marks up the snackbars it shows today (seen in a live deck,
+  // November 2026): Slides' stylesheet places it, 8px from the bottom left, and draws its surface,
+  // shadow, words, Report and close, and their opening and closing.
+  const SNACKBAR = 'appsElementsGm3WizSnackbar-snackbar';
+  const ELEVATION = 'javascriptMaterialdesignGm3WizElevationElevation';
+  // How long Slides' stylesheet takes to fade a closing snackbar.
+  const CLOSING_MS = 75;
   let toast = null;
   function showToast(address) {
     const { html } = globalThis.slidesCompanion;
     toast?.remove();
     toast = document.createElement('div');
-    toast.className = 'docs-ui-toast slides-companion-toast';
-    toast.setAttribute('role', 'alert');
+    toast.className = 'appsElementsStackingSnackbarContainer slides-companion-toast';
     toast.innerHTML = `
-      <div class="docs-ui-toast-content">${html('liveEditsStopped')}</div>
-      <div class="docs-ui-toast-control-bar">
-        <div class="docs-ui-toast-control" role="button" tabindex="0">${html('liveEditsReport')}</div>
-      </div>
-      <div class="docs-ui-toast-close-bar">
-        <button type="button" class="docs-ui-toast-close" aria-label="${html('spotlightClose')}">${CLOSE_ICON}</button>
-      </div>`;
+      <aside class="${SNACKBAR} ${SNACKBAR}--leading ${SNACKBAR}--opening">
+        <div class="${SNACKBAR}__surface" role="alert" aria-live="assertive">
+          <span class="${ELEVATION}"><span class="${ELEVATION}Overlay"></span></span>
+          <div class="${SNACKBAR}__label">${html('liveEditsStopped')}</div>
+          <div class="${SNACKBAR}__actions">
+            <button type="button" class="${SNACKBAR}__action">${html('liveEditsReport')}</button>
+            <button type="button" class="${SNACKBAR}__dismiss" aria-label="${html('spotlightClose')}">${CLOSE_ICON}</button>
+          </div>
+        </div>
+      </aside>`;
     const shown = toast;
+    const snackbar = shown.querySelector('aside');
     const close = () => {
-      shown.remove();
       if (toast === shown) toast = null;
+      snackbar.classList.replace(`${SNACKBAR}--open`, `${SNACKBAR}--closing`);
+      setTimeout(() => shown.remove(), CLOSING_MS);
     };
-    const report = () => {
+    shown.querySelector(`.${SNACKBAR}__action`).addEventListener('click', () => {
       close();
       window.open(address, '_blank', 'noopener');
-    };
-    const control = toast.querySelector('.docs-ui-toast-control');
-    control.addEventListener('click', report);
-    control.addEventListener('keydown', (event) => {
-      if (event.key !== 'Enter' && event.key !== ' ') return;
-      event.preventDefault();
-      report();
     });
-    toast.querySelector('.docs-ui-toast-close').addEventListener('click', close);
-    document.body.append(toast);
+    shown.querySelector(`.${SNACKBAR}__dismiss`).addEventListener('click', close);
+    document.body.append(shown);
+    // Drawn first as it starts, so that it grows and fades in, as Slides' own do.
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() =>
+        snackbar.classList.replace(`${SNACKBAR}--opening`, `${SNACKBAR}--open`),
+      ),
+    );
   }
 
   if (IN_EDITOR) {
