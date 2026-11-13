@@ -5,7 +5,7 @@
 // the section goes back in after each build, keeping only the keys whose name matches, as Slides does.
 {
   const { text, settings, arrows } = globalThis.slidesCompanion;
-  const IN_SLIDESHOW = /\/(local)?present$/.test(location.pathname);
+  const IN_SLIDESHOW = globalThis.slidesCompanion.slides.inSlideshow;
   // Slides' own classes, which give our section Slides' look.
   const SLIDES = 'appsElementsKeyboardShortcutsDialog';
   const OURS = 'slides-companion-shortcuts';

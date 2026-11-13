@@ -6,7 +6,13 @@
 // scrolling do nothing, or give the wheel back to Slides, which then changes slides with it.
 // (Scrolling in the editor: see scroll.js.)
 {
-  const IN_SLIDESHOW = /\/(local)?present$/.test(location.pathname);
+  const {
+    inSlideshow: IN_SLIDESHOW,
+    inkLayer,
+    slideLabel: slideName,
+    penOn,
+    SLIDE_CHANGED,
+  } = globalThis.slidesCompanion.slides;
   const ZOOMED_CLASS = 'slides-companion-zoomed';
   const DRAGGING_CLASS = 'slides-companion-zoom-dragging';
   const INK_CLASS = 'slides-companion-zoom-ink';
@@ -27,21 +33,13 @@
   let easing = { frame: 0, time: 0 };
   // The press the zoom owns while zoomed in: { startX, startY, from, moved, released }.
   let press = null;
-  let slideLabel = null;
 
   // The slide. Slides draws the laser pointer and the pen on layers beside it, at the pointer's
   // place on the screen, so those don't scale with the slide (see Ink for the pen's ink).
   const slideView = () => document.querySelector('.sketchyViewerContent');
-  // The pen's ink: the strokes group in the first of those layers (the second is the laser's).
-  const inkLayer = () => document.querySelector('.punch-slide-markup-surface > g');
-  const slideName = () =>
-    document.querySelector('.punch-viewer-svgpage-a11yelement')?.getAttribute('aria-label');
   // What scrolling does: 'zoom', 'nothing' or 'slides' (see settings.js).
   const scrolling = () => globalThis.slidesCompanion.settings.get('slideshowScroll');
   const galleryOpen = () => Boolean(document.querySelector('.slides-companion-spotlight'));
-  // With the pen on, dragging draws.
-  const penOn = () =>
-    Boolean(document.querySelector('.sketchyViewerContent.disable-pointer-events'));
   const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
   // Where the slide sits before scaling: its offset inside its (unscaled) offset parent.
@@ -435,14 +433,6 @@
     slideSize = { element, width: 0 };
   }
 
-  // Each slide starts whole. Slides labels the slide it shows ("Slide 3 of 9").
-  function onSlideMaybeChanged() {
-    const label = slideName();
-    if (!label || label === slideLabel) return;
-    slideLabel = label;
-    reset();
-  }
-
   if (IN_SLIDESHOW) {
     // Registered at document_start, and before the spotlight's, so a drag over an image isn't taken
     // for a click on it.
@@ -459,16 +449,13 @@
     window.addEventListener('click', onClick, true);
     window.addEventListener('dblclick', onClick, true);
     window.addEventListener('blur', stopPanning);
+    // Slides may swap the slide's elements for new ones.
     new MutationObserver(() => {
       watchSlide();
       watchInk();
-      onSlideMaybeChanged();
-    }).observe(document, {
-      subtree: true,
-      childList: true,
-      attributes: true,
-      attributeFilter: ['aria-label'],
-    });
+    }).observe(document, { subtree: true, childList: true });
+    // Each slide starts whole.
+    document.addEventListener(SLIDE_CHANGED, reset);
     // Choosing something else mid-slideshow leaves nothing zoomed. (Only that choice: the extension
     // saves other things as it goes, such as the pen's ink after each line.)
     chrome.storage.onChanged.addListener(

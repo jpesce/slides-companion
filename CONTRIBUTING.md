@@ -41,7 +41,7 @@ In `extension/`, `manifest.json` loads each script where it's needed:
 | Where | Scripts |
 |---|---|
 | The editor, in the page's own world, from the start | `live-edits-main.js` |
-| The editor | `settings.js`, `messages.js`, `i18n.js`, `content.js` and `menus.js` (shared by every feature), then `illustrations.js`, `settings-dialog.js`, `companion-drawing.js` and `companion.js` (the toolbar button), `spotlight.js`, `scroll.js`, `live-edits.js`, `notes.js`, `shortcuts.js` |
+| The editor | `settings.js`, `messages.js`, `i18n.js`, `content.js`, `slides-dom.js` (what we know about Slides' page) and `menus.js` (shared by every feature), then `illustrations.js`, `settings-dialog.js`, `companion-drawing.js` and `companion.js` (the toolbar button), `spotlight.js`, `scroll.js`, `live-edits.js`, `notes.js`, `shortcuts.js` |
 | The slideshow, in every frame, in the page's own world | `live-edits-frame.js` |
 | The slideshow, in every frame | the shared scripts, then `zoom.js`, `ink.js`, `spotlight.js`, `notes.js`, `shortcuts.js` |
 | Presenter view (a blank page Slides opens) | `settings.js`, `messages.js`, `i18n.js`, `countdown.js` |
@@ -49,7 +49,7 @@ In `extension/`, `manifest.json` loads each script where it's needed:
 | Every site, once the presenter allows all sites | `page.js`, registered by `background.js` |
 | Frames of our own | `all-sites.html` (in Settings) and `refused.html` (over the slide) |
 
-Scripts share what they need through `globalThis.slidesCompanion`. Each file's first comment says what it does.
+Scripts share what they need through `globalThis.slidesCompanion`. What the extension reads from Slides' page (its selectors, the slide shown, the pen) is in `slides-dom.js`: when Slides changes, start there. Each file's first comment says what it does.
 
 ## Tests
 

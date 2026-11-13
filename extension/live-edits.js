@@ -8,7 +8,8 @@
 // silenced: the editor ends the slideshow through it. See live-edits-main.js for what's done in the
 // editor page's own world.
 {
-  const IN_EDITOR = window === window.top && !/\/(local)?present$/.test(location.pathname);
+  const { inSlideshow, slideId, slideLabel, penOn } = globalThis.slidesCompanion.slides;
+  const IN_EDITOR = window === window.top && !inSlideshow;
   const PLAYER = 'iframe.punch-present-iframe';
   // To and from live-edits-main.js.
   const CHECK_EVENT = 'slides-companion-live-check';
@@ -42,15 +43,9 @@
 
   // The slide a player shows, by its page id, and its number ("Slide 3 of 9").
   const slideOf = (doc) =>
-    doc?.querySelector('.punch-viewer-svgpage-svgcontainer > svg > g[id]')?.id ??
+    slideId(doc) ??
     new URLSearchParams(doc?.defaultView?.location.search).get('slide')?.replace(/^id\./, '');
-  const numberOf = (doc) =>
-    Number(
-      doc
-        .querySelector('.punch-viewer-svgpage-a11yelement')
-        ?.getAttribute('aria-label')
-        ?.match(/\d+/)?.[0],
-    );
+  const numberOf = (doc) => Number(slideLabel(doc)?.match(/\d+/)?.[0]);
 
   // Keys, as Slides reads them.
   function press(doc, key, shiftKey = false) {
@@ -383,7 +378,7 @@
     clearTimeout(tickTimer);
     const doc = shown.contentDocument;
     const copyDoc = frame.contentDocument;
-    const pen = Boolean(doc.querySelector('.sketchyViewerContent.disable-pointer-events'));
+    const pen = penOn(doc);
     const laser = !pen && Boolean(doc.querySelector('.sketchyViewerContainer.cursor-none'));
     const presenterView = hasPresenterView();
     // What the pen drew, slide by slide (see ink.js).

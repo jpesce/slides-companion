@@ -5,7 +5,11 @@
 // Picture-in-Picture window, which meeting apps leave out when you share only the slideshow's tab
 // or window. Inside, it's presenter view's notes pane, dressed in Slides' own styles.
 {
-  const IN_SLIDESHOW = /\/(local)?present$/.test(location.pathname);
+  const {
+    inSlideshow: IN_SLIDESHOW,
+    slideLabel: labelOf,
+    SLIDE_CHANGED,
+  } = globalThis.slidesCompanion.slides;
   // The editor owns the window, so it outlives each slideshow; a slideshow started from the editor
   // runs in an iframe there, and asks the editor through events on the editor's page.
   const TOGGLE_EVENT = 'slides-companion-toggle-notes';
@@ -135,10 +139,7 @@
     // During a slideshow, Slides labels the slide for screen readers: "Slide 3 of 9: Title". While
     // editing, it's the selected slide, in the slideshow's words.
     function slideName() {
-      const name = slideshow()
-        ?.querySelector('.punch-viewer-svgpage-a11yelement')
-        ?.getAttribute('aria-label')
-        ?.match(/^[^:]*/)[0];
+      const name = labelOf(slideshow())?.match(/^[^:]*/)[0];
       if (name) {
         const learnt = name.replace(/\d+/, '{n}').replace(/\d+/, '{total}');
         if (learnt !== slideLabel && learnt.includes('{total}')) {
@@ -599,20 +600,7 @@
       true,
     );
     window.addEventListener('pagehide', () => tell(SLIDESHOW_GONE_EVENT));
-    let slide = null;
-    new MutationObserver(() => {
-      const name = document
-        .querySelector('.punch-viewer-svgpage-a11yelement')
-        ?.getAttribute('aria-label');
-      if (!name || name === slide) return;
-      slide = name;
-      tell(SLIDE_EVENT);
-    }).observe(document, {
-      subtree: true,
-      childList: true,
-      attributes: true,
-      attributeFilter: ['aria-label'],
-    });
+    document.addEventListener(SLIDE_CHANGED, () => tell(SLIDE_EVENT));
 
     // ----- The ⋮ menu -----
 

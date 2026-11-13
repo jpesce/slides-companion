@@ -8,7 +8,7 @@
   const { text, html, rightToLeft, arrows } = globalThis.slidesCompanion;
   const SVG_NS = 'http://www.w3.org/2000/svg';
   // The slideshow runs in its own page: an iframe in the editor, or a window of its own.
-  const IN_SLIDESHOW = /\/(local)?present$/.test(location.pathname);
+  const { inSlideshow: IN_SLIDESHOW, penOn, SLIDE_CHANGED } = globalThis.slidesCompanion.slides;
   // Slide and object groups: `g#editor-<id>` in the editor, `g#<id>` in the slideshow.
   const OBJECT = IN_SLIDESHOW ? 'g[id]' : '[id^="editor-"]';
   // Slides outlines each selected object with a path in this colour, inside the object's group.
@@ -1128,7 +1128,7 @@
       event.shiftKey
     )
       return null;
-    if (document.querySelector('.sketchyViewerContent.disable-pointer-events')) return null;
+    if (penOn()) return null;
     return event.target instanceof Element
       ? event.target.closest(`.punch-viewer-svgpage-svgcontainer ${selector}`)
       : null;
@@ -1346,21 +1346,8 @@
     // While zoomed in, the zoom keeps clicks from Slides, except the ones the spotlight takes.
     globalThis.slidesCompanion.spotlightTakesClick = (event) => Boolean(clickedImage(event));
     // The slide can change under the gallery (it advances by itself, or from Next in the presenter
-    // view): the gallery was about the slide that's gone. Slides labels the slide ("Slide 3 of 9").
-    let slideName = null;
-    new MutationObserver(() => {
-      const name = document
-        .querySelector('.punch-viewer-svgpage-a11yelement')
-        ?.getAttribute('aria-label');
-      if (!name || name === slideName) return;
-      slideName = name;
-      closeStage();
-    }).observe(document, {
-      subtree: true,
-      childList: true,
-      attributes: true,
-      attributeFilter: ['aria-label'],
-    });
+    // view): the gallery was about the slide that's gone.
+    document.addEventListener(SLIDE_CHANGED, () => closeStage());
     // A pointing hand over images says they can be clicked.
     window.addEventListener(
       'mousemove',

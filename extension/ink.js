@@ -2,7 +2,7 @@
 // shows again on that slide the next time the deck is presented, until Erase all clears it. It's
 // off unless the "Keep what you draw" setting is on.
 {
-  const IN_SLIDESHOW = /\/(local)?present$/.test(location.pathname);
+  const { inSlideshow: IN_SLIDESHOW, inkLayer, slideId, penOn } = globalThis.slidesCompanion.slides;
   const KEY = `ink ${location.pathname.match(/\/d\/([^/]+)/)?.[1]}`;
   const KEPT_CLASS = 'slides-companion-kept-ink';
   const SVG = 'http://www.w3.org/2000/svg';
@@ -10,12 +10,6 @@
   const STROKES = `:scope > path:not(.${KEPT_CLASS}), :scope > circle:not(.${KEPT_CLASS})`;
 
   const keeping = () => globalThis.slidesCompanion.settings.get('keepInk');
-  const inkLayer = () => document.querySelector('.punch-slide-markup-surface > g');
-  // The slide's page id, which stays the same when slides are moved around in the deck.
-  const slideId = () =>
-    document.querySelector('.punch-viewer-svgpage-svgcontainer > svg > g[id]')?.id;
-  const penOn = () =>
-    Boolean(document.querySelector('.sketchyViewerContent.disable-pointer-events'));
 
   // Strokes kept from earlier slideshows, by slide: { color, width, points: [x, y, x, y, …], dot },
   // the points as parts of the slide's width from its top left corner, and the width in pixels, as

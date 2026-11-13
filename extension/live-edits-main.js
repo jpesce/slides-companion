@@ -286,7 +286,9 @@
   });
 
   // The time on presenter view's timer, to the millisecond: its seconds, and how long since it last
-  // ticked. Nothing while it's paused.
+  // ticked. Nothing while it's paused. The same element as countdown.js's ELAPSED: this file runs in
+  // the page's own world, where slides-dom.js and countdown.js can't be reached, so a change to one
+  // goes to the other.
   const TIMER = '.punch-viewer-speakernotes-timer-time:not(.slides-companion-countdown)';
   let ticked = 0;
   let ticks = null;

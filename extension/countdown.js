@@ -11,6 +11,7 @@
   // on the slideshow's address instead.
   const { text } = globalThis.slidesCompanion;
   const IN_PRESENTER_VIEW = /^punch_speaker_notes_/.test(window.name);
+  // live-edits-main.js reads the same element (its TIMER), from the page's own world.
   const ELAPSED = '.punch-viewer-speakernotes-timer-time:not(.slides-companion-countdown)';
 
   // The deck, from presenter view's address, or the editor's that opened it.
