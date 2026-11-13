@@ -8,7 +8,12 @@
   const { text, html, rightToLeft, arrows } = globalThis.slidesCompanion;
   const SVG_NS = 'http://www.w3.org/2000/svg';
   // The slideshow runs in its own page: an iframe in the editor, or a window of its own.
-  const { inSlideshow: IN_SLIDESHOW, penOn, SLIDE_CHANGED } = globalThis.slidesCompanion.slides;
+  const {
+    inSlideshow: IN_SLIDESHOW,
+    penOn,
+    pointedAt,
+    SLIDE_CHANGED,
+  } = globalThis.slidesCompanion.slides;
   // Slide and object groups: `g#editor-<id>` in the editor, `g#<id>` in the slideshow.
   const OBJECT = IN_SLIDESHOW ? 'g[id]' : '[id^="editor-"]';
   // Slides outlines each selected object with a path in this colour, inside the object's group.
@@ -1101,8 +1106,9 @@
     )
       return null;
     if (penOn()) return null;
-    return event.target instanceof Element
-      ? event.target.closest(`.punch-viewer-svgpage-svgcontainer ${selector}`)
+    const target = pointedAt(event);
+    return target instanceof Element
+      ? target.closest(`.punch-viewer-svgpage-svgcontainer ${selector}`)
       : null;
   }
 
@@ -1303,7 +1309,7 @@
         event.stopImmediatePropagation();
         if (page) {
           // The click focused the link, where keys don't reach the slideshow once it's back.
-          event.target.closest('a').blur();
+          pointedAt(event).closest('a').blur();
           openPage(page);
         } else {
           openGallery([object]);

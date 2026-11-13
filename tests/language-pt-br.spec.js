@@ -1,4 +1,13 @@
-import { test, expect, slideshowSettled, IDS, inEditor, slideUrl, SLIDES } from './fixtures.js';
+import {
+  test,
+  expect,
+  slideshowSettled,
+  IDS,
+  inEditor,
+  slideUrl,
+  SLIDES,
+  flownIn,
+} from './fixtures.js';
 
 // Our words speak Slides' language, here Portuguese, beside Slides' own in each window.
 test.use({ slidesLanguage: 'pt-BR' });
@@ -123,11 +132,14 @@ test('with Slides in Portuguese, the message for a site that won’t open over t
   await page.locator('#punch-start-presentation-left').click();
   const show = page.frameLocator('iframe.punch-present-iframe');
   const link = show.locator(`[id="${IDS.linkedPhoto}"] a`).first();
-  await expect.poll(async () => (await link.boundingBox())?.y).toBeGreaterThan(0);
+  await flownIn(link);
   const box = await link.boundingBox();
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
   const message = show.frameLocator('iframe.slides-companion-spotlight-refused');
-  await expect(message.getByRole('heading')).toHaveText('google.com não abre sobre o seu slide');
+  // After a check that loads a page from docs.google.com, with no timer of its own (links.spec.js).
+  await expect(message.getByRole('heading')).toHaveText('google.com não abre sobre o seu slide', {
+    timeout: 15_000,
+  });
   await expect(
     message.getByText('Permita todos os sites para mostrá-lo aqui ou abra-o em uma nova guia.'),
   ).toBeVisible();

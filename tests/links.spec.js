@@ -11,14 +11,14 @@ import {
   slideUrl,
   presentUrl,
   stopsChanging,
+  flownIn,
 } from './fixtures.js';
 
 // Slide 4 of the test deck: a photo linked to google.com, and a video. The photo flies in from
 // above as the slide starts.
 const LINKED_PHOTO = IDS.linkedPhoto;
 const link = (show) => show.locator(`[id="${LINKED_PHOTO}"] a`).first();
-const landed = (show) =>
-  expect.poll(async () => (await link(show).boundingBox())?.y).toBeGreaterThan(0);
+const landed = (show) => flownIn(link(show));
 
 // Slides sends the link through google.com/url; the page it goes to is played by these.
 const PAGE = `<title>Linked page</title><h1>Hello from the link</h1><a href="/second">Second page</a>`;
@@ -56,6 +56,22 @@ const linkTo = (show, href) =>
   show.locator(`[id="${LINKED_PHOTO}"] a`).evaluateAll((links, href) => {
     for (const link of links) link.setAttribute('href', href);
   }, href);
+
+// Once the pointer has rested a few seconds, the slideshow hides it under a cover over the whole
+// slide, and a click without moving first lands on the cover.
+test('a click on a link, after the pointer rested there and hid, still opens its page', async ({
+  context,
+}) => {
+  const { page, show } = await startShow(context);
+  const box = await link(show).boundingBox();
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await expect(show.locator('.punch-viewer-cursor-hiding-component')).toBeVisible({
+    timeout: 10_000,
+  });
+  await clickLink(page, show);
+  await expect(website(show)).toHaveAttribute('src', 'https://www.google.com/');
+  expect(await slideNumber(show)).toBe(4);
+});
 
 test('clicking a link during a slideshow opens its page over the slide, and Esc goes back', async ({
   context,
@@ -233,7 +249,7 @@ test('a slideshow opened from a link opens the real address over the slide', asy
   const linked = page
     .locator('.punch-viewer-svgpage-svgcontainer a[*|href*="google.com/url"]')
     .first();
-  await expect.poll(async () => (await linked.boundingBox())?.y).toBeGreaterThan(0);
+  await flownIn(linked);
   await clickCentre(page, linked);
   await expect(page.locator('iframe.slides-companion-spotlight-website')).toHaveAttribute(
     'src',
@@ -268,95 +284,104 @@ test('Shorts, live videos and Drive files open in their players', async ({ conte
   }
 });
 
-// Chrome's PDF viewer isn't let into the page's frame, and a link in it would take the
-// whole tab. Google's servers fetch the PDF, so it's a real one, online.
-const PDF = 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf';
-test('a PDF opens in Google’s viewer, in Slides’ language, where Esc goes back too', async ({
-  context,
-}) => {
-  const { page, show } = await startShow(context);
-  await linkTo(show, `https://www.google.com/url?q=${encodeURIComponent(PDF)}&sa=D`);
-  await clickLink(page, show);
-  const viewer = new URL('https://docs.google.com/viewer?embedded=true');
-  viewer.searchParams.set('url', PDF);
-  viewer.searchParams.set('hl', await show.locator('html').getAttribute('lang'));
-  await expect(website(show)).toHaveAttribute('src', viewer.href);
-  await expect(stage(show).locator('.slides-companion-spotlight-site')).toHaveText('w3.org');
-  const pdf = show.frameLocator('iframe.slides-companion-spotlight-website');
-  await expect(pdf.locator('img[src^="blob:"]').first()).toBeVisible({ timeout: 20000 });
+// These need Google's viewer, which fetches the PDF from Google's servers, and the PDF's site,
+// online. Now and then the viewer answers nothing (204 No Content), and then the extension rightly
+// says the page won't open. A retry tells that apart from a failure of ours, and Playwright reports
+// it as flaky rather than passed.
+test.describe('in Google’s PDF viewer', () => {
+  test.describe.configure({ retries: 1 });
 
-  // In the viewer's page number, Esc still goes back to the slide. (A click on the PDF itself leaves
-  // the keys with the slideshow.)
-  await overPage(page, show);
-  await clickCentre(page, pdf.locator('input').first());
-  await expect(website(show)).toBeFocused();
-  await page.keyboard.press('Escape');
-  await expect(stage(show)).toHaveCount(0);
-  expect(await slideNumber(show)).toBe(4);
+  // Chrome's PDF viewer isn't let into the page's frame, and a link in it would take the
+  // whole tab. Google's servers fetch the PDF, so it's a real one, online.
+  const PDF = 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf';
 
-  // Open in new tab opens the PDF itself.
-  await clickLink(page, show);
-  await page.mouse.move(200, page.viewportSize().height - 40);
-  const opened = context.waitForEvent('page');
-  await press(page, stage(show).getByRole('button', { name: 'Open in new tab' }));
-  const tab = await opened;
-  expect(tab.url()).toBe(PDF);
-  // Chrome's viewer, left open, holds the browser's closing up for half a minute.
-  await tab.close();
-});
+  test('a PDF opens in Google’s viewer, in Slides’ language, where Esc goes back too', async ({
+    context,
+  }) => {
+    const { page, show } = await startShow(context);
+    await linkTo(show, `https://www.google.com/url?q=${encodeURIComponent(PDF)}&sa=D`);
+    await clickLink(page, show);
+    const viewer = new URL('https://docs.google.com/viewer?embedded=true');
+    viewer.searchParams.set('url', PDF);
+    viewer.searchParams.set('hl', await show.locator('html').getAttribute('lang'));
+    await expect(website(show)).toHaveAttribute('src', viewer.href);
+    await expect(stage(show).locator('.slides-companion-spotlight-site')).toHaveText('w3.org');
+    const pdf = show.frameLocator('iframe.slides-companion-spotlight-website');
+    await expect(pdf.locator('img[src^="blob:"]').first()).toBeVisible({ timeout: 20000 });
 
-// A PDF at an address that doesn't say so fails the refusal check, as it fails in the
-// page's frame; Google's viewer, asked out of sight, finds it's a PDF, and it shows there.
-test('a PDF whose address doesn’t end in .pdf (arXiv’s) shows in Google’s viewer too', async ({
-  context,
-}) => {
-  const ARXIV = 'https://arxiv.org/pdf/1706.03762';
-  const { page, show } = await startShow(context);
-  await linkTo(show, ARXIV);
-  await clickLink(page, show);
-  const viewer = new URL('https://docs.google.com/viewer?embedded=true');
-  viewer.searchParams.set('url', ARXIV);
-  viewer.searchParams.set('hl', await show.locator('html').getAttribute('lang'));
-  await expect(website(show)).toHaveAttribute('src', viewer.href, { timeout: 15000 });
-  const pdf = show.frameLocator('iframe.slides-companion-spotlight-website');
-  await expect(pdf.locator('img[src^="blob:"]').first()).toBeVisible({ timeout: 20000 });
-  await expect(
-    stage(show).locator('.slides-companion-spotlight-refused, .slides-companion-spotlight-probe'),
-  ).toHaveCount(0);
-  await expect(stage(show).locator('.slides-companion-spotlight-site')).toHaveText('arxiv.org');
-});
+    // In the viewer's page number, Esc still goes back to the slide. (A click on the PDF itself leaves
+    // the keys with the slideshow.)
+    await overPage(page, show);
+    await clickCentre(page, pdf.locator('input').first());
+    await expect(website(show)).toBeFocused();
+    await page.keyboard.press('Escape');
+    await expect(stage(show)).toHaveCount(0);
+    expect(await slideNumber(show)).toBe(4);
 
-// GitHub's page for a PDF ends in .pdf too. Google's viewer would show it as code; it shows as any
-// page instead, here GitHub's refusal to be shown inside another page.
-test('a .pdf address that’s a web page opens as one, not in the PDF viewer', async ({
-  context,
-}) => {
-  const GITHUB = 'https://github.com/mozilla/pdf.js/blob/master/test/pdfs/tracemonkey.pdf';
-  const { page, show } = await startShow(context);
-  await linkTo(show, GITHUB);
-  // Whether the viewer ever shows, with the page's code in it.
-  await show.locator('body').evaluate(() => {
-    window.sawCode = false;
-    const watch = () => {
-      const viewer = document.querySelector(
-        'iframe.slides-companion-spotlight-website[src^="https://docs.google.com/viewer"]',
-      );
-      if (
-        viewer &&
-        getComputedStyle(viewer).visibility !== 'hidden' &&
-        viewer.contentDocument?.querySelector('pre')
-      )
-        window.sawCode = true;
-      requestAnimationFrame(watch);
-    };
-    watch();
+    // Open in new tab opens the PDF itself.
+    await clickLink(page, show);
+    await page.mouse.move(200, page.viewportSize().height - 40);
+    const opened = context.waitForEvent('page');
+    await press(page, stage(show).getByRole('button', { name: 'Open in new tab' }));
+    const tab = await opened;
+    expect(tab.url()).toBe(PDF);
+    // Chrome's viewer, left open, holds the browser's closing up for half a minute.
+    await tab.close();
   });
-  await clickLink(page, show);
-  await expect(inRefusal(show).getByRole('heading')).toHaveText(
-    'github.com won’t open over your slide',
-    { timeout: 20000 },
-  );
-  expect(await show.locator('body').evaluate(() => window.sawCode)).toBe(false);
+
+  // A PDF at an address that doesn't say so fails the refusal check, as it fails in the
+  // page's frame; Google's viewer, asked out of sight, finds it's a PDF, and it shows there.
+  test('a PDF whose address doesn’t end in .pdf (arXiv’s) shows in Google’s viewer too', async ({
+    context,
+  }) => {
+    const ARXIV = 'https://arxiv.org/pdf/1706.03762';
+    const { page, show } = await startShow(context);
+    await linkTo(show, ARXIV);
+    await clickLink(page, show);
+    const viewer = new URL('https://docs.google.com/viewer?embedded=true');
+    viewer.searchParams.set('url', ARXIV);
+    viewer.searchParams.set('hl', await show.locator('html').getAttribute('lang'));
+    await expect(website(show)).toHaveAttribute('src', viewer.href, { timeout: 15000 });
+    const pdf = show.frameLocator('iframe.slides-companion-spotlight-website');
+    await expect(pdf.locator('img[src^="blob:"]').first()).toBeVisible({ timeout: 20000 });
+    await expect(
+      stage(show).locator('.slides-companion-spotlight-refused, .slides-companion-spotlight-probe'),
+    ).toHaveCount(0);
+    await expect(stage(show).locator('.slides-companion-spotlight-site')).toHaveText('arxiv.org');
+  });
+
+  // GitHub's page for a PDF ends in .pdf too. Google's viewer would show it as code; it shows as any
+  // page instead, here GitHub's refusal to be shown inside another page.
+  test('a .pdf address that’s a web page opens as one, not in the PDF viewer', async ({
+    context,
+  }) => {
+    const GITHUB = 'https://github.com/mozilla/pdf.js/blob/master/test/pdfs/tracemonkey.pdf';
+    const { page, show } = await startShow(context);
+    await linkTo(show, GITHUB);
+    // Whether the viewer ever shows, with the page's code in it.
+    await show.locator('body').evaluate(() => {
+      window.sawCode = false;
+      const watch = () => {
+        const viewer = document.querySelector(
+          'iframe.slides-companion-spotlight-website[src^="https://docs.google.com/viewer"]',
+        );
+        if (
+          viewer &&
+          getComputedStyle(viewer).visibility !== 'hidden' &&
+          viewer.contentDocument?.querySelector('pre')
+        )
+          window.sawCode = true;
+        requestAnimationFrame(watch);
+      };
+      watch();
+    });
+    await clickLink(page, show);
+    await expect(inRefusal(show).getByRole('heading')).toHaveText(
+      'github.com won’t open over your slide',
+      { timeout: 20000 },
+    );
+    expect(await show.locator('body').evaluate(() => window.sawCode)).toBe(false);
+  });
 });
 
 // The slideshow is an https page, where Chrome blocks plain http ones.
@@ -440,6 +465,9 @@ const serveGoogle = async (context, headers = {}) => {
   );
 };
 const refusal = (show) => stage(show).locator('iframe.slides-companion-spotlight-refused');
+// The message comes after a check that loads a page from docs.google.com (Slides' "not found") with
+// no timer of its own, so on a busy machine it can take longer than expect's 5 seconds.
+const CHECKED = { timeout: 15_000 };
 const inRefusal = (show) => show.frameLocator('iframe.slides-companion-spotlight-refused');
 // The frame of our message, to act in it as Chrome would.
 const refusalFrame = (page) => page.frames().find((frame) => frame.url().includes('/refused.html'));
@@ -451,7 +479,7 @@ test('a site that refuses to be shown says so over the slide, instead of Chrome�
   for (const [, headers] of REFUSALS) {
     await serveGoogle(context, headers);
     await clickLink(page, show);
-    await expect(refusal(show)).toBeVisible();
+    await expect(refusal(show)).toBeVisible(CHECKED);
     // In place of the page, filling its space.
     await expect(website(show)).toHaveCount(0);
     const viewport = page.viewportSize();
@@ -479,7 +507,7 @@ test('a site that refuses to be shown says so over the slide, instead of Chrome�
 
   // A click on the black around the message closes it, as around a picture.
   await clickLink(page, show);
-  await expect(refusal(show)).toBeVisible();
+  await expect(refusal(show)).toBeVisible(CHECKED);
   const box = await refusal(show).boundingBox();
   await page.mouse.click(box.x + 20, box.y + 20);
   await expect(stage(show)).toHaveCount(0);
@@ -490,6 +518,7 @@ test('the message looks like Slides’ dialogs in Google’s dark theme', async 
   const { page, show } = await startShow(context);
   await serveGoogle(context, REFUSALS[0][1]);
   await clickLink(page, show);
+  await expect(refusal(show)).toBeVisible(CHECKED);
   const message = inRefusal(show);
   const title = message.getByRole('heading');
   await expect(title).toHaveCSS('font-size', '24px');
@@ -528,7 +557,7 @@ test('from the message, Open in new tab opens the site, by pointer or keyboard',
   // The keyboard: Tab goes into the message, on to its other button and back, and Enter presses.
   await page.bringToFront();
   await clickLink(page, show);
-  await expect(refusal(show)).toBeVisible();
+  await expect(refusal(show)).toBeVisible(CHECKED);
   await expect.poll(() => refusalFrame(page)?.evaluate(() => document.readyState)).toBe('complete');
   const focused = () => refusalFrame(page).evaluate(() => document.activeElement?.textContent);
   await page.keyboard.press('Tab');
@@ -550,7 +579,7 @@ test('Allow all sites asks Chrome from the message, and once allowed the page sh
   const { page, show } = await startShow(context);
   await serveGoogle(context, REFUSALS[0][1]);
   await clickLink(page, show);
-  await expect(refusal(show)).toBeVisible();
+  await expect(refusal(show)).toBeVisible(CHECKED);
   await expect.poll(() => refusalFrame(page)?.evaluate(() => document.readyState)).toBe('complete');
   // Chrome's question can't be answered in a test: the presenter says yes (noted in the extension's
   // storage, as the message goes once it's answered), and the site lets itself be shown, as every

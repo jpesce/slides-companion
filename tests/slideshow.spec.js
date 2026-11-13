@@ -100,6 +100,24 @@ test('clicks away from images still change slides', async ({ context }) => {
   await expect(stage(show)).toHaveCount(0);
 });
 
+// Once the pointer has rested a few seconds, the slideshow hides it under a cover over the whole
+// slide, and a click without moving first lands on the cover.
+test('a click on an image, after the pointer rested there and hid, still spotlights it', async ({
+  context,
+}) => {
+  const { page, show } = await startShow(context);
+  const image = show.locator(`[id="${LEFT}"] image`);
+  const box = await image.boundingBox();
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await expect(show.locator('.punch-viewer-cursor-hiding-component')).toBeVisible({
+    timeout: 10_000,
+  });
+  await clickCentre(page, image);
+  await expect(stage(show)).toBeVisible();
+  expect(await showing(show)).toBe(LEFT);
+  expect(await slideNumber(show)).toBe(3);
+});
+
 // Slides' links and videos keep working with the laser pointer on, so images do too. With the pen
 // on, a click draws.
 test('with the laser pointer on, clicking an image spotlights it', async ({ context }) => {

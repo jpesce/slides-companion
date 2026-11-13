@@ -4,6 +4,7 @@
 // view's timer as countdown.js does.)
 {
   const SLIDE_LABEL = '.punch-viewer-svgpage-a11yelement';
+  const CURSOR_COVER = '.punch-viewer-cursor-hiding-component';
   const slides = {
     // A slideshow's own page: in its frame in the editor, or in a tab of its own.
     inSlideshow: /\/(local)?present$/.test(location.pathname),
@@ -12,6 +13,16 @@
     // The slide a slideshow shows, by its page id, which stays the same when slides are moved.
     slideId: (doc = document) =>
       doc?.querySelector('.punch-viewer-svgpage-svgcontainer > svg > g[id]')?.id,
+    // What a press or click on the slideshow is on. Once the pointer has rested a few seconds, the
+    // slideshow hides it under a cover over the whole slide (.punch-viewer-cursor-hiding-component,
+    // cursor: none) until it moves again, so a click without moving first lands on the cover: what
+    // it meant is underneath.
+    pointedAt: (event) =>
+      event.target instanceof Element && event.target.matches(CURSOR_COVER)
+        ? (event.target.ownerDocument
+            .elementsFromPoint(event.clientX, event.clientY)
+            .find((element) => element !== event.target) ?? null)
+        : event.target,
     // With the pen on, dragging on the slide draws.
     penOn: (doc = document) =>
       Boolean(doc.querySelector('.sketchyViewerContent.disable-pointer-events')),

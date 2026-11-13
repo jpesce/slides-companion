@@ -1,5 +1,15 @@
 import fs from 'node:fs';
-import { test, expect, press, IDS, inEditor, stage, slideUrl, SLIDES } from './fixtures.js';
+import {
+  test,
+  expect,
+  press,
+  IDS,
+  inEditor,
+  stage,
+  slideUrl,
+  SLIDES,
+  flownIn,
+} from './fixtures.js';
 
 // Download image: the picture file Slides holds for an image, saved under the deck's name.
 
@@ -171,7 +181,7 @@ test('during a slideshow, the gallery saves the image too', async ({ context }) 
   await page.locator('#punch-start-presentation-left').click();
   const show = page.frameLocator('iframe.punch-present-iframe');
   const image = show.locator(`[id="${RIGHT.replace('editor-', '')}"] image`).first();
-  await expect.poll(async () => (await image.boundingBox())?.y).toBeGreaterThan(0);
+  await flownIn(image);
   const box = await image.boundingBox();
   await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
   await expect(stage(show)).toBeVisible();

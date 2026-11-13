@@ -11,6 +11,7 @@
     inkLayer,
     slideLabel: slideName,
     penOn,
+    pointedAt,
     SLIDE_CHANGED,
   } = globalThis.slidesCompanion.slides;
   const ZOOMED_CLASS = 'slides-companion-zoomed';
@@ -336,9 +337,10 @@
   // a plain click on an image still spotlights it (see onClick).
   function ownsPress(event) {
     if (target.scale === 1 || penOn() || galleryOpen()) return false;
+    const pressed = pointedAt(event);
     return !(
-      event.target instanceof Element &&
-      event.target.closest('.punch-viewer-navbar, .punch-viewer-navbar-menu, a')
+      pressed instanceof Element &&
+      pressed.closest('.punch-viewer-navbar, .punch-viewer-navbar-menu, a')
     );
   }
 

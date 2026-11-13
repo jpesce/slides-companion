@@ -258,6 +258,13 @@ export async function stopsChanging(read) {
 }
 
 // Scrolling eases to its zoom; this waits until it's there.
+// An object that flies in from above as its slide starts, once it's on the slide and has stopped:
+// hidden or clicked while it's still moving, the animation has the last word.
+export async function flownIn(locator) {
+  await expect.poll(async () => (await locator.boundingBox())?.y).toBeGreaterThan(0);
+  await stopsChanging(() => locator.boundingBox());
+}
+
 export const zoomSettled = (show) => stopsChanging(() => slideZoom(show));
 
 // Spotlight's stage, where it shows pictures and pages, in the editor or a slideshow.
