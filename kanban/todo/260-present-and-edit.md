@@ -26,6 +26,8 @@ The audience sees the editor for the few seconds you edit, which is fine for a q
 - Offer it where Slides offers its own slideshow actions too, like the slideshow's bottom bar or ⋮ menu, looking native.
 - Give it a page in Settings, with an illustration.
 
+**What Slides already does (checked 13 November 2026, test Chromium):** <kbd>Esc</kbd> leaves the slideshow onto the slide it was on (slide 4 stays slide 4 in the editor), and <kbd>⌘</kbd>/<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>Enter</kbd> presents from the current slide. Lost on the way: presenter view and its timer, the animation step, full screen. So the choice is between keeping Slides' two keys and carrying over only what's lost, a key of our own both ways (the 8 November decision), or no card. The maintainer put it off (13 November 2026): to think about later.
+
 **Done when:**
 - [ ] What Slides already does for the round-trip is written here, and ours adds only what's missing.
 - [ ] One key goes from the slideshow to the editor on the same slide, and back to the slideshow on that slide.

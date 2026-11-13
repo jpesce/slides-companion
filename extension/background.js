@@ -60,7 +60,12 @@ const checkPageRule = chrome.declarativeNetRequest
   .updateDynamicRules({ removeRuleIds: [CHECK_PAGE_RULE.id], addRules: [CHECK_PAGE_RULE] })
   .catch(warn('set the rule for the check page'));
 
-// A session rule per tab, its id the tab's.
+// A session rule per tab, its id the tab's. It covers every frame in the tab, not only the opened
+// site's: a rule has to be in place before the response, and the extension learns where the page
+// went (a redirect, a link clicked in it) only once it has loaded, so a rule narrowed to the opened
+// site would leave those to Chrome's "refused to connect". declarativeNetRequest can only remove a
+// whole header, so the whole Content-Security-Policy goes, not just its frame-ancestors. It's
+// opt-in (Allow all sites), held only while a page is open, and PRIVACY.md says so.
 const frameHeadersRule = (tabId) => ({
   id: tabId,
   action: {

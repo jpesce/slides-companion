@@ -31,9 +31,11 @@
   - how it looks and how big Chrome lets it be, on a real screen, and over full screen. Headless Chromium reports 1280×720 for it.
 - The spike's script isn't kept: it's short to write again from the above.
 
-**Waiting for the maintainer:** the open question above, now sharper (one floating window at a time), and whether "Automatic" (floating on one screen, its own window with a second screen, from `screen.isExtended`) is the default or a third choice.
+**Decided with the maintainer (13 November 2026):**
+- Floating notes stay. Since only one window can float, the presenter picks what floats over the slideshow: just the notes, or all of presenter view, in Settings.
+- With presenter view floating, the presenter also picks when: always floating, automatic (floating on one screen, its own window as Slides does when a second screen is plugged in, from `screen.isExtended`), or never (its own window, as today). Default: automatic, as proposed (not yet confirmed by the maintainer). Write the choices from the presenter's side ("Floating over your slideshow", "In its own window"), with when each helps.
 
 **Done when:**
 - [x] The spike's result is recorded on this card: works, works with limits, or can't.
 - [ ] If it works: presenter view floats over the full-screen slideshow on one screen, Settings offers floating or its own window, a test covers it, and CHANGELOG.md says it.
-- [ ] Floating notes is kept or removed, as decided with the user.
+- [x] Floating notes is kept or removed, as decided with the user: kept, with a choice of what floats.
