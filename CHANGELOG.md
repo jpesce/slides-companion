@@ -15,7 +15,7 @@ Presenter tools for Google Slides, still free, open source, and working entirely
 - **Pen:** what you draw with Slides' pen stays on the slide for the next time you present.
 - **Timer:** in presenter view, count down from how long you have, with a bar that fills as you go and an orange warning near the end. Each deck remembers its time.
 - **Floating notes:** your speaker notes, in their own fonts, in a small window that floats over the full-screen slideshow, and that meeting apps leave out when you share only the slideshow's tab. Open it from View › Show floating notes, the slideshow's ⋮ menu or <kbd>Shift</kbd>+<kbd>S</kbd>.
-- **Live edits:** edits to the deck, by you or anyone else, reach a slideshow that's already running.
+- **Live edits:** edits to the deck, by you or anyone else, reach a slideshow that's already running. Should Google change Slides in a way live edits can't follow, your slideshow simply carries on without them.
 - **Keyboard:** our shortcuts are listed in Slides' Keyboard shortcuts dialog, and our menu items work with the arrow keys and access keys like Slides' own.
 - **Languages:** the extension speaks Slides' language, in 33 languages, right to left in Arabic and Hebrew.
 - **A new look:** the binoculars are gone. Meet the companion, a small furry friend who peeks up from the extension's icon and sits at the top of Slides' side toolbar, watching your mouse. He blinks now and then, and squishes happily when you click him (he keeps still if your computer is set to reduce motion). Rather keep Slides' toolbar as Google made it? Hide him in Settings.

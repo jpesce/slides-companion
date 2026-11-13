@@ -42,6 +42,11 @@
 
   // Slides puts each object on the window as a slideshow starts; its methods are wrapped once.
   const wrapped = new WeakSet();
+  // Which objects Slides has put on the window, and what live edits looked for and didn't find.
+  // These are Slides' private parts, and Slides can change them without notice: live-edits.js turns
+  // live edits off for the slideshow if any is missing (see `lacking`), rather than misbehave.
+  const seen = new Set();
+  const missing = new Set();
   function watch(name, wrap) {
     let value;
     Object.defineProperty(window, name, {
@@ -51,6 +56,7 @@
       set(next) {
         value = next;
         const proto = next && Object.getPrototypeOf(next);
+        if (proto) seen.add(name);
         if (proto && !wrapped.has(proto)) {
           wrapped.add(proto);
           wrap(proto);
@@ -58,6 +64,15 @@
       },
     });
   }
+  // Wraps one of an object's methods: `make(original)` gives what takes its place.
+  function hook(name, proto, method, make) {
+    const original = proto[method];
+    if (typeof original !== 'function') return missing.add(`${name}.${method}`);
+    proto[method] = make(original);
+  }
+  // The objects a slideshow started from the editor always puts on the window.
+  const REQUIRED = ['SK_svgDataApi', 'SK_viewerDataApi', 'SK_viewerEventListener'];
+  const lacking = () => [...REQUIRED.filter((name) => !seen.has(name)), ...missing];
 
   // ----- Slides as each player got them -----
 
@@ -88,19 +103,24 @@
       .join(' ') + ` / ${window.SK_viewerDataApi?.getSlidePageCount?.()}`;
 
   watch('SK_svgDataApi', (proto) => {
-    const requestPage = proto.requestPage3;
-    proto.requestPage3 = function (pageId, prefetch, onImages, onSvg) {
-      svgApi = this;
-      const frame = playerOf(onSvg);
-      if (!frame) return requestPage.apply(this, arguments);
-      const args = [...arguments];
-      args[3] = function (svg) {
-        if (!delivered.has(frame)) delivered.set(frame, new Map());
-        delivered.get(frame).set(pageId, fingerprint(svg));
-        return onSvg.apply(this, arguments);
-      };
-      return requestPage.apply(this, args);
-    };
+    hook(
+      'SK_svgDataApi',
+      proto,
+      'requestPage3',
+      (requestPage) =>
+        function (pageId, prefetch, onImages, onSvg) {
+          svgApi = this;
+          const frame = playerOf(onSvg);
+          if (!frame) return requestPage.apply(this, arguments);
+          const args = [...arguments];
+          args[3] = function (svg) {
+            if (!delivered.has(frame)) delivered.set(frame, new Map());
+            delivered.get(frame).set(pageId, fingerprint(svg));
+            return onSvg.apply(this, arguments);
+          };
+          return requestPage.apply(this, args);
+        },
+    );
   });
 
   const ask = (pageId) =>
@@ -141,57 +161,94 @@
     }
     const shown = differences(shownPlayer());
     const loading = differences(loadingPlayer());
+    const gone = lacking();
+    // For the tests, which name what's gone when Slides changes.
+    document.documentElement.dataset.slidesCompanionLiveEdits = gone.length
+      ? `missing ${gone.join(', ')}`
+      : 'working';
     // What the edits so far add up to, to tell when they've stopped.
     const version = fingerprint(
       JSON.stringify([...current].filter(([pageId]) => shown?.changed.includes(pageId))) +
         deckOrder(),
     );
     document.dispatchEvent(
-      new CustomEvent(RESULT_EVENT, { detail: JSON.stringify({ id, shown, loading, version }) }),
+      new CustomEvent(RESULT_EVENT, {
+        detail: JSON.stringify({ id, shown, loading, version, missing: gone }),
+      }),
     );
   });
 
   // The deck's order as each player started.
   watch('SK_viewerDataApi', (proto) => {
-    const requestViewerModel = proto.requestViewerModel;
-    proto.requestViewerModel = function (callback) {
-      const frame = playerOf(callback);
-      if (frame) orders.set(frame, deckOrder());
-      return requestViewerModel.apply(this, arguments);
-    };
+    hook(
+      'SK_viewerDataApi',
+      proto,
+      'requestViewerModel',
+      (requestViewerModel) =>
+        function (callback) {
+          const frame = playerOf(callback);
+          if (frame) orders.set(frame, deckOrder());
+          return requestViewerModel.apply(this, arguments);
+        },
+    );
   });
 
   // ----- What the players tell the editor -----
 
   watch('SK_viewerEventListener', (proto) => {
-    const onLoad = proto.onLoad;
-    proto.onLoad = function loaded() {
-      // A new slideshow: what was checked during the last one is out of date.
-      if (!isCopy(playerOf(loaded.caller))) current.clear();
-      const result = onLoad.apply(this, arguments);
-      document.dispatchEvent(new CustomEvent(STARTED_EVENT));
-      return result;
-    };
-    const onExit = proto.onExit;
-    proto.onExit = function exit() {
-      // A copy says it's leaving as it starts, before it's shown.
-      if (state(playerOf(exit.caller)) === 'loading') return;
-      const result = onExit.apply(this, arguments);
-      document.dispatchEvent(new CustomEvent(ENDED_EVENT));
-      return result;
-    };
-    const onDisplayPageChanged = proto.onDisplayPageChanged;
-    proto.onDisplayPageChanged = function changed() {
-      // Only the player on screen moves the editor to its slide.
-      if (['loading', 'replaced'].includes(state(playerOf(changed.caller)))) return;
-      return onDisplayPageChanged.apply(this, arguments);
-    };
-    const onAllPagesLoad = proto.onAllPagesLoad;
-    proto.onAllPagesLoad = function allLoaded() {
-      const frame = playerOf(allLoaded.caller);
-      if (frame) frame.dataset.slidesCompanionLoaded = '';
-      return onAllPagesLoad.apply(this, arguments);
-    };
+    const name = 'SK_viewerEventListener';
+    hook(
+      name,
+      proto,
+      'onLoad',
+      (onLoad) =>
+        function loaded() {
+          const frame = playerOf(loaded.caller);
+          // Players are told apart by who calls: without it, a copy loading out of sight could end
+          // the slideshow.
+          if (!frame) missing.add('Function.caller');
+          // A new slideshow: what was checked during the last one is out of date.
+          if (!isCopy(frame)) current.clear();
+          const result = onLoad.apply(this, arguments);
+          document.dispatchEvent(new CustomEvent(STARTED_EVENT));
+          return result;
+        },
+    );
+    hook(
+      name,
+      proto,
+      'onExit',
+      (onExit) =>
+        function exit() {
+          // A copy says it's leaving as it starts, before it's shown.
+          if (state(playerOf(exit.caller)) === 'loading') return;
+          const result = onExit.apply(this, arguments);
+          document.dispatchEvent(new CustomEvent(ENDED_EVENT));
+          return result;
+        },
+    );
+    hook(
+      name,
+      proto,
+      'onDisplayPageChanged',
+      (onDisplayPageChanged) =>
+        function changed() {
+          // Only the player on screen moves the editor to its slide.
+          if (['loading', 'replaced'].includes(state(playerOf(changed.caller)))) return;
+          return onDisplayPageChanged.apply(this, arguments);
+        },
+    );
+    hook(
+      name,
+      proto,
+      'onAllPagesLoad',
+      (onAllPagesLoad) =>
+        function allLoaded() {
+          const frame = playerOf(allLoaded.caller);
+          if (frame) frame.dataset.slidesCompanionLoaded = '';
+          return onAllPagesLoad.apply(this, arguments);
+        },
+    );
   });
 
   // ----- Presenting through Meet -----
@@ -242,27 +299,31 @@
   const waiting = { setWebFontsMetadataCallback: [], setWebFontsListCallback: [] };
   watch('SK_webFontsDataApi', (proto) => {
     for (const method of Object.keys(fonts)) {
-      const original = proto[method];
-      if (typeof original !== 'function') continue;
-      proto[method] = function (callback) {
-        const frame = playerOf(callback);
-        if (isCopy(frame)) {
-          waiting[method] = waiting[method].filter((copy) => copy.frame.isConnected);
-          waiting[method].push({ frame, callback });
-          if (fonts[method]) setTimeout(() => callback(...fonts[method]));
-          return;
-        }
-        fonts[method] = null;
-        return original.call(this, function () {
-          fonts[method] = [...arguments];
-          for (const copy of waiting[method]) {
-            try {
-              if (copy.frame.isConnected) copy.callback(...arguments);
-            } catch {}
-          }
-          return callback.apply(this, arguments);
-        });
-      };
+      hook(
+        'SK_webFontsDataApi',
+        proto,
+        method,
+        (original) =>
+          function (callback) {
+            const frame = playerOf(callback);
+            if (isCopy(frame)) {
+              waiting[method] = waiting[method].filter((copy) => copy.frame.isConnected);
+              waiting[method].push({ frame, callback });
+              if (fonts[method]) setTimeout(() => callback(...fonts[method]));
+              return;
+            }
+            fonts[method] = null;
+            return original.call(this, function () {
+              fonts[method] = [...arguments];
+              for (const copy of waiting[method]) {
+                try {
+                  if (copy.frame.isConnected) copy.callback(...arguments);
+                } catch {}
+              }
+              return callback.apply(this, arguments);
+            });
+          },
+      );
     }
   });
 

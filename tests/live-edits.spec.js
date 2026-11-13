@@ -134,6 +134,50 @@ test('an edit to the slide on screen shows within seconds, and the slideshow car
   await expect(copies(page)).toHaveCount(0);
 });
 
+// An early warning, apart from what presenters see: live edits leans on parts of Slides that Slides
+// can change without notice (live-edits-main.js), and this names the one that's gone.
+test('Slides still has every part live edits leans on', async ({ context }) => {
+  const page = await startEditableSlideshow(context);
+  await edit(page, SLIDE_3, 'Lisbon');
+  await expect(page.locator('html')).toHaveAttribute(
+    'data-slides-companion-live-edits',
+    'working',
+    {
+      timeout: 15000,
+    },
+  );
+});
+
+test('when Slides no longer has a part live edits leans on, live edits turns itself off and says why', async ({
+  context,
+}) => {
+  const page = await openDeck(context);
+  // As if Slides had renamed it: the players still get it, but live edits never sees it.
+  await page.evaluate(() => {
+    let api;
+    Object.defineProperty(window, 'SK_viewerDataApi', {
+      configurable: true,
+      get: () => api,
+      set(value) {
+        api = value;
+      },
+    });
+  });
+  const warned = page.waitForEvent('console', (message) =>
+    message.text().includes('turned live edits off for this slideshow'),
+  );
+  await page.locator('#punch-start-presentation-left').click();
+  await expect(shown(page).locator(`[id="${IDS.left}"] image`)).toBeVisible();
+  await edit(page, SLIDE_3, 'Lisbon');
+  expect((await warned).text()).toContain('Slides no longer has SK_viewerDataApi.');
+  // The slideshow goes on as without live edits: no copy loads, through several checks.
+  await page.waitForTimeout(3000);
+  await expect(copies(page)).toHaveCount(0);
+  await expect(words(page, 'Lisbon')).toHaveCount(0);
+  await page.keyboard.press('ArrowLeft');
+  await expect.poll(() => shownSlide(page)).toBe(2);
+});
+
 test('an edit to another slide changes nothing on screen, and shows when you get there', async ({
   context,
 }) => {

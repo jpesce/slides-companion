@@ -113,6 +113,7 @@
   }
 
   function onResult(result) {
+    if (result?.missing?.length) return giveUp(result.missing);
     const { changed = [], moved = false } = result?.shown ?? {};
     if (updates() === 'off' || (!changed.length && !moved)) {
       // Nothing to show, or edits undone.
@@ -445,9 +446,21 @@
 
   // ----- Starting and ending -----
 
+  // Slides no longer has a part live edits leans on (see live-edits-main.js): for the rest of the
+  // slideshow, it's as if live edits were off, rather than show a wrong slide.
+  let gaveUp = false;
+  function giveUp(missing) {
+    if (!gaveUp)
+      console.warn(
+        `Slides Companion turned live edits off for this slideshow: Slides no longer has ${missing.join(', ')}.`,
+      );
+    gaveUp = true;
+    sync();
+  }
+
   let watching = false;
   function sync() {
-    const now = running() && updates() !== 'off';
+    const now = running() && updates() !== 'off' && !gaveUp;
     if (now === watching) return;
     watching = now;
     if (watching)
@@ -482,6 +495,7 @@
       frame.inert = false;
     }
     watching = false;
+    gaveUp = false;
     filmstrip.disconnect();
   }
 

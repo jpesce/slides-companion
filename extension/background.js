@@ -15,6 +15,11 @@ const PAGE_SCRIPT = {
   runAt: 'document_start',
 };
 
+// For failures nothing explains (Chrome refusing a rule or a script), which would quietly stop
+// links opening over the slide. Failures that are expected, a tab or frame gone by the time it's
+// told something, stay quiet.
+const warn = (what) => (error) => console.warn(`Slides Companion couldn't ${what}:`, error);
+
 // One at a time: registering the same script twice fails.
 let pageScriptSync = Promise.resolve();
 function syncPageScript() {
@@ -27,7 +32,7 @@ function syncPageScript() {
       if (!granted && registered)
         await chrome.scripting.unregisterContentScripts({ ids: [PAGE_SCRIPT.id] });
     })
-    .catch(() => {});
+    .catch(warn('register page.js for every site'));
   return pageScriptSync;
 }
 syncPageScript();
@@ -53,7 +58,7 @@ const CHECK_PAGE_RULE = {
 };
 const checkPageRule = chrome.declarativeNetRequest
   .updateDynamicRules({ removeRuleIds: [CHECK_PAGE_RULE.id], addRules: [CHECK_PAGE_RULE] })
-  .catch(() => {});
+  .catch(warn('set the rule for the check page'));
 
 // A session rule per tab, its id the tab's.
 const frameHeadersRule = (tabId) => ({
@@ -132,7 +137,8 @@ async function isPdf(href) {
 // loads another page, which turns it off again there. Turned off each time the worker starts (a
 // tab's own state wins over it), as turning the extension off and on fires neither onInstalled
 // nor onStartup; the two listeners start the worker at those moments.
-const buttonOffEverywhere = () => chrome.action.disable().catch(() => {});
+const buttonOffEverywhere = () =>
+  chrome.action.disable().catch(warn("turn the toolbar button off where Settings can't open"));
 buttonOffEverywhere();
 chrome.runtime.onInstalled.addListener(buttonOffEverywhere);
 chrome.runtime.onStartup.addListener(buttonOffEverywhere);
@@ -169,7 +175,7 @@ chrome.runtime.onMessage.addListener((message, sender, respond) => {
           if (allSites) {
             await chrome.declarativeNetRequest
               .updateSessionRules({ removeRuleIds: [tabId], addRules: [frameHeadersRule(tabId)] })
-              .catch(() => {});
+              .catch(warn('lift the framing headers in this tab'));
           }
           respond({ allSites });
         });
