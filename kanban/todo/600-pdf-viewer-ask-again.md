@@ -6,6 +6,8 @@
 
 **Approach:** to decide with the maintainer first: whether a 204 from the viewer is worth asking again for, once, before the message (the presenter waits up to another 5 seconds, `VIEWER_WAIT_MS` in spotlight.js), or whether the message, with Open in new tab, is enough. If it's asked again, find whether the viewer's 204 comes back quickly (then a second ask costs little) or only after the wait.
 
+**Decided with the maintainer (13 November 2026): ask again, once.** On an empty answer (204), the extension asks the viewer a second time before showing the message. Measure first whether the 204 comes quickly or only after `VIEWER_WAIT_MS`, so the second ask doesn't double the wait.
+
 **Done when:**
-- [ ] The maintainer has chosen.
+- [x] The maintainer has chosen.
 - [ ] If asked again: a PDF the viewer misses once still shows, a test plays the 204 once (`context.route`) and checks it, and the PDF viewer tests no longer need their retry.

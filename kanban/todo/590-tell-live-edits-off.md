@@ -9,6 +9,14 @@
 - The toolbar button's menu shows it, the next time it's opened in the editor.
 - Nothing more than the console: Slides changes rarely, and the tests' early warning (`data-slides-companion-live-edits`) tells us first, so a fix can ship before presenters notice.
 
+**Decided with the maintainer (13 November 2026): a toast in the editor, and a local log the presenter can send us.**
+- **The toast:** after a slideshow in which live edits turned itself off, the editor shows a toast like Slides' own snackbar (bottom left, dark, one line and an action, as when Slides says "Slide deleted · Undo"): live edits stopped working during that slideshow, and an update of the extension should bring it back. Never during the slideshow. Measure Slides' snackbar in a live deck and match it.
+- **The log:** the extension is client-side only, so nothing is sent. What broke (which part of Slides was missing, from `missing` in live-edits-main.js), when, the extension's version, the browser and Slides' language go into `chrome.storage.local`, a few entries at most.
+- **The least work for both sides:** the toast's action, "Report", opens our bug form on GitHub with it filled in, through the issue form's URL fields (`/issues/new?template=bug.yml&title=…&what=…&browser=…&version=…&language=…`, ids from `.github/ISSUE_TEMPLATE/bug.yml`). The presenter only reads it and clicks Submit; nothing leaves the computer unless they do. Keep the URL short (GitHub caps it around 8 KB).
+- PRIVACY.md says what's kept locally and that it's sent only if the presenter submits the report.
+
 **Done when:**
-- [ ] The maintainer has chosen one.
-- [ ] If it's shown, it looks like Slides built it, in light and dark, and a test covers it.
+- [x] The maintainer has chosen one.
+- [ ] After a slideshow where live edits turned off, the editor shows the toast once, looking like Slides' snackbar in light and dark.
+- [ ] Report opens the bug form filled in with what broke, the version, the browser and the language, and nothing is sent otherwise.
+- [ ] PRIVACY.md describes the local log; a test covers the toast and the report's address, and CHANGELOG.md says it.
