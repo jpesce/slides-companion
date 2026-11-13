@@ -1,6 +1,6 @@
-// A page opened over the slide from a link (spotlight.js). Registered by background.js on every
+// A page opened over the slide from a link (links.js). Registered by background.js on every
 // site once the presenter lets every site open over the slide, so it runs in every frame
-// but acts only in that page: the frame spotlight.js names, right inside Slides. The slideshow can't
+// but acts only in that page: the frame links.js names, right inside Slides. The slideshow can't
 // hear keys in another site, so Esc comes back to it from here; and it says where the page is, for
 // Open in new tab, and Back and Forward.
 {
@@ -21,7 +21,7 @@
       } catch {} // The extension was updated or reloaded since the page opened.
     };
 
-    // Its release too, for the slideshow to give Esc back to the browser only then (spotlight.js).
+    // Its release too, for the slideshow to give Esc back to the browser only then (stage.js).
     for (const type of ['keydown', 'keyup']) {
       window.addEventListener(
         type,

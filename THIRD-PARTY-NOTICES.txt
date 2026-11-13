@@ -8,7 +8,7 @@ Copyright Google LLC. https://github.com/google/material-design-icons
 Licensed under the Apache License, Version 2.0, below.
 
 The extension draws some of its icons with their paths: in Settings (settings-dialog.js), the
-notices shown over a slide (all-sites.html, refused.html), Spotlight's bar (spotlight.js) and the
+notices shown over a slide (all-sites.html, refused.html), the stage's bar (stage.js, links.js) and the
 timer's menu (countdown.js).
 
 

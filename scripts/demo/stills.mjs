@@ -89,7 +89,7 @@ async function spotlight(page, ui) {
   await sleep(400);
   ui.spotlight.bar = await box(show(page).locator('.slides-companion-spotlight-bar'));
   await shoot(page, 'spotlight-bar');
-  // The controls hide when the pointer has rested a while (IDLE_MS in spotlight.js).
+  // The controls hide when the pointer has rested a while (IDLE_MS in stage.js).
   await sleep(2600);
   await shoot(page, 'spotlight');
   await page.keyboard.press('Escape');

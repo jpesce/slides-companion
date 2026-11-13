@@ -45,6 +45,7 @@
         "settings-dialog.js",
         "companion-drawing.js",
         "companion.js",
+        "stage.js",
         "spotlight.js",
         "scroll.js",
         "live-edits.js",
@@ -79,6 +80,8 @@
         "menus.js",
         "zoom.js",
         "ink.js",
+        "stage.js",
+        "links.js",
         "spotlight.js",
         "notes.js",
         "shortcuts.js"

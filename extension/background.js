@@ -86,7 +86,7 @@ const dropFrameHeadersRule = (tabId) =>
   chrome.declarativeNetRequest.updateSessionRules({ removeRuleIds: [tabId] });
 chrome.tabs.onRemoved.addListener((tabId) => dropFrameHeadersRule(tabId).catch(() => {}));
 
-// Whether an address is a PDF, asked of its site, for spotlight.js to show it in Google's
+// Whether an address is a PDF, asked of its site, for links.js to show it in Google's
 // viewer: only with every site allowed, which lets the extension ask any site. Without the
 // presenter's cookies, as Google's viewer will fetch it. A GET stops at the headers, for sites that
 // don't answer HEAD. Null when the site doesn't say.
@@ -153,7 +153,7 @@ function openSettingsIn(tabId) {
 }
 chrome.action.onClicked.addListener((tab) => openSettingsIn(tab.id));
 
-// What each part of the extension asks, by who may ask it: spotlight.js and settings-dialog.js, in
+// What each part of the extension asks, by who may ask it: links.js and settings-dialog.js, in
 // Slides' pages, and page.js, in a page shown over the slide (a frame, never a tab's own page).
 // page.js runs on every site, so a site can't use it to ask for anything else.
 const FROM_SLIDES = new Set(['page-open', 'page-type', 'page-closed', 'page-go', 'settings-here']);
@@ -170,7 +170,7 @@ chrome.runtime.onMessage.addListener((message, sender, respond) => {
   )
     return;
   switch (message.type) {
-    // spotlight.js is about to show a page: it waits for the answer (whether every site can be
+    // links.js is about to show a page: it waits for the answer (whether every site can be
     // shown) so the page loads with the rules in place (this tab's, or the check's), and page.js in
     // it, if every site was only just allowed.
     case 'page-open':
@@ -191,12 +191,12 @@ chrome.runtime.onMessage.addListener((message, sender, respond) => {
     case 'page-closed':
       dropFrameHeadersRule(tabId).catch(() => {});
       return;
-    // From page.js, for spotlight.js in whichever of the tab's frames shows the page.
+    // From page.js, for links.js in whichever of the tab's frames shows the page.
     case 'page-key':
     case 'page-address':
       chrome.tabs.sendMessage(tabId, { ...message, frameId: sender.frameId }).catch(() => {});
       return;
-    // From spotlight.js, for page.js: go to another page (Back, Forward).
+    // From links.js, for page.js: go to another page (Back, Forward).
     case 'page-go':
       chrome.tabs.sendMessage(tabId, message, { frameId: message.frameId }).catch(() => {});
       return;
