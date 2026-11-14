@@ -70,13 +70,17 @@
 
 **Closing in full screen (13 November 2026):** reproduced in Dia with the page at its real size: with presenter view floating over a full-screen slideshow, closing it takes the browser out of full screen (on macOS full screen is a space of its own; the headed test Chromium's full screen stays in its window, so it doesn't), and Slides ends the slideshow, as it does whenever full screen ends. Fixed in `notes.js`, for floating notes' window too: the window is followed from the picture-in-picture API's `enter` (Slides writes presenter view's window afresh, which drops listeners on it), and when full screen ends just as it has closed, Slides isn't told and the slideshow goes on in the browser's window, with the ways back to full screen. Esc with the window still open ends the slideshow as always. Tests close the window, then leave full screen, as macOS does: both fail without the fix. Checking the fix in Dia itself didn't work: the debugging tool's emulated viewport came back after a reload, and full screen wouldn't come on.
 
-**Still to check by hand, in the maintainer's own browser:**
-- Closing presenter view during a full-screen slideshow: start a slideshow, press S, go back to full screen (⌘+Shift+F), then Close the floating window. The slideshow should go on, in the browser's window.
+**The fix, checked in Dia (13 November 2026):** driven with real keys from macOS (System Events) and the floating window's own Close button (pressed through the accessibility API), with Dia's full screen read from macOS (`AXFullScreen`), not the page:
+- Presenter view closed by the page (`window.close()`) over a full-screen slideshow: Dia left full screen within 300 ms, and the slideshow went on in the browser's window.
+- Floating notes, then presenter view, each closed with its Close button over a full-screen slideshow: Dia stayed in full screen this time, and the slideshow went on. So leaving full screen when the window closes doesn't happen every time; when it does, the fix keeps the slideshow.
+- The debugging tool's emulated viewport is what kept full screen off before: a tab it hasn't touched goes full screen with ⌘+Shift+F as it should.
+
+**Still to check by hand:**
 - Automatic with a second screen connected: presenter view opens in Slides' own window. (Only one screen here.)
 
 **Left as Slides does:** Enter on presenter view's menu item from the keyboard, and a slideshow in a tab of its own (`/present`), open Slides' own window.
 
 **Done when:**
 - [x] The spike's result is recorded on this card: works, works with limits, or can't.
-- [ ] If it works: presenter view floats over the full-screen slideshow on one screen, Settings offers floating or its own window, a test covers it, and CHANGELOG.md says it. Built, tested and in CHANGELOG.md, and checked in a real browser; what's left is the two checks by hand above.
+- [ ] If it works: presenter view floats over the full-screen slideshow on one screen, Settings offers floating or its own window, a test covers it, and CHANGELOG.md says it. Built, tested and in CHANGELOG.md, and checked in a real browser; what's left is the second-screen check above.
 - [x] Floating notes is kept or removed, as decided with the user: kept, with a choice of what floats.
