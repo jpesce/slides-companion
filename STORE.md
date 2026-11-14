@@ -27,8 +27,8 @@ What you draw with Slides' pen stays on the slide for the next time you present.
 TIMER
 In presenter view, count down from how long you have, with a bar that fills as you go and a warning before the end.
 
-FLOATING NOTES
-Your speaker notes in a small window that floats over the full-screen slideshow, so one screen is enough. Meeting apps leave it out when you share only the slideshow's tab.
+PRESENTER VIEW ON ONE SCREEN
+Presenter view floats over your full-screen slideshow, with your notes, the timer and the next slide, so one screen is enough. Or float just your notes. Meeting apps leave the floating window out when you share only the slideshow's tab. With a second screen, presenter view opens in its own window, as Slides does.
 
 LIVE EDITS
 Edits to the deck, by you or anyone else, reach a slideshow that's already running. Showing a deck on an office TV? Start the slideshow from the editor on the TV, and edits show there within seconds. (A "Publish to the web" link takes Google 30 to 60 minutes to update.)
