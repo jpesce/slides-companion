@@ -24,9 +24,11 @@ const menu = (page) => page.locator('.goog-menu[role="menu"]').filter({ visible:
 const menuItem = (page, name) => menu(page).locator('.goog-menuitem', { hasText: name });
 const download = (where) => where.locator('.slides-companion-spotlight-download');
 const selected = (page) =>
-  page.$$eval('#workspace path[stroke="#8ab4f8"]', (outlines) =>
-    [...new Set(outlines.map((outline) => outline.closest('[id^="editor-"]').id))].sort(),
-  );
+  page
+    .locator('#workspace path[stroke="#8ab4f8"]')
+    .evaluateAll((outlines) =>
+      [...new Set(outlines.map((outline) => outline.closest('[id^="editor-"]').id))].sort(),
+    );
 // The bar's buttons that show, by the names screen readers hear.
 const buttonsIn = (bar) =>
   bar
@@ -92,7 +94,10 @@ test('Download image is offered for one image only', async ({ context }) => {
   await clickCentre(page, `${object(RIGHT)} image`);
   await page.keyboard.up('Shift');
   await expect.poll(() => selected(page)).toEqual([LEFT, RIGHT].sort());
-  // Slides opens no menu for a right-click that comes as quickly as a double click's second.
+  // Slides opens no menu for a right-click that comes as quickly as a double click's second. Its
+  // double-click time runs out inside Slides, with nothing on the page to wait for, so the test lets
+  // it pass before right-clicking.
+  // eslint-disable-next-line playwright/no-wait-for-timeout -- the wait is the scenario, see above.
   await page.waitForTimeout(600);
   await clickCentre(page, `${object(RIGHT)} image`, { button: 'right' });
   await expect(menuItem(page, 'Spotlight image')).toBeVisible();

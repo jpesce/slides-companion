@@ -7,6 +7,7 @@ import {
   SLIDES,
   IDS,
   slideUrl,
+  stays,
 } from './fixtures.js';
 
 // The extension as it comes, live edits on.
@@ -171,9 +172,11 @@ test('when Slides no longer has a part live edits leans on, live edits turns its
   await edit(page, SLIDE_3, 'Lisbon');
   expect((await warned).text()).toContain('Slides no longer has SK_viewerDataApi.');
   // The slideshow goes on as without live edits: no copy loads, through several checks.
-  await page.waitForTimeout(3000);
-  await expect(copies(page)).toHaveCount(0);
-  await expect(words(page, 'Lisbon')).toHaveCount(0);
+  await stays(
+    async () => [await copies(page).count(), await words(page, 'Lisbon').count()],
+    [0, 0],
+    3000,
+  );
   await page.keyboard.press('ArrowLeft');
   await expect.poll(() => shownSlide(page)).toBe(2);
 
@@ -259,10 +262,11 @@ test('presenter view moves to the new player, without another window', async ({ 
     200,
   );
   await expect(words(page, 'Lisbon')).toBeVisible({ timeout: 15000 });
-  // Watched for three seconds, as the slideshow carries on.
-  await page.waitForTimeout(3000);
+  // Watched for three seconds more (15 looks), as the slideshow carries on.
+  const seen = times.length;
+  await expect.poll(() => times.length, { timeout: 10_000 }).toBeGreaterThanOrEqual(seen + 15);
   clearInterval(watching);
-  expect(context.pages().length).toBe(windows);
+  expect(context.pages()).toHaveLength(windows);
   // The timer carries on, never going back.
   expect(times.length).toBeGreaterThan(10);
   expect(times.every((seconds, i) => i === 0 || seconds >= times[i - 1])).toBe(true);
@@ -272,7 +276,7 @@ test('presenter view moves to the new player, without another window', async ({ 
   await expect(words(page, 'Porto')).toBeVisible({ timeout: 15000 });
   await expect(copies(page)).toHaveCount(1, { timeout: 5000 });
   expect(presenter.isClosed()).toBe(false);
-  expect(context.pages().length).toBe(windows);
+  expect(context.pages()).toHaveLength(windows);
   const before = await time();
   await expect.poll(time).toBeGreaterThanOrEqual(before + 2);
   // Next in presenter view moves the slideshow on screen, and the countdown is still there.
@@ -321,8 +325,9 @@ test('presenter view’s countdown and its bar stay put while a new player takes
   const watching = setInterval(() => look().then((seen) => seen && looks.push(seen)), 100);
   await edit(page, SLIDE_3, 'Lisbon');
   await expect(words(page, 'Lisbon')).toBeVisible({ timeout: 15000 });
-  // Watched for a while after the edit shows.
-  await page.waitForTimeout(2500);
+  // Watched for a while after the edit shows: 25 looks more, about two and a half seconds.
+  const seen = looks.length;
+  await expect.poll(() => looks.length, { timeout: 10_000 }).toBeGreaterThanOrEqual(seen + 25);
   clearInterval(watching);
   expect(looks.length).toBeGreaterThan(20);
   for (const seen of looks) {
@@ -341,8 +346,7 @@ test('it waits for a calm moment: an image spotlit keeps the slide as it is', as
   await expect(shown(page).locator('.slides-companion-spotlight')).toBeVisible();
   await edit(page, SLIDE_3, 'Lisbon');
   // While the picture is spotlit, no other player takes over, through several checks.
-  await page.waitForTimeout(6000);
-  await expect(slidesOwn(page)).not.toHaveAttribute('data-slides-companion-player');
+  await stays(() => slidesOwn(page).getAttribute('data-slides-companion-player'), null, 6000);
   await page.keyboard.press('Escape');
   await expect(words(page, 'Lisbon')).toBeVisible({ timeout: 15000 });
 });
@@ -377,8 +381,7 @@ test('set to show edits once you’ve moved on, the slide on screen stays as it 
   const page = await startEditableSlideshow(context);
   await edit(page, SLIDE_3, 'Lisbon');
   // On screen, the edit doesn't show, through several checks.
-  await page.waitForTimeout(7000);
-  await expect(words(page, 'Lisbon')).toHaveCount(0);
+  await stays(() => words(page, 'Lisbon').count(), 0, 7000);
   await page.keyboard.press('ArrowLeft');
   await replaced(page);
   await page.keyboard.press('ArrowRight');
@@ -390,9 +393,11 @@ test('set to wait for the next slideshow, nothing changes', async ({ context }) 
   const page = await startEditableSlideshow(context);
   await edit(page, SLIDE_3, 'Lisbon');
   // The edit doesn't show in this slideshow, through several checks.
-  await page.waitForTimeout(7000);
-  await expect(copies(page)).toHaveCount(0);
-  await expect(words(page, 'Lisbon')).toHaveCount(0);
+  await stays(
+    async () => [await copies(page).count(), await words(page, 'Lisbon').count()],
+    [0, 0],
+    7000,
+  );
 });
 
 // On a busy computer, Slides numbers a slide's clip paths differently each time it draws it.
@@ -404,9 +409,11 @@ test('a slide drawn again, unedited but numbered differently, loads no new playe
   // Slides redraws the slide's thumbnail, as it does when it's busy, with nothing edited.
   await edit(page, SLIDE_3);
   // Nothing edited, nothing takes over, through several checks.
-  await page.waitForTimeout(7000);
-  await expect(copies(page)).toHaveCount(0);
-  await expect(page.locator(PLAYER)).toHaveCount(1);
+  await stays(
+    async () => [await copies(page).count(), await page.locator(PLAYER).count()],
+    [0, 1],
+    7000,
+  );
 
   // An edit still shows.
   await edit(page, SLIDE_3, 'Lisbon');
@@ -416,41 +423,49 @@ test('a slide drawn again, unedited but numbered differently, loads no new playe
 test('an edit undone before it shows changes nothing', async ({ context }) => {
   const page = await startEditableSlideshow(context);
   await edit(page, SLIDE_3, 'Lisbon');
-  // Undone within a second, before a check can take it.
-  await page.waitForTimeout(400);
+  // Undone within a second, before a check can take it, and nothing takes over meanwhile.
+  await stays(() => copies(page).count(), 0, 400);
   await edit(page, SLIDE_3, null);
   // Undone, nothing takes over, through several checks.
-  await page.waitForTimeout(7000);
-  await expect(slidesOwn(page)).not.toHaveAttribute('data-slides-companion-player');
-  await expect(copies(page)).toHaveCount(0);
+  await stays(
+    async () => [
+      await slidesOwn(page).getAttribute('data-slides-companion-player'),
+      await copies(page).count(),
+    ],
+    [null, 0],
+    7000,
+  );
 });
+
+// Chooses Auto-play's `nth` option in Slides' ⋮ menu, opening the menu if choosing the last one
+// left it closed. Its submenu opens on hover.
+async function autoPlay(page, own, nth) {
+  const more = own.locator('.punch-viewer-navbar-more');
+  if (!(await own.locator('.goog-menuitem[aria-haspopup]').filter({ visible: true }).count())) {
+    await more.dispatchEvent('mousedown');
+    await more.dispatchEvent('mouseup');
+  }
+  const box = await own
+    .locator('.goog-menuitem[aria-haspopup]')
+    .filter({ visible: true })
+    .first()
+    .boundingBox();
+  await page.mouse.move(box.x + 20, box.y + box.height / 2);
+  const submenu = own
+    .locator('[role="menu"]')
+    .filter({ has: own.locator('.goog-option') })
+    .filter({ visible: true });
+  await submenu.locator('[role^="menuitem"]').nth(nth).click();
+}
 
 test('auto-play carries on, at the same pace, looping', async ({ context }) => {
   const page = await startEditableSlideshow(context);
-  // Slides' ⋮ menu › Auto-play: every 5 seconds, loop, play. Its submenu opens on hover.
+  // Slides' ⋮ menu › Auto-play: every 5 seconds, loop, play.
   const own = page.frameLocator(PLAYER);
   await slideshowSettled(own);
-  async function autoPlay(nth) {
-    const more = own.locator('.punch-viewer-navbar-more');
-    if (!(await own.locator('.goog-menuitem[aria-haspopup]').filter({ visible: true }).count())) {
-      await more.dispatchEvent('mousedown');
-      await more.dispatchEvent('mouseup');
-    }
-    const box = await own
-      .locator('.goog-menuitem[aria-haspopup]')
-      .filter({ visible: true })
-      .first()
-      .boundingBox();
-    await page.mouse.move(box.x + 20, box.y + box.height / 2);
-    const submenu = own
-      .locator('[role="menu"]')
-      .filter({ has: own.locator('.goog-option') })
-      .filter({ visible: true });
-    await submenu.locator('[role^="menuitem"]').nth(nth).click();
-  }
-  await autoPlay(5); // Every 5 seconds.
-  await autoPlay(11); // Loop.
-  await autoPlay(0); // Play.
+  await autoPlay(page, own, 5); // Every 5 seconds.
+  await autoPlay(page, own, 11); // Loop.
+  await autoPlay(page, own, 0); // Play.
 
   await edit(page, SLIDE_3, 'Lisbon');
   await replaced(page);
@@ -558,8 +573,7 @@ test('presenting through Meet, a new player waiting out of sight leaves Meet wit
     timeout: 15000,
   });
   // Ready, the new player doesn't take over the slide Meet is on, even a moment later.
-  await page.waitForTimeout(2000);
-  expect(await meetHas(page)).toBe('Slides’ own');
+  await stays(() => meetHas(page), 'Slides’ own', 2000);
   // Moving on from Meet, the new player takes over on the slide moved to, and Meet has it.
   await meetPresses(page, 'goPrev');
   await expect.poll(() => shownSlide(page)).toBe(2);

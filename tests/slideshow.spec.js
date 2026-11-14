@@ -10,6 +10,7 @@ import {
   SLIDES,
   slideUrl,
   presentUrl,
+  stays,
 } from './fixtures.js';
 
 // Slide 3 of the test deck: two photos side by side and a caption text box.
@@ -65,9 +66,7 @@ test('Esc stays kept until the key that closed the gallery is released', async (
   await expect(stage(show)).toHaveCount(0);
   await page.keyboard.down('Escape'); // A repeat while held.
   // The repeat doesn't end the slideshow, even a moment later.
-  await page.waitForTimeout(300);
-  expect(await requests()).toEqual([true]);
-  expect(await slideNumber(show)).toBe(3);
+  await stays(async () => [await requests(), await slideNumber(show)], [[true], 3], 300);
   await page.keyboard.up('Escape');
   await expect.poll(requests).toEqual([true, false]);
 });
@@ -89,8 +88,7 @@ test('in the gallery, clicks, keys and the scroll wheel stay out of the slidesho
   await page.keyboard.press('Space');
   await expect(stage(show)).toHaveCount(0);
   // The keys that closed it don't also change the slide, even a moment later.
-  await page.waitForTimeout(500);
-  expect(await slideNumber(show)).toBe(3);
+  await stays(() => slideNumber(show), 3);
 });
 
 test('clicks away from images still change slides', async ({ context }) => {
@@ -139,9 +137,7 @@ test('with the pen on, clicking an image leaves it to the pen', async ({ context
   await expect(show.locator('.sketchyViewerContent.disable-pointer-events')).toHaveCount(1);
   await clickCentre(page, show.locator(`[id="${LEFT}"] image`));
   // With the pen on, nothing opens and the slide doesn't change, even a moment later.
-  await page.waitForTimeout(500);
-  await expect(stage(show)).toHaveCount(0);
-  expect(await slideNumber(show)).toBe(3);
+  await stays(async () => [await stage(show).count(), await slideNumber(show)], [0, 3]);
 });
 
 test('turning the setting off keeps clicks on images going to the next slide', async ({
@@ -184,8 +180,7 @@ test('holding the key that closes the gallery doesn’t skip slides', async ({ c
   for (let i = 0; i < 5; i++) await page.keyboard.down(' '); // Repeats while held.
   await page.keyboard.up(' ');
   // The repeats and the release don't change the slide, even a moment later.
-  await page.waitForTimeout(500);
-  expect(await slideNumber(show)).toBe(3);
+  await stays(() => slideNumber(show), 3);
   // Released, Space goes on to the next slide as usual.
   await page.keyboard.press(' ');
   await expect.poll(() => slideNumber(show)).toBe(4);
@@ -202,8 +197,8 @@ test('double clicking an image opens it, and the second click does nothing more'
   expect(point.y).toBeGreaterThan(photo.y);
   await page.mouse.dblclick(point.x, point.y);
   // The double click's second click doesn't close it, even a moment later.
-  await page.waitForTimeout(300);
   await expect(stage(show)).toBeVisible();
+  await stays(() => stage(show).isVisible(), true, 300);
   // A fresh click works as usual.
   await page.mouse.click(point.x, point.y);
   await expect(stage(show)).toHaveCount(0);

@@ -10,6 +10,7 @@ import {
   pictureShows,
   slideZoom,
   zoomSettled,
+  stays,
 } from './fixtures.js';
 
 // Slide 3's slideshow, once its photos show, in a window `viewport` big if given.
@@ -39,8 +40,7 @@ test('scrolling zooms in where the pointer is, and back out to the whole slide',
   // Scrolling on, fully zoomed out (as a trackpad does after the fingers lift), keeps the slide.
   for (let i = 0; i < 3; i++) await page.mouse.wheel(0, 300);
   // It stays on the slide, even a moment later.
-  await page.waitForTimeout(500);
-  expect(await slideNumber(show)).toBe(3);
+  await stays(() => slideNumber(show), 3);
 });
 
 // Zoomed all the way out is back to normal at once, even while the zoom is still easing out.
@@ -96,9 +96,13 @@ test('dragging while zoomed looks around without changing slides or spotlighting
   expect(after.x - before.x).toBe(60);
   expect(after.y - before.y).toBe(40);
   // The slide doesn't change, even a moment later.
-  await page.waitForTimeout(500);
-  expect(await slideNumber(show)).toBe(3);
-  await expect(show.locator('.slides-companion-spotlight')).toHaveCount(0);
+  await stays(
+    async () => [
+      await slideNumber(show),
+      await show.locator('.slides-companion-spotlight').count(),
+    ],
+    [3, 0],
+  );
 });
 
 // Nothing a press does while zoomed in reaches Slides: not a click, nor two quick drags (a double
@@ -124,9 +128,13 @@ test('while zoomed, clicks and drags never change slides', async ({ context }) =
   await page.mouse.move(x - 100, y - 60, { steps: 4 });
   await page.mouse.up({ clickCount: 2 });
   // The slide doesn't change, even a moment later.
-  await page.waitForTimeout(500);
-  expect(await slideNumber(show)).toBe(3);
-  expect(await show.locator('html').evaluate(() => window.reachedSlides)).toEqual([]);
+  await stays(
+    async () => [
+      await slideNumber(show),
+      await show.locator('html').evaluate(() => window.reachedSlides),
+    ],
+    [3, []],
+  );
 });
 
 // Zoomed in, what shows a pointing hand can still be clicked: an image opens in the spotlight.
@@ -425,8 +433,7 @@ test('a press stays the zoom’s until its click, whatever happens in between', 
   await page.mouse.move(x - 60, y - 30, { steps: 2 });
   await page.mouse.up();
   // The slide doesn't change, even a moment later.
-  await page.waitForTimeout(500);
-  expect(await slideNumber(show)).toBe(3);
+  await stays(() => slideNumber(show), 3);
 });
 
 test('changing slides while zoomed starts the next slide whole', async ({ context }) => {
@@ -468,8 +475,7 @@ test('on a black screen, + brings the slide back whole', async ({ context }) => 
   await page.keyboard.press('+');
   await expect(show.locator('.punch-viewer-interruption-black')).toBeHidden();
   // The zoom doesn't change, even a moment later.
-  await page.waitForTimeout(300);
-  expect(await slideZoom(show)).toEqual({ scale: 1, x: 0, y: 0 });
+  await stays(() => slideZoom(show), { scale: 1, x: 0, y: 0 }, 300);
   await page.keyboard.press('+');
   await expect.poll(() => slideZoom(show).then(({ scale }) => scale)).toBe(1.5);
 });
@@ -548,8 +554,7 @@ test('with scrolling set to do nothing, + still zooms, and drawing keeps the zoo
   await page.keyboard.press('Shift+L');
   await drawStroke(page, [500, 300], [700, 400]);
   // Drawing doesn't change the zoom, even a moment later.
-  await page.waitForTimeout(500);
-  expect((await slideZoom(show)).scale).toBe(2.25);
+  await stays(() => slideZoom(show).then(({ scale }) => scale), 2.25);
 });
 
 test('with the pointer over a video, + zooms into the video', async ({ context }) => {
@@ -618,8 +623,7 @@ test('keys and clicks still change slides', async ({ context }) => {
   await page.mouse.move(width / 2, height / 2);
   await page.mouse.wheel(0, 300);
   // The slide doesn't change, even a moment later.
-  await page.waitForTimeout(300);
-  expect(await slideNumber(show)).toBe(3);
+  await stays(() => slideNumber(show), 3, 300);
   // Slide 4 has a video, where Slides' ← does nothing, so this goes back a slide and returns.
   await page.keyboard.press('PageUp');
   await expect.poll(() => slideNumber(show)).toBe(2);

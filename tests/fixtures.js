@@ -257,6 +257,23 @@ export async function stopsChanging(read) {
     .toBe(true);
 }
 
+// Calls `look()` every tenth of a second for `ms`, and once more at the end: for what has to hold
+// for a while, where there's no event to wait for.
+export async function during(ms, look) {
+  const end = Date.now() + ms;
+  do {
+    await look();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+  } while (Date.now() < end);
+  await look();
+}
+
+// What shouldn't happen doesn't, even a moment later: `read()` keeps giving `expected` for `ms`,
+// looked at throughout, so a change that comes and goes fails too. Nothing happening has no event
+// to wait for, which is why this watches for a set time rather than waiting on a condition.
+export const stays = (read, expected, ms = 500) =>
+  during(ms, async () => expect(await read()).toEqual(expected));
+
 // Scrolling eases to its zoom; this waits until it's there.
 // An object that flies in from above as its slide starts, once it's on the slide and has stopped:
 // hidden or clicked while it's still moving, the animation has the last word.

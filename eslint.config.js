@@ -51,4 +51,11 @@ export default [
     files: ['tests/**/*.js'],
     ...playwright.configs['flat/recommended'],
   },
+  {
+    files: ['tests/**/*.js'],
+    rules: {
+      // stays (fixtures.js) asserts that something holds for a while: a test that ends on it checks.
+      'playwright/expect-expect': ['warn', { assertFunctionNames: ['stays'] }],
+    },
+  },
 ];

@@ -7,6 +7,7 @@ import {
   IDS,
   inEditor,
   presentUrl,
+  stays,
 } from './fixtures.js';
 
 // Our keys in Slides' Keyboard shortcuts dialog (Help › Keyboard shortcuts, ⌘+/ or Ctrl+/).
@@ -163,8 +164,7 @@ test('during a slideshow, the dialog lists the keys that work there, and typing 
   await expect(search(dialog)).toHaveValue('Spot');
   await expect(categories(dialog)).toHaveText(['Slides Companion']);
   // Typing in the search box opens nothing, even a moment later.
-  await page.waitForTimeout(500);
-  expect(context.pages()).toHaveLength(pages);
+  await stays(async () => context.pages().length, pages);
 });
 
 test.describe('with links opening in a new tab', () => {

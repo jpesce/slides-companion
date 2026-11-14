@@ -12,6 +12,7 @@ import {
   presentUrl,
   stopsChanging,
   flownIn,
+  stays,
 } from './fixtures.js';
 
 // Slide 4 of the test deck: a photo linked to google.com, and a video. The photo flies in from
@@ -133,8 +134,7 @@ test('linked words open over the slide too, but not before they show', async ({ 
   await words.evaluate((box) => (box.style.opacity = '0'));
   await clickCentre(page, words.locator('a'));
   // Nothing opens, even a moment later.
-  await page.waitForTimeout(500);
-  await expect(stage(show)).toHaveCount(0);
+  await stays(() => stage(show).count(), 0);
 });
 
 test('the page can be browsed, and the ✕ brings the slide back', async ({ context }) => {
@@ -173,8 +173,7 @@ test('Ctrl/⌘-click on a link is left to Slides', async ({ context }) => {
   await clickLink(page, show);
   await page.keyboard.up('ControlOrMeta');
   // Nothing opens over the slide, even a moment later.
-  await page.waitForTimeout(500);
-  await expect(stage(show)).toHaveCount(0);
+  await stays(() => stage(show).count(), 0);
 });
 
 test('set to open links in a new tab, a click opens a new tab as Slides does', async ({
@@ -239,9 +238,11 @@ test('a page can’t take over the slideshow’s window', async ({ context }) =>
       .getByRole('heading', { name: 'Busting' }),
   ).toBeVisible();
   // The page's script has had its moment to take the window, and didn't.
-  await page.waitForTimeout(1000);
-  expect(page.url()).toContain('/edit');
-  await expect(stage(show)).toBeVisible();
+  await stays(
+    async () => [page.url().includes('/edit'), await stage(show).isVisible()],
+    [true, true],
+    1000,
+  );
 });
 
 // Opened from a /present link, Slides sends links through google.com/url.
@@ -416,8 +417,7 @@ test('a link that isn’t shown yet leaves the click to the slideshow', async ({
   await show.locator(`[id="${LINKED_PHOTO}"]`).evaluate((photo) => (photo.style.opacity = '0'));
   await clickLink(page, show);
   // Nothing opens, even a moment later.
-  await page.waitForTimeout(500);
-  await expect(stage(show)).toHaveCount(0);
+  await stays(() => stage(show).count(), 0);
 });
 
 // A page can take the keys as it opens (a search box), where the slideshow can't hear Esc.
@@ -438,8 +438,7 @@ test('a page can’t take the keys until the pointer goes over it, so Esc still 
   await clickLink(page, show);
   await expect(input).toBeAttached();
   // The page's script tries to take the keys 300 ms after it loads; it still hasn't them after.
-  await page.waitForTimeout(600);
-  expect(await keysInPage()).toBe(false);
+  await stays(keysInPage, false, 600);
   await page.keyboard.press('Escape');
   await expect(stage(show)).toHaveCount(0);
 
@@ -672,8 +671,7 @@ test('a site that lets itself be shown never shows the message', async ({ contex
       .getByRole('heading', { name: 'Hello from the link' }),
   ).toBeVisible();
   // No message comes once the check is over, a moment later.
-  await page.waitForTimeout(1500);
-  await expect(refusal(show)).toHaveCount(0);
+  await stays(() => refusal(show).count(), 0, 1500);
   // Checked and done: nothing's left loading out of sight.
   await expect(stage(show).locator('.slides-companion-spotlight-probe')).toHaveCount(0);
 });

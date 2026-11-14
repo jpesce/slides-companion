@@ -5,6 +5,7 @@ import {
   startSlideshow,
   slideshowSettled,
   slideNumber,
+  stays,
 } from './fixtures.js';
 
 // Presenter view, as it opens on one screen: floating over the slideshow, in Chrome's
@@ -108,8 +109,7 @@ test('closed in full screen, the slideshow goes on; leaving full screen while it
   await page.evaluate(() => document.exitFullscreen());
   await expect.poll(() => isFullScreen(page)).toBe(false);
   // Not even a moment later.
-  await page.waitForTimeout(500);
-  await expect(page.locator('iframe.punch-present-iframe')).toBeVisible();
+  await stays(() => page.locator('iframe.punch-present-iframe').isVisible(), true);
 
   // With the window open, leaving full screen (Esc) ends the slideshow, as it does in Slides.
   await fullScreen(page, show);

@@ -9,6 +9,7 @@ import {
   pictureShows,
   IDS,
   zoomSettled,
+  stays,
 } from './fixtures.js';
 
 // Slide 3's slideshow, once its photos show, in a window `viewport` big if given.
@@ -32,6 +33,7 @@ const saved = (context) =>
 
 // Draws with the pen and leaves the slideshow, once the stroke is saved (unless keeping is off).
 async function drawAndLeave(context, draw, { keeping = true } = {}) {
+  const before = await saved(context);
   const { page, show } = await startShow(context);
   await page.keyboard.press('Shift+L');
   await draw(page);
@@ -39,7 +41,7 @@ async function drawAndLeave(context, draw, { keeping = true } = {}) {
   const kept = await penLayer(show).locator(`:scope > :is(${KEPT})`).count();
   if (keeping) await expect.poll(() => saved(context)).toBe(kept + drawn.length);
   // Off, nothing is saved, even a moment later.
-  else await page.waitForTimeout(300);
+  else await stays(() => saved(context), before, 300);
   await page.close();
   return drawn;
 }
@@ -92,10 +94,9 @@ test('with keeping turned off in Settings, as in Slides, the pen’s ink goes wh
   await drawAndLeave(context, (page) => drawStroke(page, [400, 300], [600, 420]), {
     keeping: false,
   });
-  const { page, show } = await startShow(context);
+  const { show } = await startShow(context);
   // No kept ink comes, even a moment after the slide shows.
-  await page.waitForTimeout(500);
-  await expect(ink(show)).toHaveCount(0);
+  await stays(() => ink(show).count(), 0);
 });
 
 test.describe('kept from the start', () => {
@@ -208,8 +209,7 @@ test.describe('kept from the start', () => {
     await page.keyboard.press('Shift+A');
     await expect(search).toHaveValue('A');
     // Typed there, it erases nothing, even a moment later.
-    await page.waitForTimeout(300);
-    await expect(show.locator(KEPT)).toHaveCount(1);
+    await stays(() => show.locator(KEPT).count(), 1, 300);
   });
 
   for (const [way, eraseAll] of Object.entries(ERASE_ALL)) {
@@ -228,8 +228,7 @@ test.describe('kept from the start', () => {
       const again = await startShow(context);
       await expect(again.show.locator('.punch-viewer-svgpage-a11yelement')).toHaveCount(1);
       // No kept ink comes back, even a moment after the slide shows.
-      await again.page.waitForTimeout(500);
-      await expect(ink(again.show)).toHaveCount(0);
+      await stays(() => ink(again.show).count(), 0);
     });
   }
 });

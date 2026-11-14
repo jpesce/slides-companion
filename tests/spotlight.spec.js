@@ -9,6 +9,7 @@ import {
   stage,
   slideUrl,
   SLIDES,
+  stays,
 } from './fixtures.js';
 
 // Slide 3 of the test deck: two photos side by side and a caption text box.
@@ -23,9 +24,11 @@ const buttonsIn = (bar) =>
       buttons.filter((button) => button.checkVisibility()).map((button) => button.ariaLabel),
     );
 const selected = (page) =>
-  page.$$eval('#workspace path[stroke="#8ab4f8"]', (outlines) => [
-    ...new Set(outlines.map((outline) => outline.closest('[id^="editor-"]').id)),
-  ]);
+  page
+    .locator('#workspace path[stroke="#8ab4f8"]')
+    .evaluateAll((outlines) => [
+      ...new Set(outlines.map((outline) => outline.closest('[id^="editor-"]').id)),
+    ]);
 // Which object the spotlight shows, and the position it announces.
 const showing = (page) =>
   page.evaluate(() => ({
@@ -176,8 +179,7 @@ test('the bar shows when the gallery opens, then only when the pointer is above 
   await page.mouse.move(width / 2 + 20, height / 2 + 20);
   await page.keyboard.press('ArrowRight');
   // The bar stays hidden, even a moment later.
-  await page.waitForTimeout(500);
-  await expect(bar).toHaveCSS('opacity', '0');
+  await stays(() => bar.evaluate((element) => getComputedStyle(element).opacity), '0');
 
   // Above or below the picture, it shows.
   await page.mouse.move(width / 3, 40);
@@ -259,8 +261,7 @@ test('the bar’s buttons show Slides’ tooltip: after a moment, above the butt
   await page.mouse.up();
   await expect(tooltip).toBeHidden();
   // It stays hidden while the pointer stays.
-  await page.waitForTimeout(600);
-  await expect(tooltip).toBeHidden();
+  await stays(() => tooltip.isHidden(), true, 600);
   // Next is now disabled (the last image), and still says what it is.
   await expect(next).toBeDisabled();
   await pointTo(page, stage(page).locator('.slides-companion-spotlight-page'));
@@ -346,8 +347,7 @@ test('Space does nothing when the selection has no image', async ({ context }) =
 
   await page.keyboard.press('Space');
   // Nothing opens, even a moment later.
-  await page.waitForTimeout(300);
-  await expect(stage(page)).toHaveCount(0);
+  await stays(() => stage(page).count(), 0, 300);
 });
 
 test('the right-click menu offers Spotlight image for images only', async ({ context }) => {
@@ -457,8 +457,7 @@ test('holding Space keeps the gallery open', async ({ context }) => {
   for (let i = 0; i < 5; i++) await page.keyboard.down(' '); // Repeats while held.
   await page.keyboard.up(' ');
   // The repeats and the release don't close it, even a moment later.
-  await page.waitForTimeout(300);
-  await expect(stage(page)).toBeVisible();
+  await stays(() => stage(page).isVisible(), true, 300);
 });
 
 // Slide 4 of the test deck has a video, which Slides draws as its first frame under a play button.
@@ -472,6 +471,5 @@ test('videos aren’t spotlighted', async ({ context }) => {
   await expect.poll(() => selected(page)).toEqual([inEditor(IDS.video)]);
   await page.keyboard.press('Space');
   // Nothing opens, even a moment later.
-  await page.waitForTimeout(300);
-  await expect(stage(page)).toHaveCount(0);
+  await stays(() => stage(page).count(), 0, 300);
 });

@@ -1,4 +1,4 @@
-import { test, expect, openSettings, IDS, inEditor, slideUrl, SLIDES } from './fixtures.js';
+import { test, expect, openSettings, IDS, inEditor, slideUrl, SLIDES, stays } from './fixtures.js';
 
 // Slide 3 of the test deck, in the editor.
 const SLIDE_3 = SLIDES.images;
@@ -51,8 +51,7 @@ test('set to do nothing, scrolling stays on the slide, but still moves around a 
   await page.mouse.move(700, 350);
   for (let i = 0; i < 3; i++) await page.mouse.wheel(0, 300);
   // It stays on the slide, even a moment later.
-  await page.waitForTimeout(500);
-  expect(await current(page)).toBe(SLIDE_3);
+  await stays(() => current(page), SLIDE_3);
   // As in Slides, the wheel is cancelled where the slide can't scroll, so the browser doesn't take
   // it either (on a Mac, swiping sideways would go back a page).
   expect(await lastWheelCancelled(page)).toBe(true);
@@ -74,6 +73,5 @@ test('set to do nothing, scrolling stays on the slide, but still moves around a 
   // Past the bottom, it still stays on the slide.
   for (let i = 0; i < 6; i++) await page.mouse.wheel(0, 300);
   // It stays on the slide, even a moment later.
-  await page.waitForTimeout(500);
-  expect(await current(page)).toBe(SLIDE_3);
+  await stays(() => current(page), SLIDE_3);
 });

@@ -24,6 +24,14 @@ const words = (locale) =>
 for (const locale of Object.keys(locales).filter((locale) => locale !== 'en')) {
   const hl = SLIDES_CODE[locale] ?? locale;
   const rightToLeft = RIGHT_TO_LEFT.includes(locale);
+  // Next and back, as Slides points them here: written right to left, ← is the next one.
+  const [forward, back] = rightToLeft ? ['←', '→'] : ['→', '←'];
+  // Our View item's O is marked in our words, or written after them, "(O)", where they haven't it.
+  const hasO = [...words(locale).showFloatingNotes].some((letter) => letter.toLowerCase() === 'o');
+  // Slides' View items written the same way ("(P)" after the words adds a pixel).
+  const sameForm = hasO
+    ? ':not(:has(.goog-menuitem-mnemonic-separator))'
+    : ':has(.goog-menuitem-mnemonic-separator)';
 
   test.describe(locale, () => {
     test.use({ slidesLanguage: hl });
@@ -53,7 +61,6 @@ for (const locale of Object.keys(locales).filter((locale) => locale !== 'en')) {
       await page.keyboard.press(process.platform === 'darwin' ? 'Control+Alt+v' : 'Alt+v');
       const notesItem = page.locator('.slides-companion-notes-menuitem');
       const notesWords = text('showFloatingNotes');
-      const hasO = [...notesWords].some((character) => character.toLowerCase() === 'o');
       await expect(notesItem).toHaveText(hasO ? notesWords : `${notesWords}(O)`);
       await expect(notesItem.locator('.goog-menuitem-label')).toHaveAttribute(
         'aria-label',
@@ -63,10 +70,7 @@ for (const locale of Object.keys(locales).filter((locale) => locale !== 'en')) {
         'text-decoration-line',
         'underline',
       );
-      // As tall as Slides' items written the same way ("(P)" after the words adds a pixel).
-      const sameForm = hasO
-        ? ':not(:has(.goog-menuitem-mnemonic-separator))'
-        : ':has(.goog-menuitem-mnemonic-separator)';
+      // As tall as Slides' items written the same way.
       await oneLine(
         notesItem,
         page
@@ -165,7 +169,6 @@ for (const locale of Object.keys(locales).filter((locale) => locale !== 'en')) {
           DIALOG,
         );
       const caps = (key) => text(key).split(' ');
-      const [forward, back] = rightToLeft ? ['←', '→'] : ['→', '←'];
       expect(rows).toEqual([
         [text('shortcutSpotlight'), [caps('dialogKeySpace')]],
         [text('shortcutNextImage'), [[forward], text('shortcutOr'), ['↓']]],

@@ -6,6 +6,7 @@ import {
   slideNumber,
   slideUrl,
   SLIDES,
+  stays,
 } from './fixtures.js';
 
 // Slide 3 of the test deck has no notes; slide 4 has five paragraphs of lorem ipsum, a blank
@@ -55,12 +56,8 @@ test('Shift+S opens the slide’s notes in a floating window that follows the sl
     expect(paragraph).not.toMatch(/[a-z][A-Z]|\s\s|[.,][a-zA-Z]/);
   }
 
-  // And on, from the slideshow. (Slide 4 has a video, where Slides' ← does nothing, and its
-  // first key can go to the video's step instead.)
-  for (let tries = 0; (await slideNumber(show)) !== 5 && tries < 3; tries++) {
-    await page.keyboard.press('PageDown');
-    await reaches(show, 5);
-  }
+  // And on, from the slideshow. (Slide 4 has a video, where Slides' ← does nothing.)
+  await pressUntil(page.keyboard, 'PageDown', show, 5);
   await expect(header(notes)).toHaveText(/^\D*5\D+11$/);
   await expect(body(notes)).not.toHaveText(new RegExp(`^${SLIDE_4_STARTS}`));
 
@@ -229,7 +226,11 @@ test('the floating notes look like presenter view’s and zoom like them', async
   await notes.getByRole('button', { name: 'Zoom in' }).click();
   expect(await scale()).toBeCloseTo(1.15 ** 2);
   const zoomOut = notes.getByRole('button', { name: 'Zoom out' });
-  for (let step = 0; step < 10; step++) await zoomOut.click({ force: true });
+  // On past the smallest, as a presenter clicking on would: a click on a disabled button changes
+  // nothing. (The mouse, as Playwright's click would wait for the button to be enabled.)
+  const box = await zoomOut.boundingBox();
+  for (let step = 0; step < 10; step++)
+    await notes.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
   expect(await scale()).toBeCloseTo(1.15 ** -6);
   await expect(zoomOut).toHaveClass(/jfk-button-disabled/);
   await notes.getByRole('button', { name: 'Zoom in' }).click();
@@ -256,12 +257,21 @@ async function openNotesLeavingFullScreen(context, page) {
 const isFullScreen = (page) => page.evaluate(() => Boolean(document.fullscreenElement));
 // For about a second and a half after the notes window opens, the slideshow ignores leaving full
 // screen, as opening a window does that (notes.js marks the page meanwhile).
-// Waits for the slideshow to get to a slide, for a moment: the key may have gone to a video's step.
-const reaches = (show, number) =>
-  expect
-    .poll(() => slideNumber(show), { timeout: 1500 })
-    .toBe(number)
-    .catch(() => {});
+// Presses `key` until the slideshow is on slide `number`. Slide 4 has a video, where a key can go
+// to the video's step instead of the next slide, so it may take two presses; a slide change that's
+// only slow isn't pressed past.
+async function pressUntil(keyboard, key, show, number) {
+  await expect(async () => {
+    if ((await slideNumber(show)) !== number) await keyboard.press(key);
+    await expect.poll(() => slideNumber(show), { timeout: 1500 }).toBe(number);
+  }).toPass({ timeout: 10_000 });
+}
+// Presses ↓ in an open menu until `item` is highlighted.
+const arrowDownTo = (page, item) =>
+  expect(async () => {
+    await page.keyboard.press('ArrowDown');
+    await expect(item).toHaveClass(/goog-menuitem-highlight/, { timeout: 100 });
+  }).toPass({ intervals: [0], timeout: 10_000 });
 const notesOpened = (page) =>
   expect(page.locator('html')).not.toHaveAttribute('data-slides-companion-opening-notes');
 
@@ -299,9 +309,10 @@ test('opening the floating notes keeps the slideshow going in a window, and thei
 
   const notes = await openNotesLeavingFullScreen(context, page);
   // The slideshow doesn't end a moment later either.
-  await page.waitForTimeout(500);
-  await expect(page.locator('iframe.punch-present-iframe')).toBeVisible();
-  expect(notes.isClosed()).toBe(false);
+  await stays(
+    async () => [await page.locator('iframe.punch-present-iframe').isVisible(), notes.isClosed()],
+    [true, false],
+  );
   await expect(button(notes)).toBeVisible();
   await expect(button(notes)).toHaveText('Full screen');
 
@@ -333,8 +344,7 @@ test('closing the floating notes in full screen keeps the slideshow going', asyn
   await notes.close();
   await page.evaluate(() => document.exitFullscreen());
   await expect.poll(() => isFullScreen(page)).toBe(false);
-  await page.waitForTimeout(500);
-  await expect(page.locator('iframe.punch-present-iframe')).toBeVisible();
+  await stays(() => page.locator('iframe.punch-present-iframe').isVisible(), true);
 });
 
 // The slideshow's ⋮ menu takes the keyboard when ⋮ is reached with Tab and opened with Space or
@@ -497,12 +507,8 @@ test('the floating notes leave out what Slides writes in an empty notes box', as
       parent.insertBefore(paragraph, next);
   });
   await expect(body(notes).locator(':scope > *')).toHaveCount(9);
-  // Slide 4 has a video, where Slides' ← does nothing, so this goes on a slide and back. Its first
-  // key can go to the video's step instead.
-  for (let tries = 0; (await slideNumber(show)) !== 5 && tries < 3; tries++) {
-    await notes.keyboard.press('PageDown');
-    await reaches(show, 5);
-  }
+  // Slide 4 has a video, where Slides' ← does nothing, so this goes on a slide and back.
+  await pressUntil(notes.keyboard, 'PageDown', show, 5);
   expect(await slideNumber(show)).toBe(5);
   await expect(body(notes)).not.toHaveText(new RegExp(`^${SLIDE_4_STARTS}`));
   await notes.keyboard.press('PageUp');
@@ -519,8 +525,7 @@ test('the floating notes stay open after the slideshow, and follow the slide sel
   await page.keyboard.press('Escape');
   await expect(page.locator('iframe.punch-present-iframe')).toBeHidden();
   // Nor does the window close a moment later.
-  await page.waitForTimeout(500);
-  expect(notes.isClosed()).toBe(false);
+  await stays(async () => notes.isClosed(), false);
 
   // Named in the slideshow's words.
   const slideshowWords = (await header(notes).textContent()).replace(/\d+/g, '#');
@@ -540,20 +545,17 @@ test('the arrow keys reach Show floating notes in View, and Enter opens them', a
 }) => {
   const page = await context.newPage();
   await page.goto(slideUrl(SLIDES.images));
-  await page.waitForSelector('#speakernotes');
+  await expect(page.locator('#speakernotes')).toBeVisible({ timeout: 30_000 });
   const item = page.locator('.slides-companion-notes-menuitem');
   const speakerNotes = page.locator('.goog-menuitem:has(+ .slides-companion-notes-menuitem)');
   const filmstrip = page.locator('.slides-companion-notes-menuitem + .goog-menuitem');
   const highlighted = page.locator(
     '.goog-menu:has(.slides-companion-notes-menuitem) .goog-menuitem-highlight',
   );
-  const isHighlighted = (element) =>
-    element.evaluate((node) => node.classList.contains('goog-menuitem-highlight'));
   await page.locator('#docs-view-menu').click();
   await expect(item).toBeVisible();
   await page.mouse.move(5, 300);
-  for (let i = 0; i < 20 && !(await isHighlighted(speakerNotes)); i++)
-    await page.keyboard.press('ArrowDown');
+  await arrowDownTo(page, speakerNotes);
   await page.keyboard.press('ArrowDown');
   await expect(item).toHaveClass(/goog-menuitem-highlight/);
   await expect(highlighted).toHaveCount(1);
@@ -581,8 +583,7 @@ test('the arrow keys reach Show floating notes in View, and Enter opens them', a
   await expect(item).toBeVisible();
   await expect(highlighted).toHaveCount(0);
   await page.mouse.move(5, 300);
-  for (let i = 0; i < 20 && !(await isHighlighted(speakerNotes)); i++)
-    await page.keyboard.press('ArrowDown');
+  await arrowDownTo(page, speakerNotes);
   await page.keyboard.press('ArrowDown');
 
   const opened = context.waitForEvent('page');
@@ -604,7 +605,7 @@ test('O chooses Show floating notes in View, as Slides’ letters choose its ite
 }) => {
   const page = await context.newPage();
   await page.goto(slideUrl(SLIDES.images));
-  await page.waitForSelector('#speakernotes');
+  await expect(page.locator('#speakernotes')).toBeVisible({ timeout: 30_000 });
   const item = page.locator('.slides-companion-notes-menuitem');
   const speakerNotes = page.locator('.goog-menuitem:has(+ .slides-companion-notes-menuitem)');
   const letter = (menuItem) => menuItem.locator('.goog-menuitem-mnemonic-hint');
@@ -674,7 +675,7 @@ test('View › Show floating notes opens them before presenting, and they stay o
 }) => {
   const page = await context.newPage();
   await page.goto(slideUrl(SLIDES.images));
-  await page.waitForSelector('#speakernotes');
+  await expect(page.locator('#speakernotes')).toBeVisible({ timeout: 30_000 });
   const menuItem = page.locator('.slides-companion-notes-menuitem');
   const openView = async () => {
     await page.locator('#docs-view-menu').click();
@@ -693,8 +694,12 @@ test('View › Show floating notes opens them before presenting, and they stay o
       const { height, padding, font, color, backgroundImage } = getComputedStyle(node);
       return { height, padding, font, color, backgroundImage };
     });
-  for (const part of ['', '.goog-menuitem-label', '.goog-menuitem-checkbox']) {
-    const pick = (item) => (part ? item.locator(part) : item);
+  const parts = [
+    (item) => item,
+    (item) => item.locator('.goog-menuitem-label'),
+    (item) => item.locator('.goog-menuitem-checkbox'),
+  ];
+  for (const pick of parts) {
     expect(await look(pick(menuItem))).toEqual(await look(pick(speakerNotes)));
   }
   await menuItem.hover();
