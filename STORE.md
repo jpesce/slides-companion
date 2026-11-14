@@ -45,7 +45,7 @@ The store's icon (Store listing › Graphic assets) is `extension/icons/icon128.
 
 ## Video
 
-The store's "YouTube video" field (Store listing › Graphic assets) shows a video at the top of the listing, before the screenshots. Ours is the demo video, `build/demo/slides-companion-demo.mp4`, made by `npm run demo:finish` from the After Effects edit ([CONTRIBUTING.md](CONTRIBUTING.md#pictures-and-the-demo-video) says how to bring it up to date). It has quiet music and interface sounds, and its headlines sit at the top, clear of YouTube's controls.
+The store's "YouTube video" field (Store listing › Graphic assets) shows a video at the top of the listing, before the screenshots. Ours is the demo video, `build/demo/slides-companion-demo.mp4`, made by `npm run demo:finish` from the After Effects edit ([CONTRIBUTING.md](CONTRIBUTING.md#pictures-and-the-demo-video) says how to bring it up to date).
 
 1. Upload it to YouTube, as Public or Unlisted (the store plays either), with the title "Slides Companion: presenter tools for Google Slides™" and this description:
 
@@ -63,7 +63,7 @@ The README plays a lighter copy, `build/demo/slides-companion-demo-readme.mp4`, 
 
 **Permission justifications:**
 
-- `storage`: saves the presenter's settings, drawings, timer time for each deck, and the floating notes window's size and zoom.
+- `storage`: saves the presenter's settings, drawings, timer time for each deck, the floating notes window's size and zoom, and when live edits last stopped working, on the presenter's computer.
 - `scripting`: when the presenter allows every site, runs a small script in pages opened over the slide during a slideshow, so Esc returns to the slideshow and the bar shows the page's site.
 - `declarativeNetRequestWithHostAccess`: when the presenter allows every site, lets a page open over the slide in the presenting tab, by removing the X-Frame-Options and Content-Security-Policy response headers of frames in that tab (never Google Slides' own), only while the page is open.
 - Host permission `https://docs.google.com/presentation/*`: adds the tools to Google Slides.

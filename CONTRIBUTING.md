@@ -36,20 +36,7 @@ brand/       the companion, our mascot: the icon and every picture of him
 kanban/      the work board, one card per deliverable
 ```
 
-In `extension/`, `manifest.json` loads each script where it's needed:
-
-| Where | Scripts |
-|---|---|
-| The editor, in the page's own world, from the start | `presenter-view-main.js` (hands Slides a floating window for presenter view), `live-edits-main.js` |
-| The editor | `settings.js`, `messages.js`, `i18n.js`, `content.js`, `slides-dom.js` (what we know about Slides' page), `ui.js` (Slides' tooltip and icons) and `menus.js` (shared by every feature), then `illustrations.js`, `settings-dialog.js`, `companion-drawing.js` and `companion.js` (the toolbar button), `stage.js` (the black stage that Spotlight and links show on) and `spotlight.js`, `scroll.js`, `live-edits.js`, `notes.js`, `presenter-view.js`, `shortcuts.js` |
-| The slideshow, in every frame, in the page's own world | `presenter-view-main.js`, `live-edits-frame.js` |
-| The slideshow, in every frame | the shared scripts, then `zoom.js`, `ink.js`, `stage.js`, `links.js` (a link's page over the slide), `spotlight.js`, `notes.js`, `presenter-view.js`, `shortcuts.js` |
-| Presenter view (a blank page Slides opens) | `settings.js`, `messages.js`, `i18n.js`, `ui.js`, `countdown.js` |
-| The service worker | `background.js` (and `dev-reload.js`, which the release build leaves out) |
-| Every site, once the presenter allows all sites | `page.js`, registered by `background.js` |
-| Frames of our own | `all-sites.html` (in Settings) and `refused.html` (over the slide) |
-
-Scripts share what they need through `globalThis.slidesCompanion`. Slides' colours are named once, in `palette.css`, for every stylesheet. What the extension reads from Slides' page (its selectors, the slide shown, the pen) is in `slides-dom.js`: when Slides changes, start there. Each file's first comment says what it does.
+In `extension/`, `manifest.json` says which scripts load where: in the editor, in every frame of the slideshow, in presenter view and in the service worker. Each file's first comment says what it does. Scripts share what they need through `globalThis.slidesCompanion`. Slides' colours are named once, in `palette.css`, for every stylesheet. What the extension reads from Slides' page (its selectors, the slide shown, the pen) is in `slides-dom.js`: when Slides changes, start there.
 
 ## Tests
 
@@ -66,7 +53,7 @@ A full run takes about 20 minutes, four tests at a time. Slides limits a deck op
 - `npm run chromium`: open that Chromium with the extension, to click around.
 - `npm run test:build`: every test on the release build.
 
-Regular Chrome stopped accepting `--load-extension` in version 137, which is why the tests use Chromium. Auto-reload doesn't work there, and the tests don't need it, since each run starts fresh.
+Regular Chrome stopped accepting `--load-extension` in version 137, which is why the tests use Chromium.
 
 ## Code style
 
@@ -89,7 +76,7 @@ The tests check that every language has every message, with the same placeholder
 - `npm run brand` draws the companion, our mascot, into `brand/`, Chrome's icons in `extension/icons/` and the toolbar button's picture in `extension/companion-drawing.js`. [brand/README.md](brand/README.md) says which file goes where.
 - `npm run illustrations` draws the picture at the top of each feature's page in Settings, into `extension/illustrations.js`.
 - The demo video is animated in After Effects from pictures our scripts capture on its own deck (set `DEMO_DECK_URL` for another), so it can catch up when the extension changes:
-  1. `npm run demo` captures what the edit animates, into `build/demo/stills/`: each slide as vector art, each state of the interface as a screenshot at 4×, and the companion peeking and blinking for the first and last screens. To capture one feature again, run `node scripts/demo/stills.mjs ui live` (or `spotlight`, `links`, `timer`, `notes`).
+  1. `npm run demo` captures what the edit animates, the slides and each state of the interface, into `build/demo/stills/`. To capture one feature again, run `node scripts/demo/stills.mjs ui live` (or `spotlight`, `links`, `timer`, `notes`).
   2. In the After Effects project, `build/demo/ae/slides-companion-demo.aep`, reload the changed stills and render the comp "Slides Companion demo" to `build/demo/ae/slides-companion-demo-video.mp4`. `build/` isn't in git, so the maintainer keeps the project.
   3. `npm run demo:finish` makes the sound, puts it on the render, and writes the store's video and the README's lighter copy into `build/demo/`. It needs [ffmpeg](https://ffmpeg.org). [STORE.md](STORE.md) says where each goes.
 
