@@ -21,4 +21,7 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run build
+      # Some offline tests open the extension without Slides: they need Playwright's Chromium (the
+      # full build, as the extension's tests launch `channel: 'chromium'`) and its headless shell.
+      - run: npx playwright install --with-deps chromium
       - run: npm run test:offline
